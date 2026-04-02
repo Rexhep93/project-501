@@ -129,6 +129,7 @@ def load_performances(base_path):
     total_rows = 0
 
     for chunk in pd.read_csv(csv_path, dtype=str, low_memory=False, chunksize=chunk_size):
+        chunk = chunk[chunk['season_name'] != '25/26']
         total_rows += len(chunk)
         print(f"  ... {total_rows:,} rijen verwerkt", end="\r")
 

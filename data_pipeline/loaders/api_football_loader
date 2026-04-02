@@ -26,7 +26,7 @@ from data_pipeline.loaders.db_loader import (
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-API_KEY = os.getenv("API_FOOTBALL_KEY")
+API_KEY = os.getenv("e6be61019fe72c14385c48ac96c081c9")
 BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io")
 
 # Huidig seizoen — update dit aan het begin van elk nieuw seizoen

@@ -1,0 +1,283 @@
+"""
+data_pipeline/loaders/api_football_loader.py
+
+Wekelijkse refresh van het HUIDIGE seizoen via API-Football.
+Gebruikt minimaal aantal API calls (100/dag limiet).
+
+Strategie:
+  - Alleen het lopende seizoen ophalen (historisch = FBref)
+  - Pagineren per competitie (20 spelers per pagina)
+  - Bijhouden welke pagina's al gedaan zijn om calls te besparen
+  - Maximaal ~60 calls per week voor 8 competities
+"""
+
+import os
+import time
+import json
+import logging
+import requests
+from datetime import datetime, date
+from dotenv import load_dotenv
+from data_pipeline.loaders.db_loader import (
+    get_connection, upsert_player, upsert_season_stats,
+    recalculate_career_totals, get_competition_id, upsert_club_safe
+)
+
+load_dotenv()
+logger = logging.getLogger(__name__)
+
+API_KEY = os.getenv("API_FOOTBALL_KEY")
+BASE_URL = os.getenv("API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io")
+
+# Huidig seizoen — update dit aan het begin van elk nieuw seizoen
+CURRENT_SEASON = 2024  # API-Football gebruikt startjaar (2024 = 2024/25)
+
+# API-Football league IDs voor onze competities
+# Gekoppeld aan FBref IDs in het schema
+LEAGUE_MAP = {
+    39:  "9",   # Premier League
+    140: "12",  # La Liga
+    78:  "20",  # Bundesliga
+    135: "11",  # Serie A
+    61:  "13",  # Ligue 1
+    88:  "23",  # Eredivisie
+    144: "37",  # Jupiler Pro League
+    94:  "32",  # Primeira Liga
+}
+
+HEADERS = {
+    "x-apisports-key": API_KEY,
+    "Content-Type": "application/json",
+}
+
+
+def check_remaining_calls() -> int:
+    """Controleer hoeveel API calls er nog over zijn vandaag."""
+    url = f"{BASE_URL}/status"
+    try:
+        response = requests.get(url, headers=HEADERS, timeout=10)
+        data = response.json()
+        remaining = data.get("response", {}).get("requests", {}).get("current", 0)
+        limit = data.get("response", {}).get("requests", {}).get("limit_day", 100)
+        used = data.get("response", {}).get("requests", {}).get("used", 0)
+        logger.info(f"API calls: {used} gebruikt, {limit - used} resterend vandaag")
+        return limit - used
+    except Exception as e:
+        logger.error(f"Status check mislukt: {e}")
+        return 0
+
+
+def fetch_players_page(league_id: int, season: int, page: int) -> dict | None:
+    """
+    Haal één pagina spelers op voor een competitie + seizoen.
+    Elke pagina bevat 20 spelers met volledige seizoensstatistieken.
+    """
+    url = f"{BASE_URL}/players"
+    params = {
+        "league": league_id,
+        "season": season,
+        "page": page,
+    }
+
+    try:
+        response = requests.get(url, headers=HEADERS, params=params, timeout=15)
+
+        if response.status_code == 429:
+            logger.warning("Rate limited. Wacht 60 seconden...")
+            time.sleep(60)
+            return fetch_players_page(league_id, season, page)
+
+        response.raise_for_status()
+        return response.json()
+
+    except requests.RequestException as e:
+        logger.error(f"API fout pagina {page}: {e}")
+        return None
+
+
+def parse_api_player(player_data: dict, league_id: int, season: int) -> tuple[dict, dict]:
+    """
+    Verwerk één speler uit de API-Football response.
+    Retourneert (player_profile, season_stats).
+    """
+    p = player_data.get("player", {})
+    stats_list = player_data.get("statistics", [])
+
+    # Speler profiel
+    profile = {
+        "api_football_id": p.get("id"),
+        "name": p.get("name", ""),
+        "nationality": p.get("nationality"),
+        "birth_date": p.get("birth", {}).get("date"),
+        "photo_url": p.get("photo"),
+        "position": _normalize_api_position(
+            stats_list[0].get("games", {}).get("position", "") if stats_list else ""
+        ),
+    }
+
+    # Stats — neem de eerste entry (voor deze league)
+    season_stats = {
+        "fbref_comp_id": LEAGUE_MAP.get(league_id, str(league_id)),
+        "season": f"{season}-{str(season + 1)[-2:]}",  # 2024 -> "2024-25"
+        "api_football_id": league_id,
+        "data_source": "api_football",
+    }
+
+    for s in stats_list:
+        if s.get("league", {}).get("id") == league_id:
+            games = s.get("games", {})
+            goals = s.get("goals", {})
+            cards = s.get("cards", {})
+            passes = s.get("passes", {})
+            shots = s.get("shots", {})
+
+            season_stats.update({
+                "club_name": s.get("team", {}).get("name", ""),
+                "appearances": games.get("appearences") or 0,  # API heeft typfout
+                "starts": games.get("lineups") or 0,
+                "minutes_played": games.get("minutes") or 0,
+                "goals": goals.get("total") or 0,
+                "assists": goals.get("assists") or 0,
+                "yellow_cards": cards.get("yellow") or 0,
+                "red_cards": cards.get("red") or 0,
+                "pass_accuracy": passes.get("accuracy"),
+                "shots": shots.get("total"),
+                "shots_on_target": shots.get("on"),
+            })
+            break
+
+    return profile, season_stats
+
+
+def _normalize_api_position(raw: str) -> str:
+    """Normaliseer API-Football positie naar GK/DF/MF/FW."""
+    mapping = {
+        "Goalkeeper": "GK",
+        "Defender": "DF",
+        "Midfielder": "MF",
+        "Attacker": "FW",
+    }
+    return mapping.get(raw, "MF")
+
+
+def refresh_league(league_id: int, season: int, max_calls: int = 10) -> int:
+    """
+    Refresh alle spelers van één competitie.
+    Stopt als max_calls bereikt is.
+    Retourneert aantal gebruikte calls.
+    """
+    fbref_id = LEAGUE_MAP.get(league_id, str(league_id))
+    logger.info(f"\n🔄 Refreshing league {league_id} (fbref: {fbref_id}), seizoen {season}")
+
+    calls_used = 0
+    page = 1
+    total_pages = None
+    all_records = []
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        while True:
+            if calls_used >= max_calls:
+                logger.warning(f"  Max calls ({max_calls}) bereikt voor league {league_id}")
+                break
+
+            data = fetch_players_page(league_id, season, page)
+            calls_used += 1
+
+            if not data or data.get("errors"):
+                logger.error(f"  Fout op pagina {page}: {data.get('errors') if data else 'geen response'}")
+                break
+
+            paging = data.get("paging", {})
+            total_pages = paging.get("total", 1)
+            players = data.get("response", [])
+
+            logger.info(f"  Pagina {page}/{total_pages}: {len(players)} spelers")
+
+            for player_data in players:
+                profile, season_stats = parse_api_player(player_data, league_id, season)
+
+                try:
+                    player_id = upsert_player(cursor, profile)
+                    upsert_season_stats(cursor, player_id, season_stats)
+                except Exception as e:
+                    logger.error(f"  DB fout voor {profile.get('name')}: {e}")
+                    conn.rollback()
+                    continue
+
+            conn.commit()
+
+            if page >= total_pages:
+                logger.info(f"  ✅ League {league_id} volledig refreshed ({page} pagina's)")
+                break
+
+            page += 1
+            time.sleep(1.5)  # Kleine pauze tussen pagina's
+
+    finally:
+        cursor.close()
+        conn.close()
+
+    return calls_used
+
+
+def run_weekly_refresh(season: int = CURRENT_SEASON):
+    """
+    Hoofdfunctie voor wekelijkse refresh.
+    
+    Verdeelt de 100 beschikbare calls slim over alle competities.
+    Elke competitie krijgt een eerlijk deel van de calls.
+    """
+    if not API_KEY:
+        logger.error("❌ API_FOOTBALL_KEY niet ingesteld in .env")
+        return
+
+    logger.info(f"🚀 Wekelijkse refresh gestart — seizoen {season}")
+    logger.info(f"   Datum: {date.today()}")
+
+    # Check hoeveel calls er nog zijn
+    remaining = check_remaining_calls()
+    if remaining < 10:
+        logger.error(f"❌ Te weinig API calls resterend: {remaining}")
+        return
+
+    # Verdeel calls eerlijk — houd 10 over als buffer
+    budget = remaining - 10
+    calls_per_league = max(1, budget // len(LEAGUE_MAP))
+    logger.info(f"   Budget: {budget} calls, {calls_per_league} per competitie")
+
+    total_used = 1  # Status call al gedaan
+    results = {}
+
+    for league_id in LEAGUE_MAP.keys():
+        used = refresh_league(league_id, season, max_calls=calls_per_league)
+        total_used += used
+        results[league_id] = used
+        logger.info(f"   League {league_id}: {used} calls gebruikt")
+
+        # Stop als budget bijna op is
+        if total_used >= budget:
+            logger.warning("Budget bijna op, stoppen met refresh")
+            break
+
+        time.sleep(2)  # Pauze tussen leagues
+
+    # Herbereken carrière totalen
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        recalculate_career_totals(cursor)
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+    logger.info(f"\n✅ Refresh klaar. Totaal gebruikt: {total_used} API calls")
+    logger.info(f"   Per league: {results}")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level="INFO")
+    run_weekly_refresh()

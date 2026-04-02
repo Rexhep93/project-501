@@ -111,27 +111,12 @@ def load_profiles(base_path):
 
 def safe_int(val):
     """Parse int, behandel '-', nan, lege strings als 0."""
-    if pd.isna(val) or val == "-" or val == "" or val == "nan":
-        return 0
-    
-    # Voor goals: check of het een decimaal is
-    val_str = str(val).strip()
-    
-    # Als het een decimaal getal is (bevat .)
-    if '.' in val_str:
-        try:
-            # Parse als float en rond af naar int
-            return int(float(val_str))
-        except ValueError:
-            pass
-    
-    # Voor minutes: verwijder ' en .
-    cleaned = val_str.replace(".", "").replace("'", "").strip()
     try:
-        return int(cleaned)
-    except ValueError:
+        if pd.isna(val) or str(val).strip() in ("-", "", "nan"):
+            return 0
+        return int(float(str(val).strip()))
+    except (ValueError, TypeError):
         return 0
-
 
 def load_performances(base_path):
     print("\n⚽ Stap 3: Laden van player_performances ...")

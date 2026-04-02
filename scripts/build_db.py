@@ -113,8 +113,20 @@ def safe_int(val):
     """Parse int, behandel '-', nan, lege strings als 0."""
     if pd.isna(val) or val == "-" or val == "" or val == "nan":
         return 0
-    # Minuten: "1.580'" → 1580
-    cleaned = str(val).replace(".", "").replace("'", "").strip()
+    
+    # Voor goals: check of het een decimaal is
+    val_str = str(val).strip()
+    
+    # Als het een decimaal getal is (bevat .)
+    if '.' in val_str:
+        try:
+            # Parse als float en rond af naar int
+            return int(float(val_str))
+        except ValueError:
+            pass
+    
+    # Voor minutes: verwijder ' en .
+    cleaned = val_str.replace(".", "").replace("'", "").strip()
     try:
         return int(cleaned)
     except ValueError:

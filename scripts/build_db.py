@@ -203,7 +203,7 @@ def load_performances(base_path):
 
 def load_national_team(base_path):
     print("\n🌍 Stap 4: Laden van player_national_team_performances ...")
-    csv_path = find_csv(base_path, "player_national_team_performances")
+    csv_path = find_csv(base_path, "player_national_performances")
     print(f"  Bestand: {csv_path}")
 
     df = pd.read_csv(csv_path, dtype=str, low_memory=False)

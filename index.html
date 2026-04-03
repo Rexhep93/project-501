@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -13,6 +14,7 @@
 <body>
 
   <!-- ==================== START SCREEN ==================== -->
+
   <div id="startScreen" class="screen active">
     <div class="logo-section">
       <div class="logo-icon">🎯</div>
@@ -29,22 +31,25 @@
     </div>
   </div>
 
-  <!-- ==================== SETUP SCREEN ==================== -->
-  <div id="setupScreen" class="screen">
-    <div class="setup-header">
-      <button class="back-btn" data-target="startScreen">←</button>
-      <span>Kies een categorie</span>
+  <!-- ==================== CATEGORY REVEAL SCREEN ==================== -->
+
+  <div id="categoryScreen" class="screen">
+    <div class="cat-reveal">
+      <div class="cat-reveal-label">Jouw categorie</div>
+      <div class="cat-reveal-name" id="catRevealName">—</div>
+      <div class="cat-reveal-desc" id="catRevealDesc">—</div>
+      <div class="cat-reveal-actions">
+        <button class="btn-play" id="btnPlayCategory">Spelen</button>
+        <button class="btn-skip" id="btnSkipCategory">Volgende categorie</button>
+      </div>
     </div>
-    <div class="setup-section">
-      <div class="setup-label">Categorieën</div>
-      <div class="category-grid" id="categoryGrid"></div>
-    </div>
-    <button class="start-game-btn" id="startGameBtn" disabled>Start Game</button>
   </div>
 
   <!-- ==================== GAME SCREEN ==================== -->
+
   <div id="gameScreen" class="screen">
     <div class="game-header">
+      <button class="game-menu-btn" id="btnBackToMenu">✕</button>
       <div class="game-category" id="gameCategoryLabel">—</div>
       <div class="game-turn" id="gameTurnLabel">—</div>
     </div>
@@ -72,6 +77,7 @@
   </div>
 
   <!-- ==================== WIN SCREEN ==================== -->
+
   <div id="winScreen" class="screen">
     <div class="win-trophy">🏆</div>
     <div class="win-title" id="winTitle">Winner!</div>
@@ -84,5 +90,6 @@
   </div>
 
   <script src="script.js"></script>
+
 </body>
 </html>

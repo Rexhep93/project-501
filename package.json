@@ -1,0 +1,9 @@
+{
+  "name": "project-501",
+  "version": "1.0.0",
+  "description": "Football 501 darts game",
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}

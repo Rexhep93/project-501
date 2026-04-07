@@ -5,7 +5,6 @@
 import * as cheerio from 'cheerio';
 
 export default async function handler(req, res) {
-  // CORS headers zodat je ook vanaf GitHub Pages kunt aanroepen
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
 
@@ -35,40 +34,83 @@ export default async function handler(req, res) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
+    const seenIds = new Set();
     const players = [];
 
-    // Transfermarkt zoekresultaten staan in een tabel met class "items"
-    // Eerste tabel = spelers
-    $('table.items').first().find('tbody tr').each((i, row) => {
+    // Transfermarkt search results: eerste tabel.items bevat spelers
+    // Elke speler heeft 1 hoofdrij + soms een uitklapbare detailrij
+    // We willen alleen de hoofdrij (heeft een img.bilderrahmen-fixed met portrait)
+    $('table.items').first().find('tbody > tr').each((i, row) => {
       const $row = $(row);
 
-      // Speler naam + URL staan in de eerste cell met class "hauptlink"
-      const linkEl = $row.find('td.hauptlink a').first();
-      const name = linkEl.text().trim();
-      const href = linkEl.attr('href') || '';
+      // Skip detailrijen — die hebben geen portretfoto
+      const portrait = $row.find('img.bilderrahmen-fixed').first();
+      if (!portrait.length) return;
 
-      // Player ID extraheren uit URL: /naam/profil/spieler/12345
-      const idMatch = href.match(/\/spieler\/(\d+)/);
-      if (!idMatch) return;
-      const id = parseInt(idMatch[1], 10);
+      // Player ID + naam uit de portret-image link
+      // De img.bilderrahmen-fixed heeft data-src met /portrait/medium/{id}-...
+      const portraitSrc = portrait.attr('data-src') || portrait.attr('src') || '';
+      const idMatch = portraitSrc.match(/\/(\d+)-/);
+      let id = idMatch ? parseInt(idMatch[1], 10) : null;
 
-      // Positie staat in dezelfde cell, op de tweede regel
-      const position = $row.find('td.hauptlink').first().next('td').text().trim()
-                    || $row.find('td').eq(1).text().trim();
+      // Fallback: zoek de eerste link naar /spieler/{id}
+      if (!id) {
+        const linkHref = $row.find('a[href*="/profil/spieler/"]').first().attr('href') || '';
+        const altMatch = linkHref.match(/\/spieler\/(\d+)/);
+        if (altMatch) id = parseInt(altMatch[1], 10);
+      }
 
-      // Geboortedatum / leeftijd
-      const birthInfo = $row.find('td').eq(2).text().trim();
+      if (!id || seenIds.has(id)) return;
+      seenIds.add(id);
 
-      // Nationaliteit (vlag image alt text)
+      // Naam: zoek de eerste link naar /profil/spieler/
+      const nameLink = $row.find('a[href*="/profil/spieler/"]').first();
+      const name = nameLink.text().trim();
+      if (!name) return;
+
+      // Positie: tabel kolom structuur is meestal:
+      // [portret] [naam+positie] [leeftijd] [nationaliteit] [club]
+      // De naam-cell bevat naam in een link en positie eronder als plain text
+      const nameCell = nameLink.closest('td');
+      let position = '';
+      // Probeer position uit table.inline-table (typisch transfermarkt structuur)
+      const inlineRow = nameCell.find('table.inline-table tr').eq(1);
+      if (inlineRow.length) {
+        position = inlineRow.text().trim();
+      } else {
+        // Fallback: pak alle text uit de cell, verwijder de naam
+        const cellText = nameCell.text().trim();
+        position = cellText.replace(name, '').trim();
+      }
+
+      // Leeftijd / geboortedatum (volgende cell na naam-cell, of zoek naar td met datum)
+      const allCells = $row.find('td');
+      let birth = '';
+      allCells.each((idx, c) => {
+        const txt = $(c).text().trim();
+        // Geboortedatum patroon: "Mar 14, 2003 (22)" of "(22)"
+        if (/\(\d{1,2}\)/.test(txt) && txt.length < 30) {
+          birth = txt;
+          return false;
+        }
+      });
+
+      // Nationaliteit uit vlag-img title
       const nationality = $row.find('img.flaggenrahmen').first().attr('title') || '';
 
-      // Huidige club
-      const clubImg = $row.find('td').eq(4).find('img').first();
-      const club = clubImg.attr('alt') || '';
+      // Huidige club: laatste img die geen vlag is
+      let club = '';
+      $row.find('img').each((idx, img) => {
+        const $img = $(img);
+        if ($img.hasClass('flaggenrahmen') || $img.hasClass('bilderrahmen-fixed')) return;
+        const alt = $img.attr('title') || $img.attr('alt') || '';
+        if (alt && !alt.toLowerCase().includes('flag')) {
+          club = alt;
+          return false;
+        }
+      });
 
-      if (name && id) {
-        players.push({ id, name, position, birth: birthInfo, nationality, club });
-      }
+      players.push({ id, name, position, birth, nationality, club });
     });
 
     return res.status(200).json({ query, players: players.slice(0, 15) });

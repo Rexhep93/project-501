@@ -1,9 +1,0 @@
-# Ruwe brondata (te groot voor GitHub)
-data/raw/
-
-# Node
-node_modules/
-
-# OS
-.DS_Store
-Thumbs.db

@@ -1,7 +1,4 @@
 // api/import.js
-// GET /api/import?id=8198
-// Scraped speler van Transfermarkt en pusht naar Supabase
-
 import * as cheerio from 'cheerio';
 import { createClient } from '@supabase/supabase-js';
 
@@ -43,7 +40,44 @@ export default async function handler(req, res) {
     let name = $p('h1.data-header__headline-wrapper').text().trim();
     name = name.replace(/^#\d+\s*/, '').replace(/\s+/g, ' ').trim();
 
-    const nationality = $p('span.data-header__content img.flaggenrahmen').first().attr('title') || '';
+    // FIX: nationaliteit zoeken via "Citizenship" label, niet eerste vlaggetje
+    // Transfermarkt heeft een info-table met labels "Date of birth/Age", "Place of birth", "Citizenship"
+    let nationality = '';
+    $p('span.info-table__content--regular').each((i, el) => {
+      const label = $p(el).text().trim().toLowerCase();
+      if (label.includes('citizenship')) {
+        const valueEl = $p(el).next('span.info-table__content--bold');
+        // Pak eerste vlag in die value
+        const flagImg = valueEl.find('img.flaggenrahmen').first();
+        if (flagImg.length) {
+          nationality = flagImg.attr('title') || '';
+        } else {
+          nationality = valueEl.text().trim();
+        }
+      }
+    });
+
+    // Fallback: data-header__items label "Citizenship:"
+    if (!nationality) {
+      $p('li.data-header__label').each((i, el) => {
+        const label = $p(el).text().trim().toLowerCase();
+        if (label.includes('citizenship')) {
+          const flagImg = $p(el).find('img.flaggenrahmen').first();
+          if (flagImg.length) {
+            nationality = flagImg.attr('title') || '';
+          }
+        }
+      });
+    }
+
+    // Laatste fallback: alle vlaggen op de pagina, pak eerste die NIET de huidige club's land is
+    if (!nationality) {
+      const flags = $p('img.flaggenrahmen').toArray();
+      if (flags.length > 0) {
+        nationality = $p(flags[0]).attr('title') || '';
+      }
+    }
+
     const position = $p('dd.detail-position__position').first().text().trim();
     const currentClub = $p('span.data-header__club a').first().text().trim();
     const imageUrl = $p('img.data-header__profile-image').first().attr('src') || '';
@@ -88,24 +122,22 @@ export default async function handler(req, res) {
       });
     });
 
-    // Dedup competities (sommige spelers hebben dubbele rijen voor verschillende clubs)
-    const seen = new Set();
-    const uniqueStats = [];
+    // Dedup + sommeer dubbele competities
+    const seen = new Map();
     for (const s of compStats) {
       if (seen.has(s.competition)) {
-        // Sommeer
-        const existing = uniqueStats.find(x => x.competition === s.competition);
-        existing.appearances += s.appearances;
-        existing.goals += s.goals;
-        existing.assists += s.assists;
-        existing.yellow_cards += s.yellow_cards;
-        existing.red_cards += s.red_cards;
-        existing.minutes += s.minutes;
+        const ex = seen.get(s.competition);
+        ex.appearances += s.appearances;
+        ex.goals += s.goals;
+        ex.assists += s.assists;
+        ex.yellow_cards += s.yellow_cards;
+        ex.red_cards += s.red_cards;
+        ex.minutes += s.minutes;
       } else {
-        seen.add(s.competition);
-        uniqueStats.push({ ...s });
+        seen.set(s.competition, { ...s });
       }
     }
+    const uniqueStats = Array.from(seen.values());
 
     // 3. Push naar Supabase
     const { error: pErr } = await sb.from('players').upsert(profile);

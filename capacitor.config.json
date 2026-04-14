@@ -1,0 +1,13 @@
+{
+    "appId": "nl.voetbalquiz.app",
+    "appName": "Voetbal Quiz",
+    "webDir": "www",
+    "bundledWebRuntime": false,
+    "server": {
+        "androidScheme": "https"
+    },
+    "ios": {
+        "contentInset": "automatic",
+        "backgroundColor": "#000000"
+    }
+}

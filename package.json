@@ -1,0 +1,23 @@
+{
+    "name": "voetbalquiz",
+    "version": "0.1.0",
+    "description": "Dagelijkse voetbal quiz met 4 spellen",
+    "main": "index.html",
+    "scripts": {
+        "build:web": "mkdir -p www && rsync -a --delete --exclude=www --exclude=node_modules --exclude=ios --exclude=android --exclude=.git --exclude=capacitor.config.json --exclude=package.json --exclude=package-lock.json --exclude='*.md' --exclude='test-*' --exclude=data-sheets ./ www/",
+        "cap:sync": "npx cap sync",
+        "cap:open:ios": "npx cap open ios"
+    },
+    "dependencies": {
+        "@capacitor/app": "^8.0.0",
+        "@capacitor/core": "^8.0.0",
+        "@capacitor/haptics": "^8.0.0",
+        "@capacitor/ios": "^8.0.0",
+        "@capacitor/preferences": "^8.0.0",
+        "@capacitor/splash-screen": "^8.0.0",
+        "@capacitor/status-bar": "^8.0.0"
+    },
+    "devDependencies": {
+        "@capacitor/cli": "^8.0.0"
+    }
+}

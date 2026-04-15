@@ -4,10 +4,10 @@ import { todayKey } from './date-key.js';
 // Jouw Google Sheet URLs (pub?output=csv) - invullen voor deploy
 // Per spel één sheet, of alles in één sheet met meerdere tabs
 const SHEET_URLS = {
-    tenable:     'REPLACE_WITH_YOUR_TENABLE_CSV_URL',
-    guessPlayer: 'REPLACE_WITH_YOUR_GUESS_PLAYER_CSV_URL',
-    whoAmI:      'REPLACE_WITH_YOUR_WHO_AM_I_CSV_URL',
-    guessClub:   'REPLACE_WITH_YOUR_GUESS_CLUB_CSV_URL'
+    tenable:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=0&single=true&output=csv',
+    guessPlayer: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1712109612&single=true&output=csv',
+    whoAmI:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1874756698&single=true&output=csv',
+    guessClub:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1260064264&single=true&output=csv'
 };
 
 const CACHE_KEY = 'voetbalquiz_data_cache';

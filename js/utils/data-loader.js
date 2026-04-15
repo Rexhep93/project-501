@@ -251,30 +251,32 @@ export function loadSampleData() {
     return {
         tenable: {
             date: todayKey(),
-            question: 'The 10 most recent managers of the Netherlands national team',
-            subtitle: 'Rank 1 = most recent, Rank 10 = oldest',
+            question: 'Most expensive signings by Premier League clubs',
+            subtitle: 'From highest to lowest.',
             answers: [
-                { rank: 1,  name: 'Ronald Koeman',   aliases: ['Ronald Koeman', 'Koeman'] },
-                { rank: 2,  name: 'Louis van Gaal',  aliases: ['Louis van Gaal', 'van Gaal', 'Van Gaal'] },
-                { rank: 3,  name: 'Frank de Boer',   aliases: ['Frank de Boer', 'de Boer', 'De Boer'] },
-                { rank: 4,  name: 'Dick Advocaat',   aliases: ['Dick Advocaat', 'Advocaat'] },
-                { rank: 5,  name: 'Danny Blind',     aliases: ['Danny Blind', 'Blind'] },
-                { rank: 6,  name: 'Guus Hiddink',    aliases: ['Guus Hiddink', 'Hiddink'] },
-                { rank: 7,  name: 'Bert van Marwijk',aliases: ['Bert van Marwijk', 'van Marwijk', 'Van Marwijk'] },
-                { rank: 8,  name: 'Marco van Basten',aliases: ['Marco van Basten', 'van Basten', 'Van Basten'] },
-                { rank: 9,  name: 'Foppe de Haan',   aliases: ['Foppe de Haan', 'de Haan'] },
-                { rank: 10, name: 'Dick Advocaat',   aliases: ['Dick Advocaat'] }
+                { rank: 1,  name: 'Alexander Isak',   aliases: ['Isak', 'A. Isak'] },
+                { rank: 2,  name: 'Florian Wirtz',  aliases: ['Wirtz', 'F. Wirtz', 'Wirts'] },
+                { rank: 3,  name: 'Moisés Caicedo',   aliases: ['Moises Caicedo', 'Caicedo', 'Moises'] },
+                { rank: 4,  name: 'Enzo Fernández',   aliases: ['Enzo', 'Enzo Fernandez'] },
+                { rank: 5,  name: 'Declan Rice',     aliases: ['Rice', 'Declan'] },
+                { rank: 6,  name: 'Jack Grealish',    aliases: ['Grealish', 'J. Grealish'] },
+                { rank: 7,  name: 'Romelu Lukaku',  aliases: ['Lukaku', 'Romeo Lukaku', 'Rome Lukaku'] },
+                { rank: 8,  name: 'Paul Pogba',  aliases: ['Pogba', 'Paul', 'Pogbmaster'] },
+                { rank: 9,  name: 'Mykhailo Mudryk',   aliases: ['Mudryk', 'Mudrik'] },
+                { rank: 10, name: 'Antony',   aliases: ['Antoni'] }
             ]
         },
         guessPlayer: {
             date: todayKey(),
-            player: 'Andrés Iniesta',
-            aliases: ['Andrés Iniesta', 'Iniesta', 'Andres Iniesta'],
+            subtitle: 'The clubs are not in order.',
+            player: 'Joao Cancelo',
+            aliases: ['João Cancelo', 'Cancelo', 'J. Cancelo'],
             clubs: [
-                { order: 1, name: 'FC Barcelona B', years: '2000–2002' },
-                { order: 2, name: 'FC Barcelona',   years: '2002–2018' },
-                { order: 3, name: 'Vissel Kobe',    years: '2018–2023' },
-                { order: 4, name: 'Emirates Club',  years: '2023–2024' }
+                { order: 1, name: 'Inter Milan' },
+                { order: 2, name: 'Valencia' },
+                { order: 3, name: 'Juventus' },
+                { order: 4, name: 'Barcelona' }
+                { order: 5, name: 'Manchester City' }
             ]
         },
         whoAmI: {
@@ -294,17 +296,17 @@ export function loadSampleData() {
             year: '2014/15',
             formation: '4-3-3',
             lineup: [
-                { position: 'GK', country: 'DE', shirt: '1' },
-                { position: 'RB', country: 'BR', shirt: '22' },
-                { position: 'CB', country: 'ES', shirt: '3' },
-                { position: 'CB', country: 'AR', shirt: '14' },
-                { position: 'LB', country: 'ES', shirt: '18' },
-                { position: 'CM', country: 'HR', shirt: '4' },
-                { position: 'CM', country: 'ES', shirt: '5' },
-                { position: 'CM', country: 'ES', shirt: '8' },
-                { position: 'RW', country: 'AR', shirt: '10' },
-                { position: 'ST', country: 'UY', shirt: '9' },
-                { position: 'LW', country: 'BR', shirt: '11' }
+                { position: 'GK', country: 'DE', },
+                { position: 'RB', country: 'BR', },
+                { position: 'CB', country: 'ES', },
+                { position: 'CB', country: 'AR', },
+                { position: 'LB', country: 'ES', },
+                { position: 'CM', country: 'HR', },
+                { position: 'CM', country: 'ES', },
+                { position: 'CM', country: 'ES', },
+                { position: 'RW', country: 'AR', },
+                { position: 'ST', country: 'UY', },
+                { position: 'LW', country: 'BR', }
             ]
         }
     };

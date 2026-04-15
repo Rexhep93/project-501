@@ -1,18 +1,15 @@
-// Tenable: vul de top 10 aan met 3 levens
 import { findMatchIndex } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
-import { hapticSuccess, hapticError, hapticLight } from '../utils/haptics.js';
+import { hapticSuccess, hapticError } from '../utils/haptics.js';
+import { renderHearts } from '../utils/hearts.js';
 
 let data = null;
 let state = null;
 let onFinish = null;
 
-/**
- * Render de volledige Tenable screen
- */
 export function initTenable(gameData, gameState, finishCb) {
     data = gameData;
-    state = { ...gameState }; // kopie
+    state = { ...gameState };
     onFinish = finishCb;
 
     if (!data) {
@@ -20,77 +17,54 @@ export function initTenable(gameData, gameState, finishCb) {
         return;
     }
 
-    // Vraag
     document.getElementById('tenable-question').textContent = data.question;
     document.getElementById('tenable-subtitle').textContent = data.subtitle;
 
-    // Lives
-    renderLives();
+    renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives);
+    renderPyramid();
 
-    // Tower
-    renderTower();
-
-    // Input
     const form = document.getElementById('tenable-form');
     const input = document.getElementById('tenable-input');
     input.value = '';
-    input.disabled = false;
+    input.disabled = state.played;
     form.onsubmit = handleSubmit;
 
-    // Focus input na korte delay (voor screen transition)
-    setTimeout(() => input.focus(), 400);
-
-    // Als al gespeeld vandaag → direct naar resultaat
-    if (state.played) {
-        showResult();
-    }
+    if (!state.played) setTimeout(() => input.focus(), 400);
+    if (state.played) showResult();
 }
 
-function renderLives() {
-    const livesEl = document.getElementById('tenable-lives');
-    livesEl.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
-        const span = document.createElement('span');
-        span.className = 'life' + (i >= state.lives ? ' lost' : '');
-        livesEl.appendChild(span);
-    }
-}
+function renderPyramid() {
+    const pyramid = document.getElementById('tenable-pyramid');
+    pyramid.innerHTML = '';
 
-function renderTower() {
-    const tower = document.getElementById('tenable-tower');
-    tower.innerHTML = '';
-
-    // Rank 1 onderaan (zoals TV-show) - flex-direction: column-reverse in CSS
-    // Dus we renderen 1..10 in normale volgorde
+    // Pyramid: rank 1 top (narrowest), rank 10 bottom (widest)
     for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
-        slot.className = 'tower-slot';
+        slot.className = 'pyramid-slot';
+
+        // Linear width: rank 1 = 32%, rank 10 = 100%
+        const widthPct = 32 + ((rank - 1) / 9) * 68;
+        slot.style.setProperty('--slot-width', `${widthPct}%`);
 
         const isRevealed = state.revealedRanks.includes(rank);
         const answer = data.answers.find(a => a.rank === rank);
 
         if (isRevealed && answer) {
             slot.classList.add('revealed');
-            slot.innerHTML = `
-                <span class="slot-rank">${rank}</span>
-                <span class="slot-name">${escapeHtml(answer.name)}</span>
-            `;
+            slot.innerHTML = `<span class="slot-rank">${rank}</span><span class="slot-name">${escapeHtml(answer.name)}</span>`;
         } else {
-            slot.innerHTML = `
-                <span class="slot-rank">${rank}</span>
-                <span class="slot-name"></span>
-            `;
+            slot.innerHTML = `<span class="slot-rank">${rank}</span><span class="slot-name"></span>`;
         }
 
         slot.dataset.rank = rank;
-        tower.appendChild(slot);
+        pyramid.appendChild(slot);
     }
 }
 
 function renderNoData() {
-    document.getElementById('tenable-question').textContent = 'Geen quiz vandaag';
-    document.getElementById('tenable-subtitle').textContent = 'Kom morgen terug';
-    document.getElementById('tenable-tower').innerHTML = '';
+    document.getElementById('tenable-question').textContent = 'No quiz today';
+    document.getElementById('tenable-subtitle').textContent = 'Come back tomorrow';
+    document.getElementById('tenable-pyramid').innerHTML = '';
     document.getElementById('tenable-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('tenable-input').disabled = true;
 }
@@ -101,7 +75,6 @@ async function handleSubmit(e) {
     const raw = input.value.trim();
     if (!raw) return;
 
-    // Check of al geraden (voorkomt dubbele levens verliezen op herhaalde fout)
     if (state.history.map(h => h.toLowerCase()).includes(raw.toLowerCase())) {
         shakeInput(input);
         input.value = '';
@@ -109,89 +82,71 @@ async function handleSubmit(e) {
     }
 
     state.history.push(raw);
-
     const matchIdx = findMatchIndex(raw, data.answers);
 
     if (matchIdx >= 0) {
         const answer = data.answers[matchIdx];
-
-        // Al onthuld? (kan gebeuren bij duplicate answers zoals Advocaat 2x)
         if (state.revealedRanks.includes(answer.rank)) {
             shakeInput(input);
             input.value = '';
             return;
         }
-
-        // Correct!
         state.revealedRanks.push(answer.rank);
         await hapticSuccess();
 
-        // Animate de specifieke slot
-        const slot = document.querySelector(`.tower-slot[data-rank="${answer.rank}"]`);
+        const slot = document.querySelector(`.pyramid-slot[data-rank="${answer.rank}"]`);
         if (slot) {
             slot.classList.add('revealed');
-            slot.innerHTML = `
-                <span class="slot-rank">${answer.rank}</span>
-                <span class="slot-name">${escapeHtml(answer.name)}</span>
-            `;
+            slot.innerHTML = `<span class="slot-rank">${answer.rank}</span><span class="slot-name">${escapeHtml(answer.name)}</span>`;
         }
 
         input.value = '';
         await saveState();
 
-        // Alle 10? -> win
         if (state.revealedRanks.length === 10) {
-            await finishGame(true);
+            await finishGame();
         }
     } else {
-        // Fout
         state.lives--;
         await hapticError();
         shakeInput(input);
         input.value = '';
-        renderLives();
+        renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives, true);
         await saveState();
 
         if (state.lives <= 0) {
-            await finishGame(false);
+            await finishGame();
         }
     }
 }
 
 function shakeInput(input) {
     input.classList.remove('error');
-    void input.offsetWidth; // force reflow
+    void input.offsetWidth;
     input.classList.add('error');
     setTimeout(() => input.classList.remove('error'), 500);
 }
 
 async function saveState() {
-    state.score = state.revealedRanks.length; // 0-10 punten
+    state.score = state.revealedRanks.length;
     await updateGameState('tenable', state);
 }
 
-async function finishGame(allTen) {
+async function finishGame() {
     state.played = true;
     state.score = state.revealedRanks.length;
     await updateGameState('tenable', state);
-
-    // Disable input
     document.getElementById('tenable-input').disabled = true;
 
-    // Toon gemiste antwoorden als ghosts
     const missed = data.answers.filter(a => !state.revealedRanks.includes(a.rank));
     for (const m of missed) {
-        const slot = document.querySelector(`.tower-slot[data-rank="${m.rank}"]`);
+        const slot = document.querySelector(`.pyramid-slot[data-rank="${m.rank}"]`);
         if (slot) {
             slot.classList.add('ghost');
-            slot.innerHTML = `
-                <span class="slot-rank">${m.rank}</span>
-                <span class="slot-name">${escapeHtml(m.name)}</span>
-            `;
+            slot.innerHTML = `<span class="slot-rank">${m.rank}</span><span class="slot-name">${escapeHtml(m.name)}</span>`;
         }
     }
-
-    setTimeout(() => showResult(), 600);
+    setTimeout(() => showResult(), 700);
 }
 
 function showResult() {
@@ -202,28 +157,23 @@ function showResult() {
     const reveal= document.getElementById('result-reveal');
 
     const allTen = state.revealedRanks.length === 10;
-
     icon.className = 'result-icon ' + (allTen ? 'success' : 'fail');
     icon.innerHTML = allTen
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
+        : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
-    title.textContent = allTen ? 'Perfect 10!' : 'Einde';
+    title.textContent = allTen ? 'Perfect 10!' : 'Game over';
     score.textContent = `${state.revealedRanks.length}/10 correct`;
 
-    // Reveal alle antwoorden
     reveal.innerHTML = data.answers.map(a => {
         const gotIt = state.revealedRanks.includes(a.rank);
         return `<div class="reveal-row">
             <span><span class="reveal-rank">${a.rank}.</span>${escapeHtml(a.name)}</span>
-            <span style="color: ${gotIt ? 'var(--accent)' : 'var(--fg-tertiary)'}; font-weight: 600;">
-                ${gotIt ? '✓' : '–'}
-            </span>
+            <span style="color: ${gotIt ? 'var(--accent)' : 'var(--fg-tertiary)'}; font-weight: 600;">${gotIt ? '✓' : '–'}</span>
         </div>`;
     }).join('');
 
     modal.classList.add('active');
-
     document.getElementById('result-continue').onclick = () => {
         modal.classList.remove('active');
         onFinish && onFinish();

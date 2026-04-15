@@ -10,6 +10,13 @@ import { initGuessClub }    from './games/guess-club.js';
 
 const USE_SAMPLE_DATA = true;
 
+const GAME_MAX = {
+    tenable: 10,
+    guessPlayer: 5,
+    whoAmI: 5,
+    guessClub: 5
+};
+
 let todayData = null;
 let currentScreen = 'menu';
 
@@ -29,17 +36,56 @@ async function bootstrap() {
         btn.addEventListener('click', () => navigate('menu'));
     });
 
-    document.querySelectorAll('.game-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const game = card.dataset.game;
+    document.querySelectorAll('.game-tile').forEach(tile => {
+        tile.addEventListener('click', () => {
+            const game = tile.dataset.game;
             hapticLight();
             openGame(game);
         });
     });
 
+    setupModalDismissal();
+
     document.getElementById('total-continue').onclick = () => {
         document.getElementById('total-modal').classList.remove('active');
     };
+
+    // ESC closes any open modal + returns to menu if from result
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const resultModal = document.getElementById('result-modal');
+        const totalModal  = document.getElementById('total-modal');
+        if (resultModal.classList.contains('active')) {
+            resultModal.classList.remove('active');
+            navigate('menu');
+        } else if (totalModal.classList.contains('active')) {
+            totalModal.classList.remove('active');
+        } else if (currentScreen !== 'menu') {
+            navigate('menu');
+        }
+    });
+}
+
+/**
+ * Click on modal backdrop → close + return to menu (for result modal)
+ * For total modal → just close
+ */
+function setupModalDismissal() {
+    const resultModal = document.getElementById('result-modal');
+    const totalModal  = document.getElementById('total-modal');
+
+    resultModal.addEventListener('click', (e) => {
+        if (e.target === resultModal) {
+            resultModal.classList.remove('active');
+            navigate('menu');
+        }
+    });
+
+    totalModal.addEventListener('click', (e) => {
+        if (e.target === totalModal) {
+            totalModal.classList.remove('active');
+        }
+    });
 }
 
 async function renderMenu() {
@@ -50,11 +96,17 @@ async function renderMenu() {
     document.getElementById('progress-fill').style.width = `${(played / 4) * 100}%`;
 
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
-        const el = document.querySelector(`[data-status="${game}"]`);
+        const tile = document.querySelector(`.game-tile[data-game="${game}"]`);
         const done = state[game]?.played;
-        el.dataset.completed = done ? 'true' : 'false';
-        const card = document.querySelector(`.game-card[data-game="${game}"]`);
-        card.classList.toggle('completed', done);
+        tile.classList.toggle('completed', !!done);
+
+        // Show score on completed tile
+        const scoreEl = tile.querySelector(`[data-score-tile="${game}"]`);
+        if (done) {
+            scoreEl.textContent = `${state[game].score}/${GAME_MAX[game]}`;
+        } else {
+            scoreEl.textContent = '';
+        }
     });
 }
 

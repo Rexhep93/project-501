@@ -2,6 +2,7 @@ import { isMatch } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
+import { toast } from '../utils/toast.js';
 
 let data = null;
 let state = null;
@@ -44,7 +45,6 @@ function renderLives(animateLatest = false) {
 function renderHints() {
     const container = document.getElementById('hints-container');
     container.innerHTML = '';
-    // All 3 hints immediately visible
     data.hints.forEach((hint, i) => {
         const card = document.createElement('div');
         card.className = 'hint-card';
@@ -58,7 +58,7 @@ function renderHints() {
 
 function renderNoData() {
     document.getElementById('hints-container').innerHTML =
-        `<p style="text-align:center; color:var(--fg-secondary); padding:40px 20px;">No quiz today. Come back tomorrow.</p>`;
+        `<p class="empty-state">No quiz today. Come back tomorrow.</p>`;
     document.getElementById('whoAmI-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('whoAmI-input').disabled = true;
 }
@@ -78,10 +78,17 @@ async function handleSubmit(e) {
         state.score = calculatePoints(state.attempts);
         state.attempts++;
         await hapticSuccess();
+        toast('Correct!', 'success');
         await finishGame();
     } else {
         state.attempts++;
         await hapticError();
+        const remaining = MAX_ATTEMPTS - state.attempts;
+        if (remaining > 0) {
+            toast(`Incorrect · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'error');
+        } else {
+            toast('Incorrect · game over', 'error');
+        }
         shakeInput(input);
 
         if (state.attempts >= MAX_ATTEMPTS) {
@@ -110,7 +117,7 @@ async function finishGame() {
     document.getElementById('whoAmI-input').disabled = true;
     renderLives();
     renderScore();
-    setTimeout(() => showResult(), 500);
+    setTimeout(() => showResult(), 600);
 }
 
 function showResult() {
@@ -126,7 +133,7 @@ function showResult() {
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
     title.textContent = state.solved ? 'Got it!' : 'Game over';
-    score.textContent = `${state.score} points · answer: ${data.player}`;
+    score.innerHTML = `<strong>${state.score}</strong> points · the player was <strong>${escapeHtml(data.player)}</strong>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {
@@ -137,6 +144,6 @@ function showResult() {
 
 function escapeHtml(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = String(str);
     return div.innerHTML;
 }

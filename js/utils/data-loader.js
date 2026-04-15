@@ -244,15 +244,15 @@ export async function loadTodayData() {
 }
 
 /**
- * Ingebouwde sample data voor development/testing
- * Werkt zonder Google Sheet config
+ * Built-in sample data for development/testing
+ * Works without Google Sheet config
  */
 export function loadSampleData() {
     return {
         tenable: {
             date: todayKey(),
-            question: 'De 10 laatste bondscoaches van het Nederlands Elftal',
-            subtitle: 'Rank 1 = meest recent, Rank 10 = langst geleden',
+            question: 'The 10 most recent managers of the Netherlands national team',
+            subtitle: 'Rank 1 = most recent, Rank 10 = oldest',
             answers: [
                 { rank: 1,  name: 'Ronald Koeman',   aliases: ['Ronald Koeman', 'Koeman'] },
                 { rank: 2,  name: 'Louis van Gaal',  aliases: ['Louis van Gaal', 'van Gaal', 'Van Gaal'] },
@@ -263,7 +263,7 @@ export function loadSampleData() {
                 { rank: 7,  name: 'Bert van Marwijk',aliases: ['Bert van Marwijk', 'van Marwijk', 'Van Marwijk'] },
                 { rank: 8,  name: 'Marco van Basten',aliases: ['Marco van Basten', 'van Basten', 'Van Basten'] },
                 { rank: 9,  name: 'Foppe de Haan',   aliases: ['Foppe de Haan', 'de Haan'] },
-                { rank: 10, name: 'Dick Advocaat',   aliases: ['Dick Advocaat'] } // Advocaat was 2x
+                { rank: 10, name: 'Dick Advocaat',   aliases: ['Dick Advocaat'] }
             ]
         },
         guessPlayer: {
@@ -274,8 +274,7 @@ export function loadSampleData() {
                 { order: 1, name: 'FC Barcelona B', years: '2000–2002' },
                 { order: 2, name: 'FC Barcelona',   years: '2002–2018' },
                 { order: 3, name: 'Vissel Kobe',    years: '2018–2023' },
-                { order: 4, name: 'Emirates Club',  years: '2023–2024' },
-                { order: 5, name: '(einde carrière)', years: '2024' }
+                { order: 4, name: 'Emirates Club',  years: '2023–2024' }
             ]
         },
         whoAmI: {
@@ -283,29 +282,29 @@ export function loadSampleData() {
             player: 'Frenkie de Jong',
             aliases: ['Frenkie de Jong', 'de Jong', 'Frenkie'],
             hints: [
-                'Ik ben geboren in Arkel, Nederland',
-                'Ik maakte mijn doorbraak bij een Amsterdamse club voordat ik naar Spanje vertrok',
-                'Ik speelde de finale van de Nations League in 2019 tegen Portugal'
+                'I was born in Arkel, a small village in the Netherlands',
+                'I made my breakthrough at an Amsterdam club before moving to Spain',
+                'I played the Nations League final in 2019 against Portugal'
             ]
         },
         guessClub: {
             date: todayKey(),
             club: 'FC Barcelona 2014/15',
-            aliases: ['FC Barcelona 2014/15', 'Barcelona 2014', 'Barça 2014', 'FC Barcelona 14/15'],
+            aliases: ['FC Barcelona 2014/15', 'Barcelona 2014', 'FC Barcelona', 'Barcelona', 'Barça', 'Barca'],
             year: '2014/15',
             formation: '4-3-3',
             lineup: [
-                { position: 'GK', country: 'DE', shirt: '1' },   // Ter Stegen
-                { position: 'RB', country: 'BR', shirt: '22' },  // Dani Alves
-                { position: 'CB', country: 'ES', shirt: '3' },   // Piqué
-                { position: 'CB', country: 'AR', shirt: '14' },  // Mascherano
-                { position: 'LB', country: 'ES', shirt: '18' },  // Jordi Alba
-                { position: 'CM', country: 'HR', shirt: '4' },   // Rakitić
-                { position: 'CM', country: 'ES', shirt: '5' },   // Busquets
-                { position: 'CM', country: 'ES', shirt: '8' },   // Iniesta
-                { position: 'RW', country: 'AR', shirt: '10' },  // Messi
-                { position: 'ST', country: 'UY', shirt: '9' },   // Suárez
-                { position: 'LW', country: 'BR', shirt: '11' }   // Neymar
+                { position: 'GK', country: 'DE', shirt: '1' },
+                { position: 'RB', country: 'BR', shirt: '22' },
+                { position: 'CB', country: 'ES', shirt: '3' },
+                { position: 'CB', country: 'AR', shirt: '14' },
+                { position: 'LB', country: 'ES', shirt: '18' },
+                { position: 'CM', country: 'HR', shirt: '4' },
+                { position: 'CM', country: 'ES', shirt: '5' },
+                { position: 'CM', country: 'ES', shirt: '8' },
+                { position: 'RW', country: 'AR', shirt: '10' },
+                { position: 'ST', country: 'UY', shirt: '9' },
+                { position: 'LW', country: 'BR', shirt: '11' }
             ]
         }
     };

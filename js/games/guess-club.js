@@ -3,6 +3,7 @@ import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
 import { flagUrl, countryName } from '../utils/flags.js';
+import { toast } from '../utils/toast.js';
 
 let data = null;
 let state = null;
@@ -114,21 +115,19 @@ function renderFormation() {
 
 function renderNoData() {
     document.getElementById('formation-container').innerHTML =
-        `<p style="text-align:center; color:var(--fg-secondary); padding:40px 20px;">No quiz today. Come back tomorrow.</p>`;
+        `<p class="empty-state">No quiz today. Come back tomorrow.</p>`;
     document.getElementById('guessClub-year').textContent = '';
     document.getElementById('guessClub-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('guessClub-input').disabled = true;
 }
 
 /**
- * Build a flexible alias list that allows answers without the year.
- * "FC Barcelona 2014/15" -> also accept "FC Barcelona", "Barcelona"
+ * Build flexible alias list — also accept answers without the year suffix.
  */
 function buildFlexibleAliases() {
     const all = new Set();
     for (const a of data.aliases) {
         all.add(a);
-        // Strip year patterns: "2014/15", "2014-15", "14/15", "14-15", "2014"
         const stripped = a
             .replace(/\b(19|20)?\d{2}[/\-](19|20)?\d{2}\b/g, '')
             .replace(/\b(19|20)\d{2}\b/g, '')
@@ -152,10 +151,17 @@ async function handleSubmit(e) {
         state.score = POINTS_PER_ATTEMPT[state.attempts];
         state.attempts++;
         await hapticSuccess();
+        toast('Correct!', 'success');
         await finishGame();
     } else {
         state.attempts++;
         await hapticError();
+        const remaining = MAX_ATTEMPTS - state.attempts;
+        if (remaining > 0) {
+            toast(`Incorrect · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'error');
+        } else {
+            toast('Incorrect · game over', 'error');
+        }
         shakeInput(input);
 
         if (state.attempts >= MAX_ATTEMPTS) {
@@ -184,7 +190,7 @@ async function finishGame() {
     document.getElementById('guessClub-input').disabled = true;
     renderLives();
     renderScore();
-    setTimeout(() => showResult(), 500);
+    setTimeout(() => showResult(), 600);
 }
 
 function showResult() {
@@ -200,7 +206,7 @@ function showResult() {
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
     title.textContent = state.solved ? 'Got it!' : 'Game over';
-    score.textContent = `${state.score} points · answer: ${data.club}`;
+    score.innerHTML = `<strong>${state.score}</strong> points · the club was <strong>${escapeHtml(data.club)}</strong>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {

@@ -3,6 +3,7 @@ import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
 import { getClubLogo } from '../utils/club-logo.js';
+import { toast } from '../utils/toast.js';
 
 let data = null;
 let state = null;
@@ -88,14 +89,11 @@ function renderClubs() {
 }
 
 async function fetchAndShowLogos() {
-    // Fetch logos for revealed clubs only, parallel
     const promises = [];
     document.querySelectorAll('#clubs-container .club-logo[data-club]').forEach(el => {
         const name = el.dataset.club;
         promises.push(getClubLogo(name).then(url => {
-            if (url) {
-                el.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
-            }
+            if (url) el.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
         }).catch(() => {}));
     });
     await Promise.all(promises);
@@ -103,7 +101,7 @@ async function fetchAndShowLogos() {
 
 function renderNoData() {
     document.getElementById('clubs-container').innerHTML =
-        `<p style="text-align:center; color:var(--fg-secondary); padding:40px 20px;">No quiz today. Come back tomorrow.</p>`;
+        `<p class="empty-state">No quiz today. Come back tomorrow.</p>`;
     document.getElementById('guessPlayer-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('guessPlayer-input').disabled = true;
 }
@@ -123,6 +121,7 @@ async function handleSubmit(e) {
         state.score = calculatePoints(state.attempts);
         state.attempts++;
         await hapticSuccess();
+        toast('Correct!', 'success');
         state.revealedClubs = data.clubs.length;
         renderClubs();
         fetchAndShowLogos();
@@ -130,6 +129,12 @@ async function handleSubmit(e) {
     } else {
         state.attempts++;
         await hapticError();
+        const remaining = MAX_ATTEMPTS - state.attempts;
+        if (remaining > 0) {
+            toast(`Incorrect · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'error');
+        } else {
+            toast('Incorrect · game over', 'error');
+        }
         shakeInput(input);
 
         if (state.attempts >= MAX_ATTEMPTS) {
@@ -164,7 +169,7 @@ async function finishGame() {
     document.getElementById('guessPlayer-input').disabled = true;
     renderLives();
     renderScore();
-    setTimeout(() => showResult(), 600);
+    setTimeout(() => showResult(), 700);
 }
 
 function showResult() {
@@ -180,7 +185,7 @@ function showResult() {
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
     title.textContent = state.solved ? 'Got it!' : 'Game over';
-    score.textContent = `${state.score} points · answer: ${data.player}`;
+    score.innerHTML = `<strong>${state.score}</strong> points · the player was <strong>${escapeHtml(data.player)}</strong>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {

@@ -1,9 +1,3 @@
-// Date key voor daily rotation (NL tijdzone, middernacht lokaal)
-
-/**
- * Geeft de datum-sleutel voor vandaag in YYYY-MM-DD formaat
- * Gebruikt lokale tijd (NL default zoals Wordle)
- */
 export function todayKey() {
     const now = new Date();
     const y = now.getFullYear();
@@ -11,24 +5,12 @@ export function todayKey() {
     const d = String(now.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
-
-/**
- * Format voor display in de UI
- * "Dinsdag 14 april 2026"
- */
 export function formatDisplayDate() {
     const now = new Date();
-    return now.toLocaleDateString('nl-NL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
+    return now.toLocaleDateString('en-GB', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
 }
-
-/**
- * Seconden tot middernacht (voor eventuele timer UI)
- */
 export function secondsUntilMidnight() {
     const now = new Date();
     const midnight = new Date(now);

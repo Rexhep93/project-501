@@ -5,13 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0e1a" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <title>Football Quiz</title>
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+    <title>Daily Football Quiz</title>
     <link rel="stylesheet" href="css/styles.css">
 
+    <!-- ================================================================
+         ICON SPRITE — custom geometric tile icons + utility icons
+         Designed as solid filled shapes, not generic line icons
+         ================================================================ -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
+
+            <!-- ─── TILE ICONS ─── -->
+
+            <!-- Tenable: stacked pyramid (3 layers, navy + teal) -->
+            <symbol id="i-tile-tenable" viewBox="0 0 80 80">
+                <!-- Bottom row (4) -->
+                <rect x="6"  y="56" width="14" height="12" rx="2" fill="#435464"/>
+                <rect x="22" y="56" width="14" height="12" rx="2" fill="#435464"/>
+                <rect x="38" y="56" width="14" height="12" rx="2" fill="#22ACBA"/>
+                <rect x="54" y="56" width="14" height="12" rx="2" fill="#435464"/>
+                <!-- Middle row (3) -->
+                <rect x="14" y="40" width="14" height="12" rx="2" fill="#435464"/>
+                <rect x="32" y="40" width="14" height="12" rx="2" fill="#22ACBA"/>
+                <rect x="50" y="40" width="14" height="12" rx="2" fill="#435464"/>
+                <!-- Upper row (2) -->
+                <rect x="22" y="24" width="14" height="12" rx="2" fill="#22ACBA"/>
+                <rect x="42" y="24" width="14" height="12" rx="2" fill="#435464"/>
+                <!-- Top (1) -->
+                <rect x="32" y="8"  width="14" height="12" rx="2" fill="#22ACBA"/>
+            </symbol>
+
+            <!-- Guess the Player: jersey with number -->
+            <symbol id="i-tile-player" viewBox="0 0 80 80">
+                <path d="M22 14 L14 18 L10 30 L18 34 L22 30 L22 66 Q22 70 26 70 L54 70 Q58 70 58 66 L58 30 L62 34 L70 30 L66 18 L58 14 L48 14 Q48 22 40 22 Q32 22 32 14 Z"
+                      fill="#0a84ff" stroke="#0a84ff" stroke-width="0" stroke-linejoin="round"/>
+                <text x="40" y="54" text-anchor="middle" fill="white" font-family="-apple-system, system-ui" font-weight="800" font-size="22" letter-spacing="-1">9</text>
+            </symbol>
+
+            <!-- Who Am I: silhouette with question mark -->
+            <symbol id="i-tile-whoami" viewBox="0 0 80 80">
+                <!-- Silhouette -->
+                <path d="M40 14 Q31 14 31 24 Q31 33 40 33 Q49 33 49 24 Q49 14 40 14 Z M22 70 Q22 50 40 50 Q58 50 58 70 Z"
+                      fill="#ff8a00" opacity="0.30"/>
+                <!-- Question mark overlay -->
+                <circle cx="40" cy="40" r="20" fill="#ff8a00"/>
+                <path d="M34 35 Q34 28 40 28 Q46 28 46 34 Q46 38 42 40 Q40 41.5 40 44"
+                      fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="40" cy="50" r="2.2" fill="white"/>
+            </symbol>
+
+            <!-- Guess the Club: tactics board with formation dots -->
+            <symbol id="i-tile-club" viewBox="0 0 80 80">
+                <!-- Pitch background -->
+                <rect x="8" y="10" width="64" height="60" rx="6" fill="#2e9b54"/>
+                <!-- Pitch lines -->
+                <rect x="8" y="10" width="64" height="60" rx="6" fill="none" stroke="white" stroke-width="1.2" opacity="0.6"/>
+                <line x1="8" y1="40" x2="72" y2="40" stroke="white" stroke-width="1.2" opacity="0.6"/>
+                <circle cx="40" cy="40" r="8" fill="none" stroke="white" stroke-width="1.2" opacity="0.6"/>
+                <!-- Formation dots: 4-3-3 -->
+                <circle cx="40" cy="64" r="2.6" fill="white"/>
+                <circle cx="18" cy="56" r="2.6" fill="white"/>
+                <circle cx="32" cy="56" r="2.6" fill="white"/>
+                <circle cx="48" cy="56" r="2.6" fill="white"/>
+                <circle cx="62" cy="56" r="2.6" fill="white"/>
+                <circle cx="24" cy="44" r="2.6" fill="white"/>
+                <circle cx="40" cy="44" r="2.6" fill="white"/>
+                <circle cx="56" cy="44" r="2.6" fill="white"/>
+                <circle cx="22" cy="22" r="2.6" fill="white"/>
+                <circle cx="40" cy="20" r="2.6" fill="white"/>
+                <circle cx="58" cy="22" r="2.6" fill="white"/>
+            </symbol>
+
+            <!-- ─── UI ICONS ─── -->
             <symbol id="i-heart" viewBox="0 0 24 24">
                 <path d="M12 21s-7.5-4.5-9.5-9.5C1.2 8.6 3 5 6.5 5c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3C21 5 22.8 8.6 21.5 11.5 19.5 16.5 12 21 12 21z"/>
             </symbol>
@@ -27,22 +94,10 @@
             <symbol id="i-cross" viewBox="0 0 24 24">
                 <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </symbol>
-            <symbol id="i-pyramid" viewBox="0 0 32 32">
-                <path d="M16 4 4 28h24L16 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M11 19h10M9 24h14M13 14h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-            </symbol>
-            <symbol id="i-jersey" viewBox="0 0 32 32">
-                <path d="M9 6 5 9l3 5 3-2v14h10V12l3 2 3-5-4-3h-3a3 3 0 0 1-6 0H9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            </symbol>
-            <symbol id="i-question" viewBox="0 0 32 32">
-                <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2"/>
-                <path d="M12.5 12a3.5 3.5 0 0 1 7 0c0 2-1.8 2.5-3 3.5-.7.6-1 1.3-1 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="15.5" cy="22" r="1.4" fill="currentColor"/>
-            </symbol>
-            <symbol id="i-pitch" viewBox="0 0 32 32">
-                <rect x="4" y="6" width="24" height="20" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
-                <path d="M16 6v20M11 6v3h10V6M11 26v-3h10v3" fill="none" stroke="currentColor" stroke-width="1.6"/>
-                <circle cx="16" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <symbol id="i-info" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="11" x2="12" y2="17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="12" cy="7.5" r="1.4" fill="currentColor"/>
             </symbol>
             <symbol id="i-trophy" viewBox="0 0 24 24">
                 <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -52,15 +107,20 @@
             </symbol>
         </defs>
     </svg>
-</head>
-<body>
-    <section id="menu-screen" class="screen active">
-        <header class="app-header">
-            <h1 class="large-title">Daily Football Quiz</h1>
-            <p class="subtitle" id="date-display"></p>
-        </header>
 
+    <!-- Toast container — outside any screen so it stays mounted -->
+    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <!-- ================================================================
+         HOME / MENU
+         ================================================================ -->
+    <section id="menu-screen" class="screen active">
         <div class="menu-container">
+            <header class="app-header">
+                <h1 class="large-title">Daily Football Quiz</h1>
+                <p class="subtitle" id="date-display"></p>
+            </header>
+
             <div class="menu-progress">
                 <div class="progress-row">
                     <span class="progress-label">Today's progress</span>
@@ -71,52 +131,47 @@
                 </div>
             </div>
 
-            <button class="game-card" data-game="tenable">
-                <div class="game-card-icon tenable-icon">
-                    <svg viewBox="0 0 32 32"><use href="#i-pyramid"/></svg>
-                </div>
-                <div class="game-card-content">
-                    <h2>Football Tenable</h2>
-                    <p>Complete the top 10</p>
-                </div>
-                <div class="game-card-status" data-status="tenable"></div>
-            </button>
+            <p class="menu-cta">Complete the 4 quizzes for your daily score!</p>
 
-            <button class="game-card" data-game="guessPlayer">
-                <div class="game-card-icon player-icon">
-                    <svg viewBox="0 0 32 32"><use href="#i-jersey"/></svg>
-                </div>
-                <div class="game-card-content">
-                    <h2>Guess the Player</h2>
-                    <p>Identify the player from his club history</p>
-                </div>
-                <div class="game-card-status" data-status="guessPlayer"></div>
-            </button>
+            <div class="games-grid">
+                <button class="game-tile" data-game="tenable">
+                    <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
+                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-tenable"/></svg></div>
+                    <h2 class="tile-title">Tenable</h2>
+                    <p class="tile-sub">Top 10 list</p>
+                    <span class="tile-score" data-score-tile="tenable"></span>
+                </button>
 
-            <button class="game-card" data-game="whoAmI">
-                <div class="game-card-icon who-icon">
-                    <svg viewBox="0 0 32 32"><use href="#i-question"/></svg>
-                </div>
-                <div class="game-card-content">
-                    <h2>Who Am I</h2>
-                    <p>Guess the player! You get 3 hints and 5 lives.</p>
-                </div>
-                <div class="game-card-status" data-status="whoAmI"></div>
-            </button>
+                <button class="game-tile" data-game="guessPlayer">
+                    <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
+                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-player"/></svg></div>
+                    <h2 class="tile-title">Guess the Player</h2>
+                    <p class="tile-sub">Career path</p>
+                    <span class="tile-score" data-score-tile="guessPlayer"></span>
+                </button>
 
-            <button class="game-card" data-game="guessClub">
-                <div class="game-card-icon club-icon">
-                    <svg viewBox="0 0 32 32"><use href="#i-pitch"/></svg>
-                </div>
-                <div class="game-card-content">
-                    <h2>Guess the Club</h2>
-                    <p>Name the club from the lineup.</p>
-                </div>
-                <div class="game-card-status" data-status="guessClub"></div>
-            </button>
+                <button class="game-tile" data-game="whoAmI">
+                    <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
+                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-whoami"/></svg></div>
+                    <h2 class="tile-title">Who Am I</h2>
+                    <p class="tile-sub">3 hints, 5 lives</p>
+                    <span class="tile-score" data-score-tile="whoAmI"></span>
+                </button>
+
+                <button class="game-tile" data-game="guessClub">
+                    <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
+                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-club"/></svg></div>
+                    <h2 class="tile-title">Guess the Club</h2>
+                    <p class="tile-sub">Lineup challenge</p>
+                    <span class="tile-score" data-score-tile="guessClub"></span>
+                </button>
+            </div>
         </div>
     </section>
 
+    <!-- ================================================================
+         TENABLE
+         ================================================================ -->
     <section id="tenable-screen" class="screen tenable-theme">
         <header class="game-header">
             <button class="back-btn" data-back>
@@ -144,6 +199,9 @@
         </div>
     </section>
 
+    <!-- ================================================================
+         GUESS THE PLAYER
+         ================================================================ -->
     <section id="guessPlayer-screen" class="screen">
         <header class="game-header">
             <button class="back-btn" data-back>
@@ -152,6 +210,7 @@
             <h2 class="game-title">Guess the Player</h2>
             <div class="score-badge" id="guessPlayer-score">5 pt</div>
         </header>
+        <div class="career-banner">Career Path · Clubs not in order</div>
         <div class="clubs-container" id="clubs-container"></div>
         <div class="attempts-row">
             <span class="attempts-label">Attempts</span>
@@ -169,6 +228,9 @@
         </div>
     </section>
 
+    <!-- ================================================================
+         WHO AM I
+         ================================================================ -->
     <section id="whoAmI-screen" class="screen">
         <header class="game-header">
             <button class="back-btn" data-back>
@@ -177,6 +239,7 @@
             <h2 class="game-title">Who Am I</h2>
             <div class="score-badge" id="whoAmI-score">5 pt</div>
         </header>
+        <div class="dossier-banner">Player Dossier · 3 Clues</div>
         <div class="hints-container" id="hints-container"></div>
         <div class="attempts-row">
             <span class="attempts-label">Attempts</span>
@@ -194,6 +257,9 @@
         </div>
     </section>
 
+    <!-- ================================================================
+         GUESS THE CLUB
+         ================================================================ -->
     <section id="guessClub-screen" class="screen">
         <header class="game-header">
             <button class="back-btn" data-back>
@@ -220,6 +286,7 @@
         </div>
     </section>
 
+    <!-- Result modal (per-game finish) -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div class="result-icon" id="result-icon"></div>
@@ -230,6 +297,7 @@
         </div>
     </div>
 
+    <!-- Total modal (all 4 done) -->
     <div id="total-modal" class="modal">
         <div class="modal-content">
             <div class="trophy-icon">

@@ -24,7 +24,7 @@ export const COUNTRY_NAMES = {
     ME: 'Montenegro', XK: 'Kosovo', CR: 'Costa Rica', CU: 'Cuba',
     EC: 'Ecuador', PE: 'Peru', VE: 'Venezuela', PY: 'Paraguay',
     BO: 'Bolivia', ZA: 'South Africa', IR: 'Iran', IQ: 'Iraq',
-    SA: 'Saudi Arabia', FI_: 'Finland'
+    SA: 'Saudi Arabia', FI_: 'Finland', TT: 'Trinidad and Tobago'
 };
 
 export function countryName(code) {

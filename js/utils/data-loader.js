@@ -275,8 +275,8 @@ export function loadSampleData() {
                 { order: 1, name: 'Inter Milan' },
                 { order: 2, name: 'Valencia' },
                 { order: 3, name: 'Juventus' },
-                { order: 4, name: 'Barcelona' }
-                { order: 5, name: 'Manchester City' }
+                { order: 4, name: 'Barcelona' },
+                { order: 5, name: 'Manchester City' },
             ]
         },
         whoAmI: {

@@ -8,7 +8,7 @@ import { initGuessPlayer }  from './games/guess-player.js';
 import { initWhoAmI }       from './games/who-am-i.js';
 import { initGuessClub }    from './games/guess-club.js';
 
-const USE_SAMPLE_DATA = true;
+const USE_SAMPLE_DATA = false;
 
 const GAME_MAX = {
     tenable: 10,

@@ -1,7 +1,7 @@
-// Who Am I: raad speler aan 3 hints (progressive reveal)
 import { isMatch } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError } from '../utils/haptics.js';
+import { renderHearts } from '../utils/hearts.js';
 
 let data = null;
 let state = null;
@@ -19,12 +19,8 @@ export function initWhoAmI(gameData, gameState, finishCb) {
         return;
     }
 
-    if (!state.revealedHints || state.revealedHints < 1) {
-        state.revealedHints = 1;
-    }
-
     renderScore();
-    renderAttempts();
+    renderLives();
     renderHints();
 
     const form = document.getElementById('whoAmI-form');
@@ -33,10 +29,7 @@ export function initWhoAmI(gameData, gameState, finishCb) {
     input.disabled = state.played;
     form.onsubmit = handleSubmit;
 
-    setTimeout(() => {
-        if (!state.played) input.focus();
-    }, 400);
-
+    setTimeout(() => { if (!state.played) input.focus(); }, 400);
     if (state.played) showResult();
 }
 
@@ -44,47 +37,28 @@ function renderScore() {
     document.getElementById('whoAmI-score').textContent = `${calculatePoints(state.attempts)} pt`;
 }
 
-function renderAttempts() {
-    const dots = document.querySelectorAll('#whoAmI-attempts .dot');
-    dots.forEach((d, i) => {
-        d.classList.toggle('used', i < state.attempts);
-    });
+function renderLives(animateLatest = false) {
+    renderHearts(document.getElementById('whoAmI-lives'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
 function renderHints() {
     const container = document.getElementById('hints-container');
     container.innerHTML = '';
-
-    // Altijd 3 kaartjes, ook als sommige nog verborgen zijn
-    for (let i = 0; i < 3; i++) {
-        const hint = data.hints[i];
+    // All 3 hints immediately visible
+    data.hints.forEach((hint, i) => {
         const card = document.createElement('div');
         card.className = 'hint-card';
-
-        const isRevealed = (i + 1) <= state.revealedHints;
-
-        if (hint && isRevealed) {
-            card.classList.add('revealed');
-            card.innerHTML = `
-                <div class="hint-number">${i + 1}</div>
-                <p class="hint-text">${escapeHtml(hint)}</p>
-            `;
-        } else {
-            card.classList.add('locked');
-            card.innerHTML = `
-                <div class="hint-number">${i + 1}</div>
-                <p class="hint-text">Hint ${i + 1} verschijnt na een foute poging</p>
-            `;
-        }
+        card.innerHTML = `
+            <div class="hint-number">${i + 1}</div>
+            <p class="hint-text">${escapeHtml(hint)}</p>
+        `;
         container.appendChild(card);
-    }
+    });
 }
 
 function renderNoData() {
     document.getElementById('hints-container').innerHTML =
-        `<p style="text-align: center; color: var(--fg-secondary); padding: 40px 20px;">
-            Geen quiz vandaag. Kom morgen terug.
-        </p>`;
+        `<p style="text-align:center; color:var(--fg-secondary); padding:40px 20px;">No quiz today. Come back tomorrow.</p>`;
     document.getElementById('whoAmI-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('whoAmI-input').disabled = true;
 }
@@ -104,8 +78,6 @@ async function handleSubmit(e) {
         state.score = calculatePoints(state.attempts);
         state.attempts++;
         await hapticSuccess();
-        state.revealedHints = 3;
-        renderHints();
         await finishGame();
     } else {
         state.attempts++;
@@ -115,14 +87,9 @@ async function handleSubmit(e) {
         if (state.attempts >= MAX_ATTEMPTS) {
             state.solved = false;
             state.score = 0;
-            state.revealedHints = 3;
-            renderHints();
             await finishGame();
         } else {
-            // Reveal volgende hint (max 3 totaal)
-            state.revealedHints = Math.min(3, state.attempts + 1);
-            renderHints();
-            renderAttempts();
+            renderLives(true);
             renderScore();
             input.value = '';
             await updateGameState('whoAmI', state);
@@ -141,7 +108,7 @@ async function finishGame() {
     state.played = true;
     await updateGameState('whoAmI', state);
     document.getElementById('whoAmI-input').disabled = true;
-    renderAttempts();
+    renderLives();
     renderScore();
     setTimeout(() => showResult(), 500);
 }
@@ -155,13 +122,12 @@ function showResult() {
 
     icon.className = 'result-icon ' + (state.solved ? 'success' : 'fail');
     icon.innerHTML = state.solved
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
+        : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
-    title.textContent = state.solved ? 'Geraden!' : 'Helaas';
-    score.textContent = `${state.score} punten · antwoord: ${data.player}`;
+    title.textContent = state.solved ? 'Got it!' : 'Game over';
+    score.textContent = `${state.score} points · answer: ${data.player}`;
     reveal.innerHTML = '';
-
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {
         modal.classList.remove('active');

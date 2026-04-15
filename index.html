@@ -1,28 +1,69 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0a0e1a" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <title>Voetbal Quiz</title>
+    <title>Football Quiz</title>
     <link rel="stylesheet" href="css/styles.css">
+
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="i-heart" viewBox="0 0 24 24">
+                <path d="M12 21s-7.5-4.5-9.5-9.5C1.2 8.6 3 5 6.5 5c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3C21 5 22.8 8.6 21.5 11.5 19.5 16.5 12 21 12 21z"/>
+            </symbol>
+            <symbol id="i-back" viewBox="0 0 24 24">
+                <path d="M15 18 9 12l6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-arrow-right" viewBox="0 0 24 24">
+                <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-check" viewBox="0 0 24 24">
+                <path d="m5 12 5 5L20 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-cross" viewBox="0 0 24 24">
+                <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-pyramid" viewBox="0 0 32 32">
+                <path d="M16 4 4 28h24L16 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M11 19h10M9 24h14M13 14h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </symbol>
+            <symbol id="i-jersey" viewBox="0 0 32 32">
+                <path d="M9 6 5 9l3 5 3-2v14h10V12l3 2 3-5-4-3h-3a3 3 0 0 1-6 0H9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-question" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M12.5 12a3.5 3.5 0 0 1 7 0c0 2-1.8 2.5-3 3.5-.7.6-1 1.3-1 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="15.5" cy="22" r="1.4" fill="currentColor"/>
+            </symbol>
+            <symbol id="i-pitch" viewBox="0 0 32 32">
+                <rect x="4" y="6" width="24" height="20" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M16 6v20M11 6v3h10V6M11 26v-3h10v3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                <circle cx="16" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            </symbol>
+            <symbol id="i-trophy" viewBox="0 0 24 24">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-shield" viewBox="0 0 32 32">
+                <path d="M16 4 6 7v9c0 6 4 11 10 12 6-1 10-6 10-12V7l-10-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </symbol>
+        </defs>
+    </svg>
 </head>
 <body>
-    <!-- ==================== MENU SCREEN ==================== -->
     <section id="menu-screen" class="screen active">
-        <div class="safe-top"></div>
         <header class="app-header">
-            <h1 class="large-title">Voetbal Quiz</h1>
+            <h1 class="large-title">Football Quiz</h1>
             <p class="subtitle" id="date-display"></p>
         </header>
 
         <div class="menu-container">
             <div class="menu-progress">
                 <div class="progress-row">
-                    <span class="progress-label">Voortgang vandaag</span>
+                    <span class="progress-label">Today's progress</span>
                     <span class="progress-count" id="progress-count">0/4</span>
                 </div>
                 <div class="progress-bar">
@@ -32,243 +73,172 @@
 
             <button class="game-card" data-game="tenable">
                 <div class="game-card-icon tenable-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="6" y="3" width="12" height="3" rx="1"/>
-                        <rect x="6" y="8" width="12" height="3" rx="1"/>
-                        <rect x="6" y="13" width="12" height="3" rx="1"/>
-                        <rect x="6" y="18" width="12" height="3" rx="1"/>
-                    </svg>
+                    <svg viewBox="0 0 32 32"><use href="#i-pyramid"/></svg>
                 </div>
                 <div class="game-card-content">
                     <h2>Tenable</h2>
-                    <p>Vul de top 10 aan</p>
+                    <p>Complete the top 10</p>
                 </div>
                 <div class="game-card-status" data-status="tenable"></div>
             </button>
 
             <button class="game-card" data-game="guessPlayer">
                 <div class="game-card-icon player-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="8" r="4"/>
-                        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
-                    </svg>
+                    <svg viewBox="0 0 32 32"><use href="#i-jersey"/></svg>
                 </div>
                 <div class="game-card-content">
                     <h2>Guess the Player</h2>
-                    <p>Raad de speler via zijn clubs</p>
+                    <p>Identify the player from his clubs</p>
                 </div>
                 <div class="game-card-status" data-status="guessPlayer"></div>
             </button>
 
             <button class="game-card" data-game="whoAmI">
                 <div class="game-card-icon who-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
+                    <svg viewBox="0 0 32 32"><use href="#i-question"/></svg>
                 </div>
                 <div class="game-card-content">
                     <h2>Who Am I</h2>
-                    <p>Raad de speler via 3 hints</p>
+                    <p>Guess the player from 3 hints</p>
                 </div>
                 <div class="game-card-status" data-status="whoAmI"></div>
             </button>
 
             <button class="game-card" data-game="guessClub">
                 <div class="game-card-icon club-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L3 7l9 5 9-5-9-5z"/>
-                        <path d="M3 17l9 5 9-5"/>
-                        <path d="M3 12l9 5 9-5"/>
-                    </svg>
+                    <svg viewBox="0 0 32 32"><use href="#i-pitch"/></svg>
                 </div>
                 <div class="game-card-content">
                     <h2>Guess the Club</h2>
-                    <p>Raad de club aan het elftal</p>
+                    <p>Name the club from its lineup</p>
                 </div>
                 <div class="game-card-status" data-status="guessClub"></div>
             </button>
         </div>
     </section>
 
-    <!-- ==================== TENABLE SCREEN ==================== -->
-    <section id="tenable-screen" class="screen">
+    <section id="tenable-screen" class="screen tenable-theme">
         <header class="game-header">
             <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
             <h2 class="game-title">Tenable</h2>
-            <div class="lives" id="tenable-lives">
-                <span class="life"></span>
-                <span class="life"></span>
-                <span class="life"></span>
-            </div>
+            <div class="lives" id="tenable-lives" data-count="3"></div>
         </header>
         <div class="tenable-question">
             <p class="question-text" id="tenable-question"></p>
             <p class="question-sub" id="tenable-subtitle"></p>
         </div>
-        <div class="tenable-tower" id="tenable-tower">
-            <!-- 10 slots dynamisch gegenereerd -->
+        <div class="tenable-pyramid-wrap">
+            <div class="tenable-pyramid" id="tenable-pyramid"></div>
         </div>
         <div class="input-area">
             <form id="tenable-form" autocomplete="off">
-                <input type="text" id="tenable-input" placeholder="Typ een naam…"
+                <input type="text" id="tenable-input" placeholder="Type a name…"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
             </form>
         </div>
     </section>
 
-    <!-- ==================== GUESS THE PLAYER SCREEN ==================== -->
     <section id="guessPlayer-screen" class="screen">
         <header class="game-header">
             <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
             <h2 class="game-title">Guess the Player</h2>
             <div class="score-badge" id="guessPlayer-score">5 pt</div>
         </header>
-        <div class="clubs-container" id="clubs-container">
-            <!-- 5 club cards dynamisch -->
-        </div>
+        <div class="clubs-container" id="clubs-container"></div>
         <div class="attempts-row">
-            <span class="attempts-label">Pogingen</span>
-            <div class="attempts-dots" id="guessPlayer-attempts">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
+            <span class="attempts-label">Attempts</span>
+            <div class="lives" id="guessPlayer-lives" data-count="5"></div>
         </div>
         <div class="input-area">
             <form id="guessPlayer-form" autocomplete="off">
-                <input type="text" id="guessPlayer-input" placeholder="Welke speler?"
+                <input type="text" id="guessPlayer-input" placeholder="Which player?"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
             </form>
         </div>
     </section>
 
-    <!-- ==================== WHO AM I SCREEN ==================== -->
     <section id="whoAmI-screen" class="screen">
         <header class="game-header">
             <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
             <h2 class="game-title">Who Am I</h2>
             <div class="score-badge" id="whoAmI-score">5 pt</div>
         </header>
-        <div class="hints-container" id="hints-container">
-            <!-- 3 hints dynamisch -->
-        </div>
+        <div class="hints-container" id="hints-container"></div>
         <div class="attempts-row">
-            <span class="attempts-label">Pogingen</span>
-            <div class="attempts-dots" id="whoAmI-attempts">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
+            <span class="attempts-label">Attempts</span>
+            <div class="lives" id="whoAmI-lives" data-count="5"></div>
         </div>
         <div class="input-area">
             <form id="whoAmI-form" autocomplete="off">
-                <input type="text" id="whoAmI-input" placeholder="Welke speler?"
+                <input type="text" id="whoAmI-input" placeholder="Which player?"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
             </form>
         </div>
     </section>
 
-    <!-- ==================== GUESS THE CLUB SCREEN ==================== -->
     <section id="guessClub-screen" class="screen">
         <header class="game-header">
             <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="15 18 9 12 15 6"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
             <h2 class="game-title">Guess the Club</h2>
             <div class="score-badge" id="guessClub-score">5 pt</div>
         </header>
         <div class="club-year-badge" id="guessClub-year"></div>
-        <div class="formation-container" id="formation-container">
-            <!-- Dit wordt ingevuld op basis van je antwoord -->
-        </div>
+        <div class="formation-container" id="formation-container"></div>
         <div class="attempts-row">
-            <span class="attempts-label">Pogingen</span>
-            <div class="attempts-dots" id="guessClub-attempts">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-            </div>
+            <span class="attempts-label">Attempts</span>
+            <div class="lives" id="guessClub-lives" data-count="3"></div>
         </div>
         <div class="input-area">
             <form id="guessClub-form" autocomplete="off">
-                <input type="text" id="guessClub-input" placeholder="Welke club?"
+                <input type="text" id="guessClub-input" placeholder="Which club?"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
             </form>
         </div>
     </section>
 
-    <!-- ==================== RESULT MODAL ==================== -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div class="result-icon" id="result-icon"></div>
             <h2 class="result-title" id="result-title"></h2>
             <p class="result-score" id="result-score"></p>
             <div class="result-reveal" id="result-reveal"></div>
-            <button class="primary-btn" id="result-continue">Terug naar menu</button>
+            <button class="primary-btn" id="result-continue">Back to menu</button>
         </div>
     </div>
 
-    <!-- ==================== TOTAL SCORE MODAL ==================== -->
     <div id="total-modal" class="modal">
         <div class="modal-content">
             <div class="trophy-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                    <path d="M4 22h16"/>
-                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-                </svg>
+                <svg viewBox="0 0 24 24"><use href="#i-trophy"/></svg>
             </div>
-            <h2 class="result-title">Dagtotaal</h2>
+            <h2 class="result-title">Daily total</h2>
             <p class="total-big" id="total-score">0/25</p>
             <div class="total-breakdown" id="total-breakdown"></div>
-            <button class="primary-btn" id="total-continue">Sluiten</button>
+            <button class="primary-btn" id="total-continue">Close</button>
         </div>
     </div>
 

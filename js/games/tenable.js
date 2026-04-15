@@ -42,8 +42,7 @@ function renderPyramid() {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
 
-        // Linear width: rank 1 = 32%, rank 10 = 100%
-        const widthPct = 32 + ((rank - 1) / 9) * 68;
+        const widthPct = 50 + ((rank - 1) / 9) * 50;
         slot.style.setProperty('--slot-width', `${widthPct}%`);
 
         const isRevealed = state.revealedRanks.includes(rank);

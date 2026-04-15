@@ -1,7 +1,8 @@
-// Guess the Player: raad speler aan zijn clubs (progressive reveal)
 import { isMatch } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError } from '../utils/haptics.js';
+import { renderHearts } from '../utils/hearts.js';
+import { getClubLogo } from '../utils/club-logo.js';
 
 let data = null;
 let state = null;
@@ -19,14 +20,14 @@ export function initGuessPlayer(gameData, gameState, finishCb) {
         return;
     }
 
-    // Als niet gespeeld: minstens 1 club zichtbaar
     if (!state.revealedClubs || state.revealedClubs < 1) {
         state.revealedClubs = 1;
     }
 
     renderScore();
-    renderAttempts();
+    renderLives();
     renderClubs();
+    fetchAndShowLogos();
 
     const form = document.getElementById('guessPlayer-form');
     const input = document.getElementById('guessPlayer-input');
@@ -34,23 +35,16 @@ export function initGuessPlayer(gameData, gameState, finishCb) {
     input.disabled = state.played;
     form.onsubmit = handleSubmit;
 
-    setTimeout(() => {
-        if (!state.played) input.focus();
-    }, 400);
-
+    setTimeout(() => { if (!state.played) input.focus(); }, 400);
     if (state.played) showResult();
 }
 
 function renderScore() {
-    const currentPoints = calculatePoints(state.attempts);
-    document.getElementById('guessPlayer-score').textContent = `${currentPoints} pt`;
+    document.getElementById('guessPlayer-score').textContent = `${calculatePoints(state.attempts)} pt`;
 }
 
-function renderAttempts() {
-    const dots = document.querySelectorAll('#guessPlayer-attempts .dot');
-    dots.forEach((d, i) => {
-        d.classList.toggle('used', i < state.attempts);
-    });
+function renderLives(animateLatest = false) {
+    renderHearts(document.getElementById('guessPlayer-lives'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
 function renderClubs() {
@@ -62,7 +56,6 @@ function renderClubs() {
         const club = data.clubs[i];
         const card = document.createElement('div');
         card.className = 'club-card';
-
         const orderNum = i + 1;
         const isRevealed = orderNum <= state.revealedClubs;
 
@@ -70,6 +63,9 @@ function renderClubs() {
             card.classList.add('revealed');
             card.innerHTML = `
                 <div class="club-order">${orderNum}</div>
+                <div class="club-logo" data-club="${escapeHtml(club.name)}">
+                    <svg class="club-logo-fallback" viewBox="0 0 32 32"><use href="#i-shield"/></svg>
+                </div>
                 <div class="club-info">
                     <p class="club-name">${escapeHtml(club.name)}</p>
                     ${club.years ? `<p class="club-years">${escapeHtml(club.years)}</p>` : ''}
@@ -79,8 +75,11 @@ function renderClubs() {
             card.classList.add('locked');
             card.innerHTML = `
                 <div class="club-order">${orderNum}</div>
+                <div class="club-logo">
+                    <svg class="club-logo-fallback" viewBox="0 0 32 32"><use href="#i-shield"/></svg>
+                </div>
                 <div class="club-info">
-                    <p class="locked-placeholder">Nog verborgen</p>
+                    <p class="locked-placeholder">Hidden</p>
                 </div>
             `;
         }
@@ -88,21 +87,27 @@ function renderClubs() {
     }
 }
 
+async function fetchAndShowLogos() {
+    // Fetch logos for revealed clubs only, parallel
+    const promises = [];
+    document.querySelectorAll('#clubs-container .club-logo[data-club]').forEach(el => {
+        const name = el.dataset.club;
+        promises.push(getClubLogo(name).then(url => {
+            if (url) {
+                el.innerHTML = `<img src="${url}" alt="" loading="lazy">`;
+            }
+        }).catch(() => {}));
+    });
+    await Promise.all(promises);
+}
+
 function renderNoData() {
     document.getElementById('clubs-container').innerHTML =
-        `<p style="text-align: center; color: var(--fg-secondary); padding: 40px 20px;">
-            Geen quiz vandaag. Kom morgen terug.
-        </p>`;
+        `<p style="text-align:center; color:var(--fg-secondary); padding:40px 20px;">No quiz today. Come back tomorrow.</p>`;
     document.getElementById('guessPlayer-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('guessPlayer-input').disabled = true;
 }
 
-/**
- * Punten-berekening: na X attempts (voor deze guess)
- * attempts=0 → nog 5 pt (eerste poging waard)
- * attempts=1 → 4 pt mogelijk
- * attempts=4 → 1 pt mogelijk
- */
 function calculatePoints(attemptsDone) {
     return Math.max(0, 5 - attemptsDone);
 }
@@ -114,34 +119,31 @@ async function handleSubmit(e) {
     if (!raw) return;
 
     if (isMatch(raw, data.aliases)) {
-        // Correct!
         state.solved = true;
         state.score = calculatePoints(state.attempts);
-        state.attempts++; // telt als gebruikte poging
+        state.attempts++;
         await hapticSuccess();
-
-        // Reveal alle clubs voor de show
         state.revealedClubs = data.clubs.length;
         renderClubs();
+        fetchAndShowLogos();
         await finishGame();
     } else {
-        // Fout
         state.attempts++;
         await hapticError();
         shakeInput(input);
 
         if (state.attempts >= MAX_ATTEMPTS) {
-            // Game over - reveal alles
             state.solved = false;
             state.score = 0;
             state.revealedClubs = data.clubs.length;
             renderClubs();
+            fetchAndShowLogos();
             await finishGame();
         } else {
-            // Reveal volgende club
             state.revealedClubs = Math.min(data.clubs.length, state.attempts + 1);
             renderClubs();
-            renderAttempts();
+            fetchAndShowLogos();
+            renderLives(true);
             renderScore();
             input.value = '';
             await updateGameState('guessPlayer', state);
@@ -160,9 +162,9 @@ async function finishGame() {
     state.played = true;
     await updateGameState('guessPlayer', state);
     document.getElementById('guessPlayer-input').disabled = true;
-    renderAttempts();
+    renderLives();
     renderScore();
-    setTimeout(() => showResult(), 500);
+    setTimeout(() => showResult(), 600);
 }
 
 function showResult() {
@@ -174,13 +176,12 @@ function showResult() {
 
     icon.className = 'result-icon ' + (state.solved ? 'success' : 'fail');
     icon.innerHTML = state.solved
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
+        : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
-    title.textContent = state.solved ? 'Geraden!' : 'Helaas';
-    score.textContent = `${state.score} punten · antwoord: ${data.player}`;
+    title.textContent = state.solved ? 'Got it!' : 'Game over';
+    score.textContent = `${state.score} points · answer: ${data.player}`;
     reveal.innerHTML = '';
-
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {
         modal.classList.remove('active');
@@ -190,6 +191,6 @@ function showResult() {
 
 function escapeHtml(str) {
     const div = document.createElement('div');
-    div.textContent = str;
+    div.textContent = String(str);
     return div.innerHTML;
 }

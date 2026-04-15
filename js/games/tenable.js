@@ -2,6 +2,7 @@ import { findMatchIndex } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
+import { toast } from '../utils/toast.js';
 
 let data = null;
 let state = null;
@@ -37,12 +38,13 @@ function renderPyramid() {
     const pyramid = document.getElementById('tenable-pyramid');
     pyramid.innerHTML = '';
 
-    // Pyramid: rank 1 top (narrowest), rank 10 bottom (widest)
+    // Rank 1 = top (narrowest), Rank 10 = bottom (widest)
     for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
 
-        const widthPct = 50 + ((rank - 1) / 9) * 50;
+        // Width grows linearly: 52% at rank 1, 100% at rank 10
+        const widthPct = 52 + ((rank - 1) / 9) * 48;
         slot.style.setProperty('--slot-width', `${widthPct}%`);
 
         const isRevealed = state.revealedRanks.includes(rank);
@@ -74,7 +76,9 @@ async function handleSubmit(e) {
     const raw = input.value.trim();
     if (!raw) return;
 
+    // Already typed this exact string before
     if (state.history.map(h => h.toLowerCase()).includes(raw.toLowerCase())) {
+        toast('Already tried', 'warn');
         shakeInput(input);
         input.value = '';
         return;
@@ -86,12 +90,14 @@ async function handleSubmit(e) {
     if (matchIdx >= 0) {
         const answer = data.answers[matchIdx];
         if (state.revealedRanks.includes(answer.rank)) {
+            toast(`${answer.name} already on board`, 'warn');
             shakeInput(input);
             input.value = '';
             return;
         }
         state.revealedRanks.push(answer.rank);
         await hapticSuccess();
+        toast(`#${answer.rank} · ${answer.name}`, 'success');
 
         const slot = document.querySelector(`.pyramid-slot[data-rank="${answer.rank}"]`);
         if (slot) {
@@ -108,6 +114,7 @@ async function handleSubmit(e) {
     } else {
         state.lives--;
         await hapticError();
+        toast(state.lives > 0 ? `Incorrect · ${state.lives} ${state.lives === 1 ? 'life' : 'lives'} left` : 'Incorrect · no lives left', 'error');
         shakeInput(input);
         input.value = '';
         renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives, true);
@@ -145,7 +152,7 @@ async function finishGame() {
             slot.innerHTML = `<span class="slot-rank">${m.rank}</span><span class="slot-name">${escapeHtml(m.name)}</span>`;
         }
     }
-    setTimeout(() => showResult(), 700);
+    setTimeout(() => showResult(), 800);
 }
 
 function showResult() {
@@ -162,13 +169,13 @@ function showResult() {
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
     title.textContent = allTen ? 'Perfect 10!' : 'Game over';
-    score.textContent = `${state.revealedRanks.length}/10 correct`;
+    score.innerHTML = `<strong>${state.revealedRanks.length}/10</strong> correct`;
 
     reveal.innerHTML = data.answers.map(a => {
         const gotIt = state.revealedRanks.includes(a.rank);
         return `<div class="reveal-row">
-            <span><span class="reveal-rank">${a.rank}.</span>${escapeHtml(a.name)}</span>
-            <span style="color: ${gotIt ? 'var(--accent)' : 'var(--fg-tertiary)'}; font-weight: 600;">${gotIt ? '✓' : '–'}</span>
+            <span><span class="reveal-rank">${a.rank}.</span><span class="reveal-name">${escapeHtml(a.name)}</span></span>
+            <span style="color: ${gotIt ? 'var(--success)' : 'var(--fg-tertiary)'}; font-weight: 700;">${gotIt ? '✓' : '–'}</span>
         </div>`;
     }).join('');
 

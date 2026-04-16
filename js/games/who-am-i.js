@@ -49,7 +49,7 @@ function renderHints() {
         const card = document.createElement('div');
         card.className = 'hint-card';
         card.innerHTML = `
-            <div class="hint-number">${i + 1}</div>
+            <div class="hint-number">${i + 1}'</div>
             <p class="hint-text">${escapeHtml(hint)}</p>
         `;
         container.appendChild(card);

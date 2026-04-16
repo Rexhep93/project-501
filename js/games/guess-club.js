@@ -12,6 +12,15 @@ let onFinish = null;
 const MAX_ATTEMPTS = 3;
 const POINTS_PER_ATTEMPT = [5, 3, 1];
 
+/**
+ * Pure scoring function — single source of truth.
+ * attemptNumber is 0-indexed (0 = first attempt).
+ */
+function pointsForAttempt(attemptNumber) {
+    if (attemptNumber < 0 || attemptNumber >= POINTS_PER_ATTEMPT.length) return 0;
+    return POINTS_PER_ATTEMPT[attemptNumber];
+}
+
 export function initGuessClub(gameData, gameState, finishCb) {
     data = gameData;
     state = { ...gameState };
@@ -20,6 +29,11 @@ export function initGuessClub(gameData, gameState, finishCb) {
     if (!data || !data.lineup || data.lineup.length === 0) {
         renderNoData();
         return;
+    }
+
+    // Sanity check: lineup should start with GK
+    if (data.lineup[0]?.position !== 'GK') {
+        console.warn('[guessClub] First lineup player should be GK, got:', data.lineup[0]?.position);
     }
 
     renderYearBadge();
@@ -46,7 +60,8 @@ function renderYearBadge() {
 }
 
 function renderScore() {
-    const pt = state.attempts < MAX_ATTEMPTS ? POINTS_PER_ATTEMPT[state.attempts] : 0;
+    // Show the points they'd earn with their NEXT attempt
+    const pt = pointsForAttempt(state.attempts);
     document.getElementById('guessClub-score').textContent = `${pt} pt`;
 }
 
@@ -64,6 +79,12 @@ function renderFormation() {
     const container = document.getElementById('formation-container');
     container.innerHTML = '';
     const rows = parseFormation(data.formation || '4-3-3');
+
+    // Sanity check: formation row sum must equal lineup length
+    const expectedTotal = rows.reduce((a, b) => a + b, 0);
+    if (expectedTotal !== data.lineup.length) {
+        console.warn(`[guessClub] Formation ${data.formation} expects ${expectedTotal} players but lineup has ${data.lineup.length}`);
+    }
 
     const pitch = document.createElement('div');
     pitch.className = 'pitch';
@@ -100,7 +121,10 @@ function renderFormation() {
             playerEl.className = 'pitch-player';
             playerEl.innerHTML = `
                 <div class="flag-bubble" title="${escapeHtml(cn)}">
-                    ${fUrl ? `<img src="${fUrl}" alt="${escapeHtml(cn)}" loading="lazy">` : ''}
+                    ${fUrl
+                        ? `<img src="${fUrl}" alt="${escapeHtml(cn)}" loading="lazy">`
+                        : `<svg class="flag-fallback" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`
+                    }
                 </div>
                 ${player.shirt ? `<div class="shirt-number">${escapeHtml(String(player.shirt))}</div>` : ''}
             `;
@@ -121,9 +145,6 @@ function renderNoData() {
     document.getElementById('guessClub-input').disabled = true;
 }
 
-/**
- * Build flexible alias list — also accept answers without the year suffix.
- */
 function buildFlexibleAliases() {
     const all = new Set();
     for (const a of data.aliases) {
@@ -148,7 +169,7 @@ async function handleSubmit(e) {
 
     if (isMatch(raw, flexAliases)) {
         state.solved = true;
-        state.score = POINTS_PER_ATTEMPT[state.attempts];
+        state.score = pointsForAttempt(state.attempts);
         state.attempts++;
         await hapticSuccess();
         toast(`Nice — ${data.club}`, 'success');
@@ -207,8 +228,8 @@ function showResult() {
 
     title.textContent = state.solved ? 'Nicely done.' : 'Not this time.';
     score.innerHTML = state.solved
-        ? `You scored <strong>${state.score} out of 5</strong>. It was <strong>${escapeHtml(data.club)}</strong>.`
-        : `The club was <strong>${escapeHtml(data.club)}</strong>.`;
+        ? `You scored <strong>${state.score} out of 5</strong>.<br><span class="reveal-player">${escapeHtml(data.club)}</span>`
+        : `<span class="reveal-player">${escapeHtml(data.club)}</span>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {

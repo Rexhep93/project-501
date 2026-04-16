@@ -40,15 +40,19 @@ export function initGuessPlayer(gameData, gameState, finishCb) {
     if (state.played) showResult();
 }
 
+function pointsForAttempt(attemptsDone) {
+    return Math.max(0, 5 - attemptsDone);
+}
+
 function renderScore() {
-    document.getElementById('guessPlayer-score').textContent = `${calculatePoints(state.attempts)} pt`;
+    document.getElementById('guessPlayer-score').textContent = `${pointsForAttempt(state.attempts)} pt`;
 }
 
 function renderLives(animateLatest = false) {
     renderHearts(document.getElementById('guessPlayer-lives'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
-function renderClubs() {
+function renderClubs(staggerFromIndex = -1) {
     const container = document.getElementById('clubs-container');
     container.innerHTML = '';
     const totalSlots = Math.max(5, data.clubs.length);
@@ -62,6 +66,11 @@ function renderClubs() {
 
         if (club && isRevealed) {
             card.classList.add('revealed');
+            // Staggered entry animation for newly revealed clubs
+            if (staggerFromIndex >= 0 && i >= staggerFromIndex) {
+                const delay = (i - staggerFromIndex) * 80;
+                card.style.animationDelay = `${delay}ms`;
+            }
             card.innerHTML = `
                 <div class="club-order">${orderNum}</div>
                 <div class="club-logo" data-club="${escapeHtml(club.name)}">
@@ -106,10 +115,6 @@ function renderNoData() {
     document.getElementById('guessPlayer-input').disabled = true;
 }
 
-function calculatePoints(attemptsDone) {
-    return Math.max(0, 5 - attemptsDone);
-}
-
 async function handleSubmit(e) {
     e.preventDefault();
     const input = document.getElementById('guessPlayer-input');
@@ -118,12 +123,14 @@ async function handleSubmit(e) {
 
     if (isMatch(raw, data.aliases)) {
         state.solved = true;
-        state.score = calculatePoints(state.attempts);
+        state.score = pointsForAttempt(state.attempts);
         state.attempts++;
+        const prevRevealed = state.revealedClubs;
+        state.revealedClubs = data.clubs.length;
         await hapticSuccess();
         toast(`Nice — ${data.player}`, 'success');
-        state.revealedClubs = data.clubs.length;
-        renderClubs();
+        // Stagger reveal of newly unlocked cards
+        renderClubs(prevRevealed);
         fetchAndShowLogos();
         await finishGame();
     } else {
@@ -140,13 +147,15 @@ async function handleSubmit(e) {
         if (state.attempts >= MAX_ATTEMPTS) {
             state.solved = false;
             state.score = 0;
+            const prevRevealed = state.revealedClubs;
             state.revealedClubs = data.clubs.length;
-            renderClubs();
+            renderClubs(prevRevealed);
             fetchAndShowLogos();
             await finishGame();
         } else {
+            const prevRevealed = state.revealedClubs;
             state.revealedClubs = Math.min(data.clubs.length, state.attempts + 1);
-            renderClubs();
+            renderClubs(prevRevealed);
             fetchAndShowLogos();
             renderLives(true);
             renderScore();
@@ -169,7 +178,7 @@ async function finishGame() {
     document.getElementById('guessPlayer-input').disabled = true;
     renderLives();
     renderScore();
-    setTimeout(() => showResult(), 700);
+    setTimeout(() => showResult(), 900);
 }
 
 function showResult() {
@@ -186,8 +195,8 @@ function showResult() {
 
     title.textContent = state.solved ? 'Nicely done.' : 'Not this time.';
     score.innerHTML = state.solved
-        ? `You scored <strong>${state.score} out of 5</strong>. It was <strong>${escapeHtml(data.player)}</strong>.`
-        : `The player was <strong>${escapeHtml(data.player)}</strong>.`;
+        ? `You scored <strong>${state.score} out of 5</strong>.<br><span class="reveal-player">${escapeHtml(data.player)}</span>`
+        : `<span class="reveal-player">${escapeHtml(data.player)}</span>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {

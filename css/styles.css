@@ -306,9 +306,9 @@ input {
 .tile-corner-icon {
     position: absolute;
     right: 16px;
-    /* bottom: 16px; */
-    width: 58px;
-    height: 58px;
+    bottom: 70px;
+    width: 68px;
+    height: 68px;
     color: rgba(255, 255, 255, 0.85);
     display: flex;
     align-items: center;

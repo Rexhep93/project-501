@@ -25,21 +25,21 @@
     --accent-dark:   #A83B29;     /* for button tactile shadow */
 
     /* Per-game color blocks (solid, saturated but earthy) */
-    --tenable:       #2B5F5A;
-    --tenable-dark:  #1F4641;     /* tactile shadow */
-    --tenable-soft:  #E3EDEC;     /* light wash for badges */
+    --tenable:       #1A8F86;
+    --tenable-dark:  #126963;
+    --tenable-soft:  #D9EEEC;
 
-    --player:        #D9822B;
-    --player-dark:   #A86220;
-    --player-soft:   #F7E8D5;
+    --player:        #E8742C;
+    --player-dark:   #B95A1E;
+    --player-soft:   #FAE5D6;
 
-    --whoami:        #5B4E8E;
-    --whoami-dark:   #42376B;
-    --whoami-soft:   #E6E2F0;
+    --whoami:        #6B4FD1;
+    --whoami-dark:   #4E36A3;
+    --whoami-soft:   #E3DBF7;
 
-    --club:          #1E6B3D;
-    --club-dark:     #154E2C;
-    --club-soft:     #DCE9E0;
+    --club:          #17823E;
+    --club-dark:     #0F6130;
+    --club-soft:     #D6EADE;
 
     /* Semantic */
     --success:       #2B8A4F;
@@ -150,6 +150,30 @@ input {
     margin: 0;
     line-height: 1.1;
     letter-spacing: -0.01em;
+}
+.matchweek-ticker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px 14px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+.matchweek-ticker::before,
+.matchweek-ticker::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--divider);
+}
+.matchweek-ticker-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
 }
 
 /* Score card — white on cream, hard 1px bottom shadow (paper-on-paper) */
@@ -266,18 +290,21 @@ input {
 
 /* Top-left number bullet (white circle with ink) */
 .tile-number {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(--surface);
-    color: var(--ink);
-    display: flex;
+    min-width: 34px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    color: white;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.02em;
+    align-self: flex-start;
 }
 
 /* Bottom-left text block */
@@ -362,18 +389,28 @@ input {
     flex-shrink: 0;
     width: 40px;
     height: 64px;
-    border-radius: 14px;
+    border-radius: 10px;
     background: var(--surface);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 0 6px;
+    padding: 7px 0 6px;
     box-shadow: 0 1px 0 var(--divider);
+    position: relative;
 }
 .streak-cell.today {
     border: 1.5px solid var(--accent);
     box-shadow: 0 1px 0 var(--divider);
+}
+.streak-cell.today::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 26px;
+    height: 1px;
+    background: var(--divider);
 }
 .streak-cell.missed {
     background: var(--sunken);
@@ -493,6 +530,16 @@ input {
     flex-direction: column;
     justify-content: space-between;
 }
+
+.game-hero::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+}
+
 #tenable-screen      .game-hero { background: var(--tenable); }
 #guessPlayer-screen  .game-hero { background: var(--player); }
 #whoAmI-screen       .game-hero { background: var(--whoami); }
@@ -886,23 +933,26 @@ input {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 3px;
+    width: 4px;
     background: var(--whoami);
 }
 .hint-number {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+    min-width: 36px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 6px;
     background: var(--whoami-soft);
     color: var(--whoami);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.01em;
+    align-self: flex-start;
+    margin-top: 2px;
 }
 .hint-text {
     font-family: var(--font-serif);

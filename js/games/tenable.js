@@ -19,7 +19,7 @@ export function initTenable(gameData, gameState, finishCb) {
     }
 
     document.getElementById('tenable-question').textContent = data.question;
-    document.getElementById('tenable-subtitle').textContent = data.subtitle;
+    document.getElementById('tenable-subtitle').textContent = data.subtitle || 'Top 10';
 
     renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives);
     renderPyramid();
@@ -38,13 +38,14 @@ function renderPyramid() {
     const pyramid = document.getElementById('tenable-pyramid');
     pyramid.innerHTML = '';
 
-    // Rank 1 = top (narrowest), Rank 10 = bottom (widest)
-    for (let rank = 1; rank <= 10; rank++) {
+    // Render rank 10 on TOP (narrowest) descending to rank 1 on BOTTOM (widest)
+    // This mirrors the "climb the tower" game-show feel.
+    for (let rank = 10; rank >= 1; rank--) {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
 
-        // Width grows linearly: 52% at rank 1, 100% at rank 10
-        const widthPct = 52 + ((rank - 1) / 9) * 48;
+        // Width: rank 10 = 52%, rank 1 = 100%
+        const widthPct = 52 + ((10 - rank) / 9) * 48;
         slot.style.setProperty('--slot-width', `${widthPct}%`);
 
         const isRevealed = state.revealedRanks.includes(rank);
@@ -76,7 +77,6 @@ async function handleSubmit(e) {
     const raw = input.value.trim();
     if (!raw) return;
 
-    // Already typed this exact string before
     if (state.history.map(h => h.toLowerCase()).includes(raw.toLowerCase())) {
         toast('Already tried', 'warn');
         shakeInput(input);
@@ -171,13 +171,17 @@ function showResult() {
     title.textContent = allTen ? 'Perfect 10!' : 'Game over';
     score.innerHTML = `<strong>${state.revealedRanks.length}/10</strong> correct`;
 
-    reveal.innerHTML = data.answers.map(a => {
-        const gotIt = state.revealedRanks.includes(a.rank);
-        return `<div class="reveal-row">
-            <span><span class="reveal-rank">${a.rank}.</span><span class="reveal-name">${escapeHtml(a.name)}</span></span>
-            <span style="color: ${gotIt ? 'var(--success)' : 'var(--fg-tertiary)'}; font-weight: 700;">${gotIt ? '✓' : '–'}</span>
-        </div>`;
-    }).join('');
+    // Reveal list — ordered rank 1 to 10 (top scoring first)
+    reveal.innerHTML = data.answers
+        .slice()
+        .sort((a, b) => a.rank - b.rank)
+        .map(a => {
+            const gotIt = state.revealedRanks.includes(a.rank);
+            return `<div class="reveal-row">
+                <span><span class="reveal-rank">${a.rank}.</span><span class="reveal-name">${escapeHtml(a.name)}</span></span>
+                <span style="color: ${gotIt ? 'var(--success)' : 'var(--fg-tertiary)'}; font-weight: 700;">${gotIt ? '✓' : '–'}</span>
+            </div>`;
+        }).join('');
 
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {

@@ -341,7 +341,7 @@ input {
 /* Play pill — bottom-right (coral CTA) */
 .tile-play {
     position: absolute;
-    bottom: 16px;
+    bottom: 145px;
     right: 14px;
     z-index: 3;
     padding: 5px 10px 5px 11px;

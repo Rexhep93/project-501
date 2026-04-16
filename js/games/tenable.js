@@ -19,10 +19,11 @@ export function initTenable(gameData, gameState, finishCb) {
     }
 
     document.getElementById('tenable-question').textContent = data.question;
-    document.getElementById('tenable-subtitle').textContent = data.subtitle || 'Top 10';
+    document.getElementById('tenable-subtitle').textContent = data.subtitle || '';
 
     renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives);
     renderPyramid();
+    renderScoreChip();
 
     const form = document.getElementById('tenable-form');
     const input = document.getElementById('tenable-input');
@@ -34,18 +35,21 @@ export function initTenable(gameData, gameState, finishCb) {
     if (state.played) showResult();
 }
 
+function renderScoreChip() {
+    document.getElementById('tenable-score').textContent = `${state.revealedRanks.length} / 10`;
+}
+
 function renderPyramid() {
     const pyramid = document.getElementById('tenable-pyramid');
     pyramid.innerHTML = '';
 
-    // Render rank 10 on TOP (narrowest) descending to rank 1 on BOTTOM (widest)
-    // This mirrors the "climb the tower" game-show feel.
-    for (let rank = 10; rank >= 1; rank--) {
+    // Classic pyramid: rank 1 on TOP (narrowest), rank 10 on BOTTOM (widest)
+    for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
 
-        // Width: rank 10 = 52%, rank 1 = 100%
-        const widthPct = 52 + ((10 - rank) / 9) * 48;
+        // Width: rank 1 = 52%, rank 10 = 100%
+        const widthPct = 52 + ((rank - 1) / 9) * 48;
         slot.style.setProperty('--slot-width', `${widthPct}%`);
 
         const isRevealed = state.revealedRanks.includes(rank);
@@ -78,7 +82,7 @@ async function handleSubmit(e) {
     if (!raw) return;
 
     if (state.history.map(h => h.toLowerCase()).includes(raw.toLowerCase())) {
-        toast('Already tried', 'warn');
+        toast('Already tried that', 'warn');
         shakeInput(input);
         input.value = '';
         return;
@@ -90,14 +94,14 @@ async function handleSubmit(e) {
     if (matchIdx >= 0) {
         const answer = data.answers[matchIdx];
         if (state.revealedRanks.includes(answer.rank)) {
-            toast(`${answer.name} already on board`, 'warn');
+            toast(`${answer.name} already on the board`, 'warn');
             shakeInput(input);
             input.value = '';
             return;
         }
         state.revealedRanks.push(answer.rank);
         await hapticSuccess();
-        toast(`#${answer.rank} · ${answer.name}`, 'success');
+        toast(`Nice — #${answer.rank} ${answer.name}`, 'success');
 
         const slot = document.querySelector(`.pyramid-slot[data-rank="${answer.rank}"]`);
         if (slot) {
@@ -107,6 +111,7 @@ async function handleSubmit(e) {
 
         input.value = '';
         await saveState();
+        renderScoreChip();
 
         if (state.revealedRanks.length === 10) {
             await finishGame();
@@ -114,7 +119,10 @@ async function handleSubmit(e) {
     } else {
         state.lives--;
         await hapticError();
-        toast(state.lives > 0 ? `Incorrect · ${state.lives} ${state.lives === 1 ? 'life' : 'lives'} left` : 'Incorrect · no lives left', 'error');
+        const msg = state.lives > 0
+            ? `Missed · ${state.lives} ${state.lives === 1 ? 'life' : 'lives'} left`
+            : 'Missed · no lives left';
+        toast(msg, 'error');
         shakeInput(input);
         input.value = '';
         renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives, true);
@@ -162,16 +170,19 @@ function showResult() {
     const score = document.getElementById('result-score');
     const reveal= document.getElementById('result-reveal');
 
-    const allTen = state.revealedRanks.length === 10;
+    const got = state.revealedRanks.length;
+    const allTen = got === 10;
+
     icon.className = 'result-icon ' + (allTen ? 'success' : 'fail');
     icon.innerHTML = allTen
         ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
-    title.textContent = allTen ? 'Perfect 10!' : 'Game over';
-    score.innerHTML = `<strong>${state.revealedRanks.length}/10</strong> correct`;
+    title.textContent = allTen ? 'Perfect ten.' : 'Nice try.';
+    score.innerHTML = allTen
+        ? `You named all <strong>10</strong>.`
+        : `You named <strong>${got} out of 10</strong>.`;
 
-    // Reveal list — ordered rank 1 to 10 (top scoring first)
     reveal.innerHTML = data.answers
         .slice()
         .sort((a, b) => a.rank - b.rank)
@@ -179,7 +190,7 @@ function showResult() {
             const gotIt = state.revealedRanks.includes(a.rank);
             return `<div class="reveal-row">
                 <span><span class="reveal-rank">${a.rank}.</span><span class="reveal-name">${escapeHtml(a.name)}</span></span>
-                <span style="color: ${gotIt ? 'var(--success)' : 'var(--fg-tertiary)'}; font-weight: 700;">${gotIt ? '✓' : '–'}</span>
+                <span class="reveal-mark ${gotIt ? 'got' : 'missed'}">${gotIt ? '✓' : '–'}</span>
             </div>`;
         }).join('');
 

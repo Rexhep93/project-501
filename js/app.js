@@ -87,7 +87,7 @@ function renderGreeting() {
     const now = new Date();
     const hour = now.getHours();
     let partOfDay;
-    if (hour < 6)       partOfDay = 'evening';   // late night → still "evening"
+    if (hour < 6)       partOfDay = 'evening';
     else if (hour < 12) partOfDay = 'morning';
     else if (hour < 18) partOfDay = 'afternoon';
     else                partOfDay = 'evening';
@@ -99,16 +99,14 @@ function renderGreeting() {
     };
     document.getElementById('greeting-line-1').textContent = greetings[partOfDay];
 
-    // "Tuesday's matchday"
     const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
     document.getElementById('greeting-line-2').textContent = `${weekday}'s matchday`;
-};
 
-// Matchweek ticker — ISO week number
-const weekNum = getISOWeek(now);
-const label = document.getElementById('matchweek-label');
-if (label) {
-    label.textContent = `Matchweek ${weekNum} · ${now.getDate()} ${now.toLocaleDateString('en-GB', { month: 'short' })}`;
+    const weekNum = getISOWeek(now);
+    const label = document.getElementById('matchweek-label');
+    if (label) {
+        label.textContent = `Matchweek ${weekNum} · ${now.getDate()} ${now.toLocaleDateString('en-GB', { month: 'short' })}`;
+    }
 }
 
 // ═══════════════════════════════════════

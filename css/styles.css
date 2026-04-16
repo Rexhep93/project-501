@@ -1,73 +1,63 @@
 /* ============================================================
    DAILY FOOTBALL QUIZ — "DAILY PAPER"
-   Warm cream base. Ink text. Serif display. Tactile buttons.
+   Cream base. Four greens. Editorial tiles. Real football icons.
    ============================================================ */
 
 :root {
-    /* Base surface system */
-    --base:          #F5F1E8;    /* warm cream */
-    --surface:       #FFFFFF;    /* pure white cards */
-    --sunken:        #EFEAE0;    /* pressed / input bg */
+    --base:          #F5F1E8;
+    --surface:       #FFFFFF;
+    --sunken:        #EFEAE0;
 
-    /* Text (warm ink) */
-    --ink:           #1C1815;    /* near-black with warm undertone */
-    --ink-2:         #6B6560;    /* secondary */
-    --ink-3:         #A39D96;    /* tertiary */
+    --ink:           #1C1815;
+    --ink-2:         #6B6560;
+    --ink-3:         #A39D96;
 
-    /* Dividers */
     --divider:       rgba(28, 24, 21, 0.08);
     --divider-2:     rgba(28, 24, 21, 0.14);
     --shadow-soft:   rgba(28, 24, 21, 0.06);
 
-    /* Signature accent — warm coral (scoreboard-red) */
     --accent:        #D64933;
     --accent-soft:   #F9E4DE;
-    --accent-dark:   #A83B29;     /* for button tactile shadow */
+    --accent-dark:   #A83B29;
 
-    /* Per-game color blocks (solid, saturated but earthy) */
-    --tenable:       #1A8F86;
-    --tenable-dark:  #126963;
-    --tenable-soft:  #D9EEEC;
+    /* Four greens — same family, distinct character */
+    --tenable:       #0E4D3A;
+    --tenable-dark:  #083024;
+    --tenable-soft:  #D7E3DE;
 
-    --player:        #E8742C;
-    --player-dark:   #B95A1E;
-    --player-soft:   #FAE5D6;
+    --player:        #2E7D4B;
+    --player-dark:   #1D5832;
+    --player-soft:   #DFECE3;
 
-    --whoami:        #6B4FD1;
-    --whoami-dark:   #4E36A3;
-    --whoami-soft:   #E3DBF7;
+    --whoami:        #4A6B3E;
+    --whoami-dark:   #324B2A;
+    --whoami-soft:   #E1E6DC;
 
-    --club:          #17823E;
-    --club-dark:     #0F6130;
-    --club-soft:     #D6EADE;
+    --club:          #0A7F7F;
+    --club-dark:     #065A5A;
+    --club-soft:     #D1E6E6;
 
-    /* Semantic */
     --success:       #2B8A4F;
     --success-soft:  #DCE9E0;
-    --destructive:  #B8362D;
+    --destructive:   #B8362D;
     --destructive-soft: #F4DAD6;
     --warn:          #C88528;
     --warn-soft:     #F7E8D5;
 
-    /* Ink button shadow (for primary/submit) */
     --ink-shadow:    #0A0806;
 
-    /* Type families */
     --font-serif:    'New York', ui-serif, Georgia, 'Times New Roman', serif;
     --font-sans:     -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
 
-    /* Geometry */
     --radius-xs:   10px;
     --radius-sm:   14px;
     --radius-md:   16px;
     --radius-lg:   20px;
     --radius-xl:   24px;
 
-    /* Safe area */
     --safe-top:    env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-    /* Motion */
     --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
@@ -104,9 +94,6 @@ input {
     appearance: none;
 }
 
-/* ────────────────────────────────────────
-   SCREENS
-   ──────────────────────────────────────── */
 .screen {
     position: fixed;
     inset: 0;
@@ -131,9 +118,8 @@ input {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Greeting — warm, left-aligned */
 .greeting {
-    padding: 8px 24px 24px;
+    padding: 8px 24px 14px;
 }
 .greeting-line-1 {
     font-size: 16px;
@@ -151,11 +137,12 @@ input {
     line-height: 1.1;
     letter-spacing: -0.01em;
 }
+
 .matchweek-ticker {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 24px 14px;
+    padding: 0 24px 16px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -174,11 +161,11 @@ input {
     height: 6px;
     border-radius: 50%;
     background: var(--accent);
+    flex-shrink: 0;
 }
 
-/* Score card — white on cream, hard 1px bottom shadow (paper-on-paper) */
 .score-card {
-    margin: 0 24px 24px;
+    margin: 0 24px 20px;
     background: var(--surface);
     border-radius: var(--radius-lg);
     padding: 20px 22px 22px;
@@ -223,8 +210,6 @@ input {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
 }
-
-/* Horizontal segment track — 4 per game, colored by game accent */
 .score-segments {
     display: flex;
     align-items: center;
@@ -252,7 +237,9 @@ input {
 .score-segment[data-segment="whoAmI"]       .score-segment-fill { background: var(--whoami); }
 .score-segment[data-segment="guessClub"]    .score-segment-fill { background: var(--club); }
 
-/* Games grid — 2×2 editorial tiles (solid color blocks, tactile shadow) */
+/* ────────────────────────────────────────
+   TILES — editorial cover style
+   ──────────────────────────────────────── */
 .games-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -266,55 +253,77 @@ input {
     border-radius: var(--radius-lg);
     overflow: hidden;
     text-align: left;
-    padding: 18px;
+    padding: 0;
     cursor: pointer;
     box-shadow: 0 4px 0 var(--tile-shadow, rgba(0,0,0,0.2));
     transition: transform 0.12s var(--ease-ios), box-shadow 0.12s var(--ease-ios), opacity 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
     border: none;
     color: white;
+    isolation: isolate;
 }
 .game-tile:active {
     transform: translateY(2px);
     box-shadow: 0 2px 0 var(--tile-shadow, rgba(0,0,0,0.2));
 }
-.game-tile.completed { opacity: 0.72; }
+.game-tile.completed { opacity: 0.78; }
 
-/* Per-tile fills + tactile shadows */
 .game-tile[data-game="tenable"]     { background: var(--tenable); --tile-shadow: var(--tenable-dark); }
 .game-tile[data-game="guessPlayer"] { background: var(--player);  --tile-shadow: var(--player-dark); }
 .game-tile[data-game="whoAmI"]      { background: var(--whoami);  --tile-shadow: var(--whoami-dark); }
 .game-tile[data-game="guessClub"]   { background: var(--club);    --tile-shadow: var(--club-dark); }
 
-/* Top-left number bullet (white circle with ink) */
+/* Jersey-style number — top-left */
 .tile-number {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 3;
     min-width: 34px;
-    height: 28px;
+    height: 26px;
     padding: 0 8px;
     border-radius: 6px;
     background: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.92);
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
     color: white;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
-    align-self: flex-start;
+    letter-spacing: 0.04em;
 }
 
-/* Bottom-left text block */
-.tile-body {
+/* Hero art — large, cropped on right edge */
+.tile-art {
+    position: absolute;
+    right: -18%;
+    bottom: -14%;
+    width: 90%;
+    height: 90%;
+    z-index: 1;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.22);
+}
+.tile-art svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Text block — bottom-left */
+.tile-text {
+    position: absolute;
+    left: 16px;
+    right: 72px; /* reserve space for Play pill */
+    bottom: 16px;
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 .tile-title {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 700;
     color: white;
     margin: 0;
@@ -322,35 +331,50 @@ input {
     line-height: 1.1;
 }
 .tile-meta {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.72);
     margin: 0;
     letter-spacing: 0;
 }
 
-/* Bottom-right tiny icon */
-.tile-corner-icon {
+/* Play pill — bottom-right (coral CTA) */
+.tile-play {
     position: absolute;
-    right: 16px;
     bottom: 16px;
-    width: 28px;
-    height: 28px;
-    color: rgba(255, 255, 255, 0.85);
-    display: flex;
+    right: 14px;
+    z-index: 3;
+    padding: 5px 10px 5px 11px;
+    border-radius: 11px;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 4px;
+    box-shadow: 0 2px 0 var(--accent-dark);
 }
-.tile-corner-icon svg { width: 100%; height: 100%; display: block; }
+.tile-play svg { width: 9px; height: 9px; }
+.game-tile.completed .tile-play {
+    background: rgba(255, 255, 255, 0.22);
+    color: white;
+    box-shadow: none;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
 
-/* Top-right played-chip (replaces check badge) */
+/* Played chip — top-right when completed */
 .tile-played-chip {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px;
+    right: 14px;
+    z-index: 3;
     padding: 4px 9px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.22);
     color: white;
     font-size: 11px;
     font-weight: 700;
@@ -363,7 +387,7 @@ input {
 .game-tile.completed .tile-played-chip { display: block; }
 
 /* ────────────────────────────────────────
-   STREAK — "Your week"
+   STREAK
    ──────────────────────────────────────── */
 .streak-section {
     margin: 28px 24px 0;
@@ -426,7 +450,6 @@ input {
 }
 .streak-cell.missed .streak-weekday { color: var(--ink-3); opacity: 0.65; }
 
-/* Day number — serif for warmth */
 .streak-daynum {
     font-family: var(--font-serif);
     font-size: 18px;
@@ -438,7 +461,6 @@ input {
 }
 .streak-cell.missed .streak-daynum { color: var(--ink-3); }
 
-/* Score mini-display (played past) */
 .streak-score-mini {
     font-size: 10px;
     font-weight: 700;
@@ -446,7 +468,6 @@ input {
     font-variant-numeric: tabular-nums;
 }
 
-/* Today's progress indicator — 4 mini segments */
 .streak-progress {
     display: flex;
     gap: 2px;
@@ -462,11 +483,8 @@ input {
 /* ════════════════════════════════════════
    GAME SCREENS
    ════════════════════════════════════════ */
-.game-screen {
-    background: var(--base);
-}
+.game-screen { background: var(--base); }
 
-/* Header — minimal, no pill, just icons */
 .game-header {
     padding: calc(var(--safe-top) + 14px) 16px 6px;
     display: flex;
@@ -513,11 +531,8 @@ input {
     30%  { transform: scale(1.22); }
     100% { transform: scale(0.9); }
 }
-.life-heart.just-lost {
-    animation: heart-break 0.4s var(--ease-ios) both;
-}
+.life-heart.just-lost { animation: heart-break 0.4s var(--ease-ios) both; }
 
-/* Game hero — full-bleed colored block with question */
 .game-hero {
     margin: 8px 20px 20px;
     border-radius: var(--radius-xl);
@@ -530,16 +545,14 @@ input {
     flex-direction: column;
     justify-content: space-between;
 }
-
 .game-hero::after {
     content: '';
     position: absolute;
     inset: 6px;
     border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     pointer-events: none;
 }
-
 #tenable-screen      .game-hero { background: var(--tenable); }
 #guessPlayer-screen  .game-hero { background: var(--player); }
 #whoAmI-screen       .game-hero { background: var(--whoami); }
@@ -552,6 +565,8 @@ input {
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.82);
     margin: 0 0 10px;
+    position: relative;
+    z-index: 2;
 }
 .game-hero-question {
     font-family: var(--font-serif);
@@ -561,6 +576,8 @@ input {
     color: white;
     margin: 0;
     letter-spacing: -0.01em;
+    position: relative;
+    z-index: 2;
 }
 .game-hero-meta {
     font-size: 13px;
@@ -568,12 +585,16 @@ input {
     color: rgba(255, 255, 255, 0.75);
     margin: 8px 0 0;
     letter-spacing: -0.005em;
+    position: relative;
+    z-index: 2;
 }
 .game-hero-bottom {
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
     margin-top: 16px;
+    position: relative;
+    z-index: 2;
 }
 .hero-score-chip {
     background: rgba(255, 255, 255, 0.18);
@@ -588,7 +609,6 @@ input {
     -webkit-backdrop-filter: blur(4px);
 }
 
-/* Content area */
 .game-content {
     flex: 1;
     overflow-y: auto;
@@ -596,7 +616,6 @@ input {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Bottom input strip — full-width paper-on-paper */
 .input-strip {
     position: absolute;
     left: 0;
@@ -642,7 +661,6 @@ input {
     40%, 60% { transform: translateX(4px); }
 }
 
-/* Submit button — tactile ink with 3D shadow */
 .submit-btn {
     width: 48px;
     height: 48px;
@@ -725,7 +743,7 @@ input {
 .toast-text { flex: 1; line-height: 1.3; }
 
 /* ════════════════════════════════════════
-   TENABLE — classical pyramid (rank 1 top)
+   TENABLE — pyramid
    ════════════════════════════════════════ */
 .tenable-pyramid {
     display: flex;
@@ -756,7 +774,7 @@ input {
 .pyramid-slot.ghost {
     background: var(--surface);
     border: 1.5px dashed var(--accent);
-    padding: 10.5px 12.5px; /* compensate for border */
+    padding: 10.5px 12.5px;
 }
 @keyframes slot-reveal {
     0%   { transform: scale(0.96); }
@@ -807,7 +825,7 @@ input {
 }
 
 /* ════════════════════════════════════════
-   GUESS THE PLAYER — career cards
+   GUESS THE PLAYER
    ════════════════════════════════════════ */
 .career-list {
     display: flex;
@@ -907,7 +925,7 @@ input {
 }
 
 /* ════════════════════════════════════════
-   WHO AM I — clue cards (serif body)
+   WHO AM I
    ════════════════════════════════════════ */
 .hints-list {
     display: flex;
@@ -967,34 +985,32 @@ input {
 }
 
 /* ════════════════════════════════════════
-   GUESS THE CLUB — pitch
+   GUESS THE CLUB — pitch (full-field, correct formation)
    ════════════════════════════════════════ */
 .club-context {
     font-size: 13px;
     font-weight: 600;
     color: var(--ink-2);
     text-align: center;
-    margin: 0 0 12px;
+    margin: 0 auto 12px;
     padding: 8px 14px;
     background: var(--surface);
     border-radius: 14px;
     box-shadow: 0 1px 0 var(--divider);
     width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.005em;
 }
 
 .pitch-wrap {
-    display: flex;
-    flex-direction: column;
-    min-height: 400px;
+    display: block;
+    padding-bottom: 8px;
 }
 .pitch {
     position: relative;
-    flex: 1;
-    min-height: 380px;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 560px;
     background: var(--club);
     border-radius: 20px;
     overflow: hidden;
@@ -1050,20 +1066,20 @@ input {
 .pitch-box-top    { top: 0; border-top: none; border-radius: 0 0 6px 6px; }
 .pitch-box-bottom { bottom: 0; border-bottom: none; border-radius: 6px 6px 0 0; }
 
+/* Full-height row distribution */
 .pitch-rows {
-    position: relative;
-    height: 100%;
+    position: absolute;
+    inset: 20px 12px;
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
-    padding: 10px 4px;
+    justify-content: space-between;
     z-index: 2;
 }
 .pitch-row {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    gap: 4px;
+    gap: 10px;
 }
 .pitch-player {
     display: flex;
@@ -1083,8 +1099,8 @@ input {
 .pitch-player:nth-child(5) { animation-delay: 0.24s; }
 
 .flag-bubble {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--surface);
     border: 2px solid var(--ink);
@@ -1108,13 +1124,9 @@ input {
     border-radius: 8px;
     letter-spacing: -0.01em;
 }
-@media (max-height: 700px) {
-    .flag-bubble { width: 38px; height: 38px; }
-    .pitch { min-height: 320px; }
-}
 
 /* ════════════════════════════════════════
-   MODALS — result + total
+   MODALS
    ════════════════════════════════════════ */
 .modal {
     position: fixed;
@@ -1220,13 +1232,10 @@ input {
     color: var(--ink);
     font-weight: 500;
 }
-.reveal-mark {
-    font-weight: 700;
-}
+.reveal-mark { font-weight: 700; }
 .reveal-mark.got { color: var(--success); }
 .reveal-mark.missed { color: var(--ink-3); }
 
-/* Primary tactile button */
 .primary-btn {
     width: 100%;
     background: var(--ink);
@@ -1244,7 +1253,6 @@ input {
     box-shadow: 0 1px 0 var(--ink-shadow);
 }
 
-/* Matchday trophy + total */
 .matchday-trophy {
     width: 72px;
     height: 72px;
@@ -1314,7 +1322,6 @@ input {
     color: var(--ink);
 }
 
-/* Empty state */
 .empty-state {
     text-align: center;
     color: var(--ink-2);

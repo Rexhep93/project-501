@@ -109,6 +109,118 @@ input {
 }
 
 /* ════════════════════════════════════════
+   SKELETON (loading state)
+   ════════════════════════════════════════ */
+.skeleton-menu { display: none; padding: 0 24px; }
+body.loading .skeleton-menu { display: block; }
+body.loading .menu-real-content { display: none; }
+
+.skeleton-block {
+    background: linear-gradient(90deg,
+        var(--sunken) 0%,
+        rgba(255,255,255,0.6) 50%,
+        var(--sunken) 100%);
+    background-size: 200% 100%;
+    border-radius: 8px;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-score-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 0 var(--divider);
+}
+.skeleton-label { width: 92px; height: 11px; margin-bottom: 12px; }
+.skeleton-big   { width: 120px; height: 48px; }
+
+.skeleton-games-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+.skeleton-tile {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(90deg,
+        var(--sunken) 0%,
+        rgba(255,255,255,0.6) 50%,
+        var(--sunken) 100%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════
+   DATA ERROR BANNER
+   ════════════════════════════════════════ */
+.data-error-banner {
+    position: fixed;
+    top: calc(var(--safe-top) + 8px);
+    left: 12px;
+    right: 12px;
+    z-index: 300;
+    background: var(--ink);
+    color: var(--surface);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 24px rgba(28,24,21,0.25);
+    transform: translateY(-150%);
+    transition: transform 0.32s var(--ease-ios);
+    pointer-events: none;
+}
+.data-error-banner.visible {
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.data-error-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.data-error-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--warn);
+    flex-shrink: 0;
+}
+.data-error-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.data-error-text strong {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.data-error-text span {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.72);
+    letter-spacing: -0.005em;
+}
+.data-error-retry {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.14);
+    color: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.data-error-retry:active { background: rgba(255,255,255,0.24); }
+.data-error-retry svg { width: 16px; height: 16px; }
+
+/* ════════════════════════════════════════
    HOME
    ════════════════════════════════════════ */
 .menu-container {
@@ -164,11 +276,12 @@ input {
     flex-shrink: 0;
 }
 
+/* ── Score card — rebalanced hierarchy ── */
 .score-card {
     margin: 0 24px 20px;
     background: var(--surface);
     border-radius: var(--radius-lg);
-    padding: 20px 22px 22px;
+    padding: 18px 22px 20px;
     box-shadow: 0 1px 0 var(--divider);
     display: flex;
     align-items: center;
@@ -193,33 +306,34 @@ input {
 .score-value {
     display: flex;
     align-items: baseline;
-    gap: 2px;
+    gap: 3px;
     line-height: 1;
 }
 .score-num {
-    font-size: 56px;
+    font-size: 48px;
     font-weight: 800;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.035em;
     font-variant-numeric: tabular-nums;
     color: var(--ink);
 }
 .score-max {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 600;
-    color: var(--ink-3);
+    color: var(--ink-2);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
 }
 .score-segments {
     display: flex;
-    align-items: center;
-    gap: 4px;
+    flex-direction: column;
+    gap: 5px;
     flex-shrink: 0;
+    align-items: flex-end;
 }
 .score-segment {
-    width: 28px;
-    height: 8px;
-    border-radius: 4px;
+    width: 36px;
+    height: 5px;
+    border-radius: 3px;
     background: var(--sunken);
     overflow: hidden;
     position: relative;
@@ -227,7 +341,7 @@ input {
 .score-segment-fill {
     position: absolute;
     inset: 0;
-    border-radius: 4px;
+    border-radius: 3px;
     transform: scaleX(var(--fill, 0));
     transform-origin: left center;
     transition: transform 0.6s var(--ease-ios);
@@ -272,7 +386,6 @@ input {
 .game-tile[data-game="whoAmI"]      { background: var(--whoami);  --tile-shadow: var(--whoami-dark); }
 .game-tile[data-game="guessClub"]   { background: var(--club);    --tile-shadow: var(--club-dark); }
 
-/* Jersey-style number — top-left */
 .tile-number {
     position: absolute;
     top: 14px;
@@ -294,7 +407,6 @@ input {
     letter-spacing: 0.04em;
 }
 
-/* Hero art — large, cropped on right edge */
 .tile-art {
     position: absolute;
     right: -8%;
@@ -305,17 +417,12 @@ input {
     pointer-events: none;
     color: rgba(255, 255, 255, 0.22);
 }
-.tile-art svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
+.tile-art svg { width: 100%; height: 100%; display: block; }
 
-/* Text block — bottom-left */
 .tile-text {
     position: absolute;
     left: 16px;
-    right: 72px; /* reserve space for Play pill */
+    right: 72px;
     bottom: 16px;
     z-index: 2;
     display: flex;
@@ -338,10 +445,10 @@ input {
     letter-spacing: 0;
 }
 
-/* Play pill — bottom-right (coral CTA) */
+/* ── Play pill — moved to bottom-right properly (was bottom:79% = actually top) ── */
 .tile-play {
     position: absolute;
-    bottom: 79%;
+    bottom: 16px;
     right: 14px;
     z-index: 3;
     padding: 5px 10px 5px 11px;
@@ -358,13 +465,8 @@ input {
     box-shadow: 0 2px 0 var(--accent-dark);
 }
 .tile-play svg { width: 9px; height: 9px; }
-.game-tile.completed .tile-play {
-    background: rgba(255, 255, 255, 0.22);
-    color: white;
-    box-shadow: none;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
+/* Completed tile: hide play pill entirely, score chip takes over top-right */
+.game-tile.completed .tile-play { display: none; }
 
 /* Played chip — top-right when completed */
 .tile-played-chip {
@@ -409,17 +511,18 @@ input {
 }
 .streak-strip::-webkit-scrollbar { display: none; }
 
+/* ── Sized up to 44×68 for tap target + readability ── */
 .streak-cell {
     flex-shrink: 0;
-    width: 40px;
-    height: 64px;
+    width: 44px;
+    height: 68px;
     border-radius: 10px;
     background: var(--surface);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 7px 0 6px;
+    padding: 8px 0 7px;
     box-shadow: 0 1px 0 var(--divider);
     position: relative;
 }
@@ -432,7 +535,7 @@ input {
     position: absolute;
     left: 4px;
     right: 4px;
-    top: 26px;
+    top: 28px;
     height: 1px;
     background: var(--divider);
 }
@@ -452,7 +555,7 @@ input {
 
 .streak-daynum {
     font-family: var(--font-serif);
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
     color: var(--ink);
     line-height: 1;
@@ -462,7 +565,7 @@ input {
 .streak-cell.missed .streak-daynum { color: var(--ink-3); }
 
 .streak-score-mini {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--ink-2);
     font-variant-numeric: tabular-nums;
@@ -473,7 +576,7 @@ input {
     gap: 2px;
 }
 .streak-progress-seg {
-    width: 5px;
+    width: 6px;
     height: 3px;
     border-radius: 1.5px;
     background: var(--sunken);
@@ -499,23 +602,24 @@ input {
     align-items: center;
     justify-content: center;
     color: var(--ink);
-    transition: opacity 0.15s ease, transform 0.12s ease;
+    border-radius: 12px;
+    transition: background 0.15s ease, transform 0.12s ease;
     margin-left: -8px;
 }
 .back-btn:active {
-    opacity: 0.5;
-    transform: scale(0.95);
+    background: var(--divider);
+    transform: scale(0.94);
 }
 .back-btn svg { width: 22px; height: 22px; }
 
 .header-lives {
     display: flex;
-    gap: 5px;
+    gap: 6px;
     align-items: center;
 }
 .life-heart {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     color: var(--ink);
     display: inline-flex;
     transition: color 0.2s ease, transform 0.2s ease;
@@ -523,7 +627,7 @@ input {
 .life-heart svg { width: 100%; height: 100%; fill: currentColor; }
 .life-heart.lost {
     color: var(--ink-3);
-    opacity: 0.5;
+    opacity: 0.45;
     transform: scale(0.9);
 }
 @keyframes heart-break {
@@ -533,10 +637,11 @@ input {
 }
 .life-heart.just-lost { animation: heart-break 0.4s var(--ease-ios) both; }
 
+/* ── Game hero — anchored chip via flex, not floating ── */
 .game-hero {
     margin: 8px 20px 20px;
     border-radius: var(--radius-xl);
-    padding: 20px 22px 22px;
+    padding: 20px 22px 18px;
     color: white;
     position: relative;
     overflow: hidden;
@@ -591,15 +696,17 @@ input {
 .game-hero-bottom {
     display: flex;
     justify-content: flex-end;
-    align-items: flex-end;
+    align-items: center;
     margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.14);
     position: relative;
     z-index: 2;
 }
 .hero-score-chip {
     background: rgba(255, 255, 255, 0.18);
     color: white;
-    padding: 5px 11px;
+    padding: 5px 12px;
     border-radius: 11px;
     font-size: 13px;
     font-weight: 700;
@@ -616,6 +723,7 @@ input {
     -webkit-overflow-scrolling: touch;
 }
 
+/* ── Input strip — float effect, keyboard-aware ── */
 .input-strip {
     position: absolute;
     left: 0;
@@ -623,8 +731,14 @@ input {
     bottom: 0;
     padding: 12px 16px calc(var(--safe-bottom) + 12px);
     background: var(--surface);
-    border-top: 1px solid var(--divider);
+    box-shadow: 0 -8px 24px -12px rgba(28, 24, 21, 0.08);
     z-index: 20;
+    transition: transform 0.2s var(--ease-ios);
+    will-change: transform;
+}
+.input-strip.keyboard-open {
+    box-shadow: 0 -12px 28px -10px rgba(28, 24, 21, 0.14);
+    padding-bottom: 12px; /* safe-area not needed when keyboard replaces it */
 }
 .input-strip form {
     display: flex;
@@ -638,7 +752,7 @@ input {
     outline: none;
     padding: 12px 16px;
     border-radius: 14px;
-    font-size: 16px;
+    font-size: 16px; /* 16px+ prevents iOS auto-zoom on focus */
     color: var(--ink);
     font-weight: 500;
     letter-spacing: -0.005em;
@@ -767,8 +881,11 @@ input {
     box-shadow: 0 1px 0 var(--divider);
     transition: background 0.35s ease, transform 0.35s var(--ease-ios);
 }
+/* ── Softer reveal — was solid green wall, now tinted surface with left bar ── */
 .pyramid-slot.revealed {
-    background: var(--tenable);
+    background: var(--tenable-soft);
+    border-left: 3px solid var(--tenable);
+    padding-left: 11px;
     animation: slot-reveal 0.4s var(--ease-ios);
 }
 .pyramid-slot.ghost {
@@ -797,7 +914,7 @@ input {
     letter-spacing: -0.02em;
 }
 .pyramid-slot.revealed .slot-rank {
-    background: rgba(255, 255, 255, 0.22);
+    background: var(--tenable);
     color: white;
 }
 .pyramid-slot.ghost .slot-rank {
@@ -815,7 +932,7 @@ input {
     line-height: 1.25;
 }
 .pyramid-slot.revealed .slot-name {
-    color: white;
+    color: var(--tenable-dark);
     font-weight: 700;
 }
 .pyramid-slot.ghost .slot-name {
@@ -850,7 +967,7 @@ input {
     opacity: 0.7;
 }
 .club-card.revealed {
-    animation: card-reveal 0.4s var(--ease-ios);
+    animation: card-reveal 0.4s var(--ease-ios) both;
 }
 @keyframes card-reveal {
     0%   { transform: translateY(4px); opacity: 0; }
@@ -925,7 +1042,7 @@ input {
 }
 
 /* ════════════════════════════════════════
-   WHO AM I
+   WHO AM I — with progressive locked state
    ════════════════════════════════════════ */
 .hints-list {
     display: flex;
@@ -954,6 +1071,41 @@ input {
     width: 4px;
     background: var(--whoami);
 }
+
+/* Locked hint — faded, no accent bar */
+.hint-card.hint-locked {
+    background: var(--sunken);
+    box-shadow: none;
+    opacity: 0.65;
+    animation: none;
+}
+.hint-card.hint-locked::before {
+    background: var(--ink-3);
+    opacity: 0.3;
+}
+.hint-card.hint-locked .hint-number {
+    background: rgba(0,0,0,0.06);
+    color: var(--ink-3);
+}
+.hint-locked-label {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-3);
+    font-style: italic;
+    letter-spacing: 0;
+}
+
+/* Extra flourish for just-revealed hint */
+.hint-card.just-revealed {
+    animation: hint-just-revealed 0.5s var(--ease-ios);
+}
+@keyframes hint-just-revealed {
+    0%   { transform: translateY(6px); opacity: 0; box-shadow: 0 0 0 var(--whoami-soft); }
+    50%  { box-shadow: 0 0 0 6px var(--whoami-soft); }
+    100% { transform: translateY(0); opacity: 1; box-shadow: 0 1px 0 var(--divider); }
+}
+
 .hint-number {
     min-width: 36px;
     height: 26px;
@@ -985,7 +1137,7 @@ input {
 }
 
 /* ════════════════════════════════════════
-   GUESS THE CLUB — pitch (full-field, correct formation)
+   GUESS THE CLUB — pitch
    ════════════════════════════════════════ */
 .club-context {
     font-size: 13px;
@@ -1066,7 +1218,6 @@ input {
 .pitch-box-top    { top: 0; border-top: none; border-radius: 0 0 6px 6px; }
 .pitch-box-bottom { bottom: 0; border-bottom: none; border-radius: 6px 6px 0 0; }
 
-/* Full-height row distribution */
 .pitch-rows {
     position: absolute;
     inset: 20px 12px;
@@ -1098,9 +1249,10 @@ input {
 .pitch-player:nth-child(4) { animation-delay: 0.19s; }
 .pitch-player:nth-child(5) { animation-delay: 0.24s; }
 
+/* ── Responsive flag bubble (was fixed 40px → elbow-jostle on iPhone SE) ── */
 .flag-bubble {
-    width: 40px;
-    height: 40px;
+    width: clamp(32px, 9vw, 42px);
+    height: clamp(32px, 9vw, 42px);
     border-radius: 50%;
     background: var(--surface);
     border: 2px solid var(--ink);
@@ -1113,6 +1265,11 @@ input {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+.flag-fallback {
+    width: 60%;
+    height: 60%;
+    color: var(--ink-3);
 }
 .shirt-number {
     font-size: 11px;
@@ -1194,11 +1351,23 @@ input {
 .result-score {
     font-size: 15px;
     color: var(--ink-2);
-    margin: 0 0 18px;
-    line-height: 1.45;
+    margin: 0 0 14px;
+    line-height: 1.5;
     font-weight: 500;
 }
 .result-score strong { color: var(--ink); font-weight: 700; }
+
+/* ── Revealed answer gets its own line + display typography ── */
+.reveal-player {
+    display: inline-block;
+    margin-top: 6px;
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
 
 .result-reveal {
     background: var(--base);
@@ -1210,6 +1379,7 @@ input {
     max-height: 240px;
     overflow-y: auto;
 }
+.result-reveal:empty { display: none; }
 .result-reveal .reveal-row {
     display: flex;
     justify-content: space-between;
@@ -1247,11 +1417,41 @@ input {
     box-shadow: 0 3px 0 var(--ink-shadow);
     transition: transform 0.1s var(--ease-ios), box-shadow 0.1s var(--ease-ios);
     letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 .primary-btn:active {
     transform: translateY(2px);
     box-shadow: 0 1px 0 var(--ink-shadow);
 }
+.primary-btn svg { width: 18px; height: 18px; }
+
+.secondary-btn {
+    width: 100%;
+    background: var(--sunken);
+    color: var(--ink);
+    padding: 15px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.15s ease, transform 0.1s var(--ease-ios);
+    letter-spacing: -0.01em;
+}
+.secondary-btn:active {
+    transform: scale(0.98);
+    background: var(--divider);
+}
+
+/* Modal with two actions side-by-side */
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+.modal-actions .secondary-btn { flex: 1; }
+.modal-actions .primary-btn { flex: 1.4; }
 
 .matchday-trophy {
     width: 72px;

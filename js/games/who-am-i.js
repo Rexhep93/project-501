@@ -78,16 +78,16 @@ async function handleSubmit(e) {
         state.score = calculatePoints(state.attempts);
         state.attempts++;
         await hapticSuccess();
-        toast('Correct!', 'success');
+        toast(`Nice — ${data.player}`, 'success');
         await finishGame();
     } else {
         state.attempts++;
         await hapticError();
         const remaining = MAX_ATTEMPTS - state.attempts;
         if (remaining > 0) {
-            toast(`Incorrect · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'error');
+            toast(`Missed · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'error');
         } else {
-            toast('Incorrect · game over', 'error');
+            toast(`Missed · it was ${data.player}`, 'error');
         }
         shakeInput(input);
 
@@ -132,8 +132,10 @@ function showResult() {
         ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
 
-    title.textContent = state.solved ? 'Got it!' : 'Game over';
-    score.innerHTML = `<strong>${state.score}</strong> points · the player was <strong>${escapeHtml(data.player)}</strong>`;
+    title.textContent = state.solved ? 'Nicely done.' : 'Not this time.';
+    score.innerHTML = state.solved
+        ? `You scored <strong>${state.score} out of 5</strong>. It was <strong>${escapeHtml(data.player)}</strong>.`
+        : `The player was <strong>${escapeHtml(data.player)}</strong>.`;
     reveal.innerHTML = '';
     modal.classList.add('active');
     document.getElementById('result-continue').onclick = () => {

@@ -8,6 +8,8 @@ let data = null;
 let state = null;
 let onFinish = null;
 
+const MAX_LIVES = 3;
+
 export function initTenable(gameData, gameState, finishCb) {
     data = gameData;
     state = { ...gameState };
@@ -18,10 +20,13 @@ export function initTenable(gameData, gameState, finishCb) {
         return;
     }
 
+    // Ensure derived fields exist (forward compat)
+    if (typeof state.wrongGuesses !== 'number') state.wrongGuesses = 0;
+
     document.getElementById('tenable-question').textContent = data.question;
     document.getElementById('tenable-subtitle').textContent = data.subtitle || '';
 
-    renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives);
+    renderHearts(document.getElementById('tenable-lives'), MAX_LIVES, state.wrongGuesses);
     renderPyramid();
     renderScoreChip();
 
@@ -35,6 +40,10 @@ export function initTenable(gameData, gameState, finishCb) {
     if (state.played) showResult();
 }
 
+function livesRemaining() {
+    return Math.max(0, MAX_LIVES - state.wrongGuesses);
+}
+
 function renderScoreChip() {
     document.getElementById('tenable-score').textContent = `${state.revealedRanks.length} / 10`;
 }
@@ -43,13 +52,14 @@ function renderPyramid() {
     const pyramid = document.getElementById('tenable-pyramid');
     pyramid.innerHTML = '';
 
-    // Classic pyramid: rank 1 on TOP (narrowest), rank 10 on BOTTOM (widest)
+    // Classic pyramid: rank 1 on TOP (narrowest), rank 10 on BOTTOM (widest).
+    // Width range 68% → 100% (was 52%→100%) so long names like
+    // "Alexander Isak" fit on top rows without truncation.
     for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
 
-        // Width: rank 1 = 52%, rank 10 = 100%
-        const widthPct = 52 + ((rank - 1) / 9) * 48;
+        const widthPct = 68 + ((rank - 1) / 9) * 32;
         slot.style.setProperty('--slot-width', `${widthPct}%`);
 
         const isRevealed = state.revealedRanks.includes(rank);
@@ -117,18 +127,19 @@ async function handleSubmit(e) {
             await finishGame();
         }
     } else {
-        state.lives--;
+        state.wrongGuesses++;
         await hapticError();
-        const msg = state.lives > 0
-            ? `Missed · ${state.lives} ${state.lives === 1 ? 'life' : 'lives'} left`
+        const remaining = livesRemaining();
+        const msg = remaining > 0
+            ? `Missed · ${remaining} ${remaining === 1 ? 'life' : 'lives'} left`
             : 'Missed · no lives left';
         toast(msg, 'error');
         shakeInput(input);
         input.value = '';
-        renderHearts(document.getElementById('tenable-lives'), 3, 3 - state.lives, true);
+        renderHearts(document.getElementById('tenable-lives'), MAX_LIVES, state.wrongGuesses, true);
         await saveState();
 
-        if (state.lives <= 0) {
+        if (remaining <= 0) {
             await finishGame();
         }
     }

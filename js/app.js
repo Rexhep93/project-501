@@ -2,6 +2,9 @@ import { loadTodayData, loadSampleData } from './utils/data-loader.js';
 import { getState, countPlayed, totalScore } from './utils/storage.js';
 import { hapticLight } from './utils/haptics.js';
 import { recordToday, getLast7Days } from './utils/history.js';
+import { initViewportHandling } from './utils/viewport.js';
+import { shareResult } from './utils/share.js';
+import { toast } from './utils/toast.js';
 
 import { initTenable }      from './games/tenable.js';
 import { initGuessPlayer }  from './games/guess-player.js';
@@ -18,6 +21,7 @@ const GAME_MAX = {
 };
 
 let todayData = null;
+let dataLoadFailed = false;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
 let isFirstRender = true;
@@ -27,16 +31,25 @@ let isFirstRender = true;
 // ═══════════════════════════════════════
 
 async function bootstrap() {
+    initViewportHandling();
     renderGreeting();
+    showSkeleton();
 
     try {
         todayData = USE_SAMPLE_DATA ? loadSampleData() : await loadTodayData();
+        dataLoadFailed = false;
     } catch (e) {
-        console.error('Data load failed, using sample:', e);
+        console.error('Data load failed completely, using sample:', e);
         todayData = loadSampleData();
+        dataLoadFailed = true;
     }
 
+    hideSkeleton();
     await renderMenu();
+
+    if (dataLoadFailed) {
+        showDataErrorBanner();
+    }
 
     document.querySelectorAll('[data-back]').forEach(btn => {
         btn.addEventListener('click', () => navigate('menu'));
@@ -56,6 +69,15 @@ async function bootstrap() {
         document.getElementById('total-modal').classList.remove('active');
     };
 
+    const shareBtn = document.getElementById('total-share');
+    if (shareBtn) {
+        shareBtn.onclick = async () => {
+            hapticLight();
+            const state = await getState();
+            await shareResult(state);
+        };
+    }
+
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         const resultModal = document.getElementById('result-modal');
@@ -69,6 +91,43 @@ async function bootstrap() {
             navigate('menu');
         }
     });
+}
+
+// ═══════════════════════════════════════
+// SKELETON / ERROR STATES
+// ═══════════════════════════════════════
+
+function showSkeleton() {
+    document.body.classList.add('loading');
+}
+
+function hideSkeleton() {
+    document.body.classList.remove('loading');
+}
+
+function showDataErrorBanner() {
+    const banner = document.getElementById('data-error-banner');
+    if (banner) {
+        banner.classList.add('visible');
+        const retryBtn = document.getElementById('data-error-retry');
+        if (retryBtn) {
+            retryBtn.onclick = async () => {
+                banner.classList.remove('visible');
+                showSkeleton();
+                try {
+                    todayData = await loadTodayData();
+                    dataLoadFailed = false;
+                } catch (e) {
+                    todayData = loadSampleData();
+                    dataLoadFailed = true;
+                }
+                hideSkeleton();
+                await renderMenu();
+                if (dataLoadFailed) showDataErrorBanner();
+                else toast("Today's quiz loaded", 'success');
+            };
+        }
+    }
 }
 
 // ═══════════════════════════════════════
@@ -99,16 +158,13 @@ function renderGreeting() {
     };
     document.getElementById('greeting-line-1').textContent = greetings[partOfDay];
 
-    // "Thursday's Matchday" — title case
     const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
     document.getElementById('greeting-line-2').textContent = `${weekday}'s Matchday`;
 
-    // Matchweek ticker — ISO week + day of matchweek
     const weekNum = getISOWeek(now);
-    const dayOfWeek = ((now.getDay() + 6) % 7) + 1; // Mon=1..Sun=7
     const label = document.getElementById('matchweek-label');
     if (label) {
-        label.textContent = `Matchweek ${weekNum} · Matchday ${dayOfWeek} of 7`;
+        label.textContent = `Matchweek ${weekNum}`;
     }
 }
 

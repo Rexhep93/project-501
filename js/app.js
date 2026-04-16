@@ -17,14 +17,6 @@ const GAME_MAX = {
     guessClub: 5
 };
 
-function getISOWeek(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
-
 let todayData = null;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
@@ -80,8 +72,16 @@ async function bootstrap() {
 }
 
 // ═══════════════════════════════════════
-// GREETING — time + day based, warm copy
+// GREETING + MATCHWEEK
 // ═══════════════════════════════════════
+
+function getISOWeek(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
 
 function renderGreeting() {
     const now = new Date();
@@ -99,13 +99,16 @@ function renderGreeting() {
     };
     document.getElementById('greeting-line-1').textContent = greetings[partOfDay];
 
+    // "Thursday's Matchday" — title case
     const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
-    document.getElementById('greeting-line-2').textContent = `${weekday}'s matchday`;
+    document.getElementById('greeting-line-2').textContent = `${weekday}'s Matchday`;
 
+    // Matchweek ticker — ISO week + day of matchweek
     const weekNum = getISOWeek(now);
+    const dayOfWeek = ((now.getDay() + 6) % 7) + 1; // Mon=1..Sun=7
     const label = document.getElementById('matchweek-label');
     if (label) {
-        label.textContent = `Matchweek ${weekNum} · ${now.getDate()} ${now.toLocaleDateString('en-GB', { month: 'short' })}`;
+        label.textContent = `Matchweek ${weekNum} · Matchday ${dayOfWeek} of 7`;
     }
 }
 
@@ -139,7 +142,6 @@ async function renderMenu() {
     const state = await getState();
     const total = totalScore(state);
 
-    // Score number — count up on returning from a game
     const numEl = document.getElementById('score-num');
     if (isFirstRender) {
         numEl.textContent = total;
@@ -150,7 +152,6 @@ async function renderMenu() {
         lastRenderedScore = total;
     }
 
-    // Segment fills — each segment shows that game's score as fraction of its max
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
         const seg = document.querySelector(`.score-segment[data-segment="${game}"] .score-segment-fill`);
         const s = state[game];
@@ -162,7 +163,6 @@ async function renderMenu() {
         }
     });
 
-    // Tiles — completed state + played chip
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
         const tile = document.querySelector(`.game-tile[data-game="${game}"]`);
         const done = state[game]?.played;
@@ -176,7 +176,6 @@ async function renderMenu() {
         }
     });
 
-    // Record today in history if anything played
     if (countPlayed(state) > 0) {
         await recordToday(total);
     }
@@ -184,22 +183,15 @@ async function renderMenu() {
     await renderStreakStrip(state);
 }
 
-// ═══════════════════════════════════════
-// STREAK STRIP
-// ═══════════════════════════════════════
-
 async function renderStreakStrip(state) {
     const strip = document.getElementById('streak-strip');
     const days = await getLast7Days();
-
-    // For "today" cell, use live state's per-game played count (not just recorded total)
     const todayPlayedCount = countPlayed(state);
 
     strip.innerHTML = days.map(d => {
         const weekday = shortWeekday(d.date);
 
         if (d.isToday) {
-            // Mini 4-segment progress for today
             const segs = [0, 1, 2, 3].map(i =>
                 `<div class="streak-progress-seg ${i < todayPlayedCount ? 'filled' : ''}"></div>`
             ).join('');
@@ -232,15 +224,10 @@ async function renderStreakStrip(state) {
 }
 
 function shortWeekday(dateStr) {
-    // dateStr is "YYYY-MM-DD" — parse as LOCAL date (avoid timezone UTC shift)
     const [y, m, d] = dateStr.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
     return dt.toLocaleDateString('en-GB', { weekday: 'short' }).slice(0, 3);
 }
-
-// ═══════════════════════════════════════
-// COUNT-UP ANIMATION
-// ═══════════════════════════════════════
 
 function animateCountUp(el, from, to, duration) {
     if (from === to) {
@@ -251,7 +238,7 @@ function animateCountUp(el, from, to, duration) {
     const diff = to - from;
     function step(now) {
         const t = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - t, 2); // quadratic ease-out
+        const eased = 1 - Math.pow(1 - t, 2);
         const v = Math.round(from + diff * eased);
         el.textContent = v;
         if (t < 1) requestAnimationFrame(step);

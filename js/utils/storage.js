@@ -30,12 +30,14 @@ async function rawSet(key, value) {
 }
 
 /**
- * Default state shape voor een dag
+ * Default state shape voor een dag.
+ * Tenable: lives is afgeleid uit history — no stored duplicate.
+ * WhoAmI: revealedHints tracks progressive hint reveal (1..3).
  */
 function defaultState() {
     return {
         date: todayKey(),
-        tenable:     { played: false, score: 0, lives: 3, revealedRanks: [], history: [] },
+        tenable:     { played: false, score: 0, revealedRanks: [], history: [], wrongGuesses: 0 },
         guessPlayer: { played: false, score: 0, attempts: 0, revealedClubs: 1, solved: false },
         whoAmI:      { played: false, score: 0, attempts: 0, revealedHints: 1, solved: false },
         guessClub:   { played: false, score: 0, attempts: 0, solved: false }
@@ -53,7 +55,7 @@ export async function getState() {
             if (parsed.date === todayKey()) {
                 // Merge met default voor forward-compat als we velden toevoegen
                 const base = defaultState();
-                return {
+                const merged = {
                     ...base,
                     ...parsed,
                     tenable:     { ...base.tenable,     ...(parsed.tenable     || {}) },
@@ -61,6 +63,13 @@ export async function getState() {
                     whoAmI:      { ...base.whoAmI,      ...(parsed.whoAmI      || {}) },
                     guessClub:   { ...base.guessClub,   ...(parsed.guessClub   || {}) }
                 };
+                // Migration: convert old 'lives' field into 'wrongGuesses' (derived).
+                // If old save had lives:2, that means 1 wrong guess.
+                if (typeof parsed.tenable?.lives === 'number' &&
+                    typeof merged.tenable.wrongGuesses !== 'number') {
+                    merged.tenable.wrongGuesses = 3 - parsed.tenable.lives;
+                }
+                return merged;
             }
         }
     } catch (e) {

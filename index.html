@@ -5,78 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-    <title>Daily Football Quiz</title>
+    <meta name="theme-color" content="#0A0C10">
+    <meta name="color-scheme" content="dark">
+    <title>Matchday</title>
     <link rel="stylesheet" href="css/styles.css">
 
     <!-- ================================================================
-         ICON SPRITE — custom geometric tile icons + utility icons
-         Designed as solid filled shapes, not generic line icons
+         ICON SPRITE — utility icons + per-tile editorial art
          ================================================================ -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
-
-            <!-- ─── TILE ICONS ─── -->
-
-            <!-- Tenable: stacked pyramid (3 layers, navy + teal) -->
-            <symbol id="i-tile-tenable" viewBox="0 0 80 80">
-                <!-- Bottom row (4) -->
-                <rect x="6"  y="56" width="14" height="12" rx="2" fill="#435464"/>
-                <rect x="22" y="56" width="14" height="12" rx="2" fill="#435464"/>
-                <rect x="38" y="56" width="14" height="12" rx="2" fill="#22ACBA"/>
-                <rect x="54" y="56" width="14" height="12" rx="2" fill="#435464"/>
-                <!-- Middle row (3) -->
-                <rect x="14" y="40" width="14" height="12" rx="2" fill="#435464"/>
-                <rect x="32" y="40" width="14" height="12" rx="2" fill="#22ACBA"/>
-                <rect x="50" y="40" width="14" height="12" rx="2" fill="#435464"/>
-                <!-- Upper row (2) -->
-                <rect x="22" y="24" width="14" height="12" rx="2" fill="#22ACBA"/>
-                <rect x="42" y="24" width="14" height="12" rx="2" fill="#435464"/>
-                <!-- Top (1) -->
-                <rect x="32" y="8"  width="14" height="12" rx="2" fill="#22ACBA"/>
-            </symbol>
-
-            <!-- Guess the Player: jersey with number -->
-            <symbol id="i-tile-player" viewBox="0 0 80 80">
-                <path d="M22 14 L14 18 L10 30 L18 34 L22 30 L22 66 Q22 70 26 70 L54 70 Q58 70 58 66 L58 30 L62 34 L70 30 L66 18 L58 14 L48 14 Q48 22 40 22 Q32 22 32 14 Z"
-                      fill="#0a84ff" stroke="#0a84ff" stroke-width="0" stroke-linejoin="round"/>
-                <text x="40" y="54" text-anchor="middle" fill="white" font-family="-apple-system, system-ui" font-weight="800" font-size="22" letter-spacing="-1">9</text>
-            </symbol>
-
-            <!-- Who Am I: silhouette with question mark -->
-            <symbol id="i-tile-whoami" viewBox="0 0 80 80">
-                <!-- Silhouette -->
-                <path d="M40 14 Q31 14 31 24 Q31 33 40 33 Q49 33 49 24 Q49 14 40 14 Z M22 70 Q22 50 40 50 Q58 50 58 70 Z"
-                      fill="#ff8a00" opacity="0.30"/>
-                <!-- Question mark overlay -->
-                <circle cx="40" cy="40" r="20" fill="#ff8a00"/>
-                <path d="M34 35 Q34 28 40 28 Q46 28 46 34 Q46 38 42 40 Q40 41.5 40 44"
-                      fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="40" cy="50" r="2.2" fill="white"/>
-            </symbol>
-
-            <!-- Guess the Club: tactics board with formation dots -->
-            <symbol id="i-tile-club" viewBox="0 0 80 80">
-                <!-- Pitch background -->
-                <rect x="8" y="10" width="64" height="60" rx="6" fill="#2e9b54"/>
-                <!-- Pitch lines -->
-                <rect x="8" y="10" width="64" height="60" rx="6" fill="none" stroke="white" stroke-width="1.2" opacity="0.6"/>
-                <line x1="8" y1="40" x2="72" y2="40" stroke="white" stroke-width="1.2" opacity="0.6"/>
-                <circle cx="40" cy="40" r="8" fill="none" stroke="white" stroke-width="1.2" opacity="0.6"/>
-                <!-- Formation dots: 4-3-3 -->
-                <circle cx="40" cy="64" r="2.6" fill="white"/>
-                <circle cx="18" cy="56" r="2.6" fill="white"/>
-                <circle cx="32" cy="56" r="2.6" fill="white"/>
-                <circle cx="48" cy="56" r="2.6" fill="white"/>
-                <circle cx="62" cy="56" r="2.6" fill="white"/>
-                <circle cx="24" cy="44" r="2.6" fill="white"/>
-                <circle cx="40" cy="44" r="2.6" fill="white"/>
-                <circle cx="56" cy="44" r="2.6" fill="white"/>
-                <circle cx="22" cy="22" r="2.6" fill="white"/>
-                <circle cx="40" cy="20" r="2.6" fill="white"/>
-                <circle cx="58" cy="22" r="2.6" fill="white"/>
-            </symbol>
 
             <!-- ─── UI ICONS ─── -->
             <symbol id="i-heart" viewBox="0 0 24 24">
@@ -105,10 +43,88 @@
             <symbol id="i-shield" viewBox="0 0 32 32">
                 <path d="M16 4 6 7v9c0 6 4 11 10 12 6-1 10-6 10-12V7l-10-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
             </symbol>
+
+            <!-- ─── EDITORIAL TILE ART ─── -->
+            <!-- Each viewBox is 100×100. Art deliberately bleeds past edges where appropriate. -->
+
+            <!-- TENABLE: ladder of 10 horizontal bars, ascending in opacity and length -->
+            <symbol id="art-tenable" viewBox="0 0 100 100">
+                <!-- Bars go from top-left (short, faint) to bottom-right (long, bright) -->
+                <!-- All bars positioned in upper-right quadrant for editorial crop -->
+                <rect x="50" y="14" width="24" height="4" rx="2" fill="#22ACBA" opacity="0.15"/>
+                <rect x="50" y="22" width="28" height="4" rx="2" fill="#22ACBA" opacity="0.22"/>
+                <rect x="50" y="30" width="32" height="4" rx="2" fill="#22ACBA" opacity="0.30"/>
+                <rect x="50" y="38" width="36" height="4" rx="2" fill="#22ACBA" opacity="0.40"/>
+                <rect x="50" y="46" width="40" height="4" rx="2" fill="#22ACBA" opacity="0.52"/>
+                <rect x="50" y="54" width="46" height="4" rx="2" fill="#22ACBA" opacity="0.64"/>
+                <rect x="50" y="62" width="52" height="4" rx="2" fill="#22ACBA" opacity="0.76"/>
+                <rect x="50" y="70" width="58" height="4" rx="2" fill="#22ACBA" opacity="0.85"/>
+                <rect x="50" y="78" width="66" height="4" rx="2" fill="#22ACBA" opacity="0.94"/>
+                <rect x="50" y="86" width="74" height="4" rx="2" fill="#22ACBA" opacity="1.00"/>
+            </symbol>
+
+            <!-- GUESS THE PLAYER: massive cropped "9" bleeding off bottom-right -->
+            <symbol id="art-player" viewBox="0 0 100 100">
+                <text
+                    x="102"
+                    y="138"
+                    text-anchor="end"
+                    font-family="-apple-system, 'SF Pro Display', system-ui, sans-serif"
+                    font-weight="900"
+                    font-size="180"
+                    letter-spacing="-12"
+                    fill="#4A9EFF"
+                    opacity="0.22">9</text>
+            </symbol>
+
+            <!-- WHO AM I: orange silhouette with a single bold question-mark dot -->
+            <symbol id="art-whoami" viewBox="0 0 100 100">
+                <!-- Head + shoulders silhouette, cropped at top-right -->
+                <path d="M 110 22
+                         Q 110 8 96 8
+                         Q 82 8 82 22
+                         Q 82 34 96 34
+                         Q 100 34 104 33
+                         L 104 48
+                         Q 104 56 120 60
+                         L 130 60
+                         L 130 0
+                         L 110 0 Z"
+                      fill="#F5A623" opacity="0.24"/>
+                <!-- Bold "?" dot — single decisive element (bottom-left) -->
+                <circle cx="28" cy="78" r="4" fill="#F5A623"/>
+                <!-- Question-mark hook trailing up -->
+                <path d="M 18 66 Q 18 56 28 56 Q 38 56 38 64 Q 38 70 32 72 Q 28 73 28 76"
+                      fill="none" stroke="#F5A623" stroke-width="4.5" stroke-linecap="round" opacity="0.55"/>
+            </symbol>
+
+            <!-- GUESS THE CLUB: tactics board — formation dots with connecting lines -->
+            <symbol id="art-club" viewBox="0 0 100 100">
+                <!-- Connecting lines between formation lines -->
+                <path d="M 15 82 L 15 58 L 20 40 L 30 20
+                         M 42 82 L 42 58 L 35 40 L 50 20
+                         M 58 82 L 58 58 L 65 40 L 50 20
+                         M 85 82 L 85 58 L 80 40 L 70 20"
+                      stroke="#3FCF7A" stroke-width="1" fill="none" opacity="0.18" stroke-linecap="round"/>
+                <!-- 4-3-3 formation dots, bottom-up. GK omitted (it's abstract) -->
+                <!-- Back 4 -->
+                <circle cx="15" cy="82" r="3" fill="#3FCF7A" opacity="0.60"/>
+                <circle cx="42" cy="82" r="3" fill="#3FCF7A" opacity="0.60"/>
+                <circle cx="58" cy="82" r="3" fill="#3FCF7A" opacity="0.60"/>
+                <circle cx="85" cy="82" r="3" fill="#3FCF7A" opacity="0.60"/>
+                <!-- Midfield 3 -->
+                <circle cx="20" cy="56" r="3" fill="#3FCF7A" opacity="0.78"/>
+                <circle cx="50" cy="56" r="3.5" fill="#3FCF7A"/>
+                <circle cx="80" cy="56" r="3" fill="#3FCF7A" opacity="0.78"/>
+                <!-- Front 3 -->
+                <circle cx="28" cy="26" r="3" fill="#3FCF7A" opacity="0.90"/>
+                <circle cx="50" cy="20" r="3.5" fill="#3FCF7A"/>
+                <circle cx="72" cy="26" r="3" fill="#3FCF7A" opacity="0.90"/>
+            </symbol>
         </defs>
     </svg>
 
-    <!-- Toast container — outside any screen so it stays mounted -->
+    <!-- Toast stack (persistent) -->
     <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
     <!-- ================================================================
@@ -116,55 +132,76 @@
          ================================================================ -->
     <section id="menu-screen" class="screen active">
         <div class="menu-container">
-            <header class="app-header">
-                <h1 class="large-title">Daily Football Quiz</h1>
-                <p class="subtitle" id="date-display"></p>
+            <!-- Brand stamp -->
+            <header class="brand">
+                <p class="brand-date" id="brand-date">MATCHDAY</p>
+                <h1 class="brand-title">Matchday<span class="dot">.</span></h1>
             </header>
 
-            <div class="menu-progress">
-                <div class="progress-row">
-                    <span class="progress-label">Today's progress</span>
-                    <span class="progress-count" id="progress-count">0/4</span>
+            <!-- Score hero -->
+            <div class="score-hero">
+                <div class="hero-left">
+                    <p class="hero-label">Today's score</p>
+                    <div class="hero-score">
+                        <span class="hero-score-num" id="hero-score-num">0</span>
+                        <span class="hero-score-max">/25</span>
+                    </div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
+                <div class="hero-segments" id="hero-segments">
+                    <div class="hero-segment" data-segment="tenable"><div class="hero-segment-fill"></div></div>
+                    <div class="hero-segment" data-segment="guessPlayer"><div class="hero-segment-fill"></div></div>
+                    <div class="hero-segment" data-segment="whoAmI"><div class="hero-segment-fill"></div></div>
+                    <div class="hero-segment" data-segment="guessClub"><div class="hero-segment-fill"></div></div>
                 </div>
             </div>
 
-            <p class="menu-cta">Complete the 4 quizzes for your daily score!</p>
-
+            <!-- Games grid -->
             <div class="games-grid">
                 <button class="game-tile" data-game="tenable">
+                    <div class="tile-art"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><use href="#art-tenable"/></svg></div>
                     <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
-                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-tenable"/></svg></div>
-                    <h2 class="tile-title">Tenable</h2>
-                    <p class="tile-sub">Top 10 list</p>
-                    <span class="tile-score" data-score-tile="tenable"></span>
+                    <div class="tile-score-chip" data-score-tile="tenable"></div>
+                    <div class="tile-text">
+                        <p class="tile-label">Round 01</p>
+                        <h2 class="tile-title">Tenable</h2>
+                    </div>
                 </button>
 
                 <button class="game-tile" data-game="guessPlayer">
+                    <div class="tile-art"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><use href="#art-player"/></svg></div>
                     <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
-                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-player"/></svg></div>
-                    <h2 class="tile-title">Guess the Player</h2>
-                    <p class="tile-sub">Career path</p>
-                    <span class="tile-score" data-score-tile="guessPlayer"></span>
+                    <div class="tile-score-chip" data-score-tile="guessPlayer"></div>
+                    <div class="tile-text">
+                        <p class="tile-label">Round 02</p>
+                        <h2 class="tile-title">Guess the Player</h2>
+                    </div>
                 </button>
 
                 <button class="game-tile" data-game="whoAmI">
+                    <div class="tile-art"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><use href="#art-whoami"/></svg></div>
                     <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
-                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-whoami"/></svg></div>
-                    <h2 class="tile-title">Who Am I</h2>
-                    <p class="tile-sub">3 hints, 5 lives</p>
-                    <span class="tile-score" data-score-tile="whoAmI"></span>
+                    <div class="tile-score-chip" data-score-tile="whoAmI"></div>
+                    <div class="tile-text">
+                        <p class="tile-label">Round 03</p>
+                        <h2 class="tile-title">Who Am I</h2>
+                    </div>
                 </button>
 
                 <button class="game-tile" data-game="guessClub">
+                    <div class="tile-art"><svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><use href="#art-club"/></svg></div>
                     <div class="tile-check"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></div>
-                    <div class="tile-icon"><svg viewBox="0 0 80 80"><use href="#i-tile-club"/></svg></div>
-                    <h2 class="tile-title">Guess the Club</h2>
-                    <p class="tile-sub">Lineup challenge</p>
-                    <span class="tile-score" data-score-tile="guessClub"></span>
+                    <div class="tile-score-chip" data-score-tile="guessClub"></div>
+                    <div class="tile-text">
+                        <p class="tile-label">Round 04</p>
+                        <h2 class="tile-title">Guess the Club</h2>
+                    </div>
                 </button>
+            </div>
+
+            <!-- Streak strip — last 7 days -->
+            <div class="streak-section">
+                <p class="streak-label">Last 7 days</p>
+                <div class="streak-strip" id="streak-strip"></div>
             </div>
         </div>
     </section>
@@ -172,24 +209,30 @@
     <!-- ================================================================
          TENABLE
          ================================================================ -->
-    <section id="tenable-screen" class="screen tenable-theme">
-        <header class="game-header">
+    <section id="tenable-screen" class="screen game-screen tenable-theme">
+        <div class="nav-pill">
             <button class="back-btn" data-back>
                 <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
-            <h2 class="game-title">Tenable</h2>
-            <div class="lives" id="tenable-lives" data-count="3"></div>
-        </header>
-        <div class="tenable-question">
-            <p class="question-text" id="tenable-question"></p>
-            <p class="question-sub" id="tenable-subtitle"></p>
+            <h2 class="nav-title">Tenable</h2>
+            <div class="nav-right">
+                <div class="lives" id="tenable-lives" data-count="3"></div>
+            </div>
         </div>
-        <div class="tenable-pyramid-wrap">
-            <div class="tenable-pyramid" id="tenable-pyramid"></div>
+
+        <div class="game-body">
+            <div class="question-block">
+                <p class="question-sub" id="tenable-subtitle"></p>
+                <p class="question-text" id="tenable-question"></p>
+            </div>
+            <div class="tenable-pyramid-wrap">
+                <div class="tenable-pyramid" id="tenable-pyramid"></div>
+            </div>
         </div>
-        <div class="input-area">
+
+        <div class="input-pill">
             <form id="tenable-form" autocomplete="off">
-                <input type="text" id="tenable-input" placeholder="Type a name…"
+                <input type="text" id="tenable-input" placeholder="Name a player…"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
@@ -202,23 +245,30 @@
     <!-- ================================================================
          GUESS THE PLAYER
          ================================================================ -->
-    <section id="guessPlayer-screen" class="screen">
-        <header class="game-header">
+    <section id="guessPlayer-screen" class="screen game-screen player-theme">
+        <div class="nav-pill">
             <button class="back-btn" data-back>
                 <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
-            <h2 class="game-title">Guess the Player</h2>
-            <div class="score-badge" id="guessPlayer-score">5 pt</div>
-        </header>
-        <div class="career-banner">Career Path · Clubs not in order</div>
-        <div class="clubs-container" id="clubs-container"></div>
-        <div class="attempts-row">
-            <span class="attempts-label">Attempts</span>
-            <div class="lives" id="guessPlayer-lives" data-count="5"></div>
+            <h2 class="nav-title">Guess the Player</h2>
+            <div class="nav-right">
+                <div class="lives" id="guessPlayer-lives" data-count="5"></div>
+                <div class="score-badge" id="guessPlayer-score">5 pt</div>
+            </div>
         </div>
-        <div class="input-area">
+
+        <div class="game-body">
+            <div class="question-block">
+                <p class="question-sub">Career Path</p>
+                <p class="question-text">Who is this player?</p>
+                <p class="question-meta">Clubs are not in order</p>
+            </div>
+            <div class="career-section" id="clubs-container"></div>
+        </div>
+
+        <div class="input-pill">
             <form id="guessPlayer-form" autocomplete="off">
-                <input type="text" id="guessPlayer-input" placeholder="Which player?"
+                <input type="text" id="guessPlayer-input" placeholder="Name the player…"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
@@ -231,23 +281,29 @@
     <!-- ================================================================
          WHO AM I
          ================================================================ -->
-    <section id="whoAmI-screen" class="screen">
-        <header class="game-header">
+    <section id="whoAmI-screen" class="screen game-screen whoami-theme">
+        <div class="nav-pill">
             <button class="back-btn" data-back>
                 <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
-            <h2 class="game-title">Who Am I</h2>
-            <div class="score-badge" id="whoAmI-score">5 pt</div>
-        </header>
-        <div class="dossier-banner">Player Dossier · 3 Clues</div>
-        <div class="hints-container" id="hints-container"></div>
-        <div class="attempts-row">
-            <span class="attempts-label">Attempts</span>
-            <div class="lives" id="whoAmI-lives" data-count="5"></div>
+            <h2 class="nav-title">Who Am I</h2>
+            <div class="nav-right">
+                <div class="lives" id="whoAmI-lives" data-count="5"></div>
+                <div class="score-badge" id="whoAmI-score">5 pt</div>
+            </div>
         </div>
-        <div class="input-area">
+
+        <div class="game-body">
+            <div class="question-block">
+                <p class="question-sub">Player Dossier</p>
+                <p class="question-text">Identify from 3 clues</p>
+            </div>
+            <div class="hints-section" id="hints-container"></div>
+        </div>
+
+        <div class="input-pill">
             <form id="whoAmI-form" autocomplete="off">
-                <input type="text" id="whoAmI-input" placeholder="Which player?"
+                <input type="text" id="whoAmI-input" placeholder="Name the player…"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
@@ -260,23 +316,29 @@
     <!-- ================================================================
          GUESS THE CLUB
          ================================================================ -->
-    <section id="guessClub-screen" class="screen">
-        <header class="game-header">
+    <section id="guessClub-screen" class="screen game-screen club-theme">
+        <div class="nav-pill">
             <button class="back-btn" data-back>
                 <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
-            <h2 class="game-title">Guess the Club</h2>
-            <div class="score-badge" id="guessClub-score">5 pt</div>
-        </header>
-        <div class="club-year-badge" id="guessClub-year"></div>
-        <div class="formation-container" id="formation-container"></div>
-        <div class="attempts-row">
-            <span class="attempts-label">Attempts</span>
-            <div class="lives" id="guessClub-lives" data-count="3"></div>
+            <h2 class="nav-title">Guess the Club</h2>
+            <div class="nav-right">
+                <div class="lives" id="guessClub-lives" data-count="3"></div>
+                <div class="score-badge" id="guessClub-score">5 pt</div>
+            </div>
         </div>
-        <div class="input-area">
+
+        <div class="game-body">
+            <div class="question-block">
+                <p class="question-sub">Starting XI</p>
+                <div class="club-year-badge" id="guessClub-year"></div>
+            </div>
+            <div class="pitch-wrap" id="formation-container"></div>
+        </div>
+
+        <div class="input-pill">
             <form id="guessClub-form" autocomplete="off">
-                <input type="text" id="guessClub-input" placeholder="Which club?"
+                <input type="text" id="guessClub-input" placeholder="Name the club…"
                        autocomplete="off" autocorrect="off" autocapitalize="words"
                        spellcheck="false">
                 <button type="submit" class="submit-btn">
@@ -286,7 +348,7 @@
         </div>
     </section>
 
-    <!-- Result modal (per-game finish) -->
+    <!-- Result modal -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div class="result-icon" id="result-icon"></div>
@@ -297,13 +359,13 @@
         </div>
     </div>
 
-    <!-- Total modal (all 4 done) -->
+    <!-- Total modal -->
     <div id="total-modal" class="modal">
         <div class="modal-content">
             <div class="trophy-icon">
                 <svg viewBox="0 0 24 24"><use href="#i-trophy"/></svg>
             </div>
-            <h2 class="result-title">Daily total</h2>
+            <h2 class="result-title">Matchday complete</h2>
             <p class="total-big" id="total-score">0/25</p>
             <div class="total-breakdown" id="total-breakdown"></div>
             <button class="primary-btn" id="total-continue">Close</button>

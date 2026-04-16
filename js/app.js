@@ -1,6 +1,5 @@
 import { loadTodayData, loadSampleData } from './utils/data-loader.js';
 import { getState, countPlayed, totalScore } from './utils/storage.js';
-import { todayKey } from './utils/date-key.js';
 import { hapticLight } from './utils/haptics.js';
 import { recordToday, getLast7Days } from './utils/history.js';
 
@@ -28,7 +27,7 @@ let isFirstRender = true;
 // ═══════════════════════════════════════
 
 async function bootstrap() {
-    renderBrandDate();
+    renderGreeting();
 
     try {
         todayData = USE_SAMPLE_DATA ? loadSampleData() : await loadTodayData();
@@ -73,15 +72,28 @@ async function bootstrap() {
 }
 
 // ═══════════════════════════════════════
-// BRAND DATE — "TUESDAY, 15 APR"
+// GREETING — time + day based, warm copy
 // ═══════════════════════════════════════
 
-function renderBrandDate() {
+function renderGreeting() {
     const now = new Date();
-    const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase();
-    const day = now.getDate();
-    const month = now.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
-    document.getElementById('brand-date').textContent = `${weekday}, ${day} ${month}`;
+    const hour = now.getHours();
+    let partOfDay;
+    if (hour < 6)       partOfDay = 'evening';   // late night → still "evening"
+    else if (hour < 12) partOfDay = 'morning';
+    else if (hour < 18) partOfDay = 'afternoon';
+    else                partOfDay = 'evening';
+
+    const greetings = {
+        morning:   'Good morning',
+        afternoon: 'Good afternoon',
+        evening:   'Good evening'
+    };
+    document.getElementById('greeting-line-1').textContent = greetings[partOfDay];
+
+    // "Tuesday's matchday"
+    const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
+    document.getElementById('greeting-line-2').textContent = `${weekday}'s matchday`;
 }
 
 // ═══════════════════════════════════════
@@ -114,8 +126,8 @@ async function renderMenu() {
     const state = await getState();
     const total = totalScore(state);
 
-    // Hero score — count up on returning from a game
-    const numEl = document.getElementById('hero-score-num');
+    // Score number — count up on returning from a game
+    const numEl = document.getElementById('score-num');
     if (isFirstRender) {
         numEl.textContent = total;
         lastRenderedScore = total;
@@ -127,7 +139,7 @@ async function renderMenu() {
 
     // Segment fills — each segment shows that game's score as fraction of its max
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
-        const seg = document.querySelector(`.hero-segment[data-segment="${game}"] .hero-segment-fill`);
+        const seg = document.querySelector(`.score-segment[data-segment="${game}"] .score-segment-fill`);
         const s = state[game];
         if (s && s.played) {
             const frac = Math.min(1, s.score / GAME_MAX[game]);
@@ -137,55 +149,85 @@ async function renderMenu() {
         }
     });
 
-    // Tiles — completed state + score chip
+    // Tiles — completed state + played chip
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
         const tile = document.querySelector(`.game-tile[data-game="${game}"]`);
         const done = state[game]?.played;
         tile.classList.toggle('completed', !!done);
 
-        const chipEl = tile.querySelector(`[data-score-tile="${game}"]`);
+        const chip = tile.querySelector(`[data-played-chip="${game}"]`);
         if (done) {
-            chipEl.textContent = `${state[game].score}/${GAME_MAX[game]}`;
+            chip.textContent = `${state[game].score}/${GAME_MAX[game]}`;
         } else {
-            chipEl.textContent = '';
+            chip.textContent = '';
         }
     });
 
-    // Record today's score so streak strip reflects it
+    // Record today in history if anything played
     if (countPlayed(state) > 0) {
         await recordToday(total);
     }
 
-    // Streak strip
-    await renderStreakStrip();
+    await renderStreakStrip(state);
 }
 
-async function renderStreakStrip() {
+// ═══════════════════════════════════════
+// STREAK STRIP
+// ═══════════════════════════════════════
+
+async function renderStreakStrip(state) {
     const strip = document.getElementById('streak-strip');
     const days = await getLast7Days();
+
+    // For "today" cell, use live state's per-game played count (not just recorded total)
+    const todayPlayedCount = countPlayed(state);
+
     strip.innerHTML = days.map(d => {
+        const weekday = shortWeekday(d.date);
+
         if (d.isToday) {
-            return `<div class="streak-cell today">
-                <span class="streak-day">${d.dayNum}</span>
-                ${d.played ? `<span class="streak-score">${d.score}/25</span>` : ''}
-            </div>`;
+            // Mini 4-segment progress for today
+            const segs = [0, 1, 2, 3].map(i =>
+                `<div class="streak-progress-seg ${i < todayPlayedCount ? 'filled' : ''}"></div>`
+            ).join('');
+            return `
+                <div class="streak-cell today">
+                    <span class="streak-weekday">${weekday}</span>
+                    <span class="streak-daynum">${d.dayNum}</span>
+                    <div class="streak-progress">${segs}</div>
+                </div>`;
         }
         if (d.played) {
-            return `<div class="streak-cell">
-                <span class="streak-day">${d.dayNum}</span>
-                <span class="streak-score">${d.score}/25</span>
-            </div>`;
+            return `
+                <div class="streak-cell">
+                    <span class="streak-weekday">${weekday}</span>
+                    <span class="streak-daynum">${d.dayNum}</span>
+                    <span class="streak-score-mini">${d.score}</span>
+                </div>`;
         }
-        return `<div class="streak-cell missed">
-            <span class="streak-day">${d.dayNum}</span>
-        </div>`;
+        return `
+            <div class="streak-cell missed">
+                <span class="streak-weekday">${weekday}</span>
+                <span class="streak-daynum">${d.dayNum}</span>
+                <span class="streak-score-mini">&nbsp;</span>
+            </div>`;
     }).join('');
 
-    // Scroll to the right (today) since cells are oldest-first
     requestAnimationFrame(() => {
         strip.scrollLeft = strip.scrollWidth;
     });
 }
+
+function shortWeekday(dateStr) {
+    // dateStr is "YYYY-MM-DD" — parse as LOCAL date (avoid timezone UTC shift)
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString('en-GB', { weekday: 'short' }).slice(0, 3);
+}
+
+// ═══════════════════════════════════════
+// COUNT-UP ANIMATION
+// ═══════════════════════════════════════
 
 function animateCountUp(el, from, to, duration) {
     if (from === to) {
@@ -196,8 +238,7 @@ function animateCountUp(el, from, to, duration) {
     const diff = to - from;
     function step(now) {
         const t = Math.min(1, (now - start) / duration);
-        // Quadratic ease-out
-        const eased = 1 - Math.pow(1 - t, 2);
+        const eased = 1 - Math.pow(1 - t, 2); // quadratic ease-out
         const v = Math.round(from + diff * eased);
         el.textContent = v;
         if (t < 1) requestAnimationFrame(step);
@@ -242,23 +283,26 @@ function navigate(target) {
         screen.classList.add('active');
         currentScreen = target;
         screen.scrollTop = 0;
+        const content = screen.querySelector('.game-content, .menu-container');
+        if (content) content.scrollTop = 0;
     }
 }
 
 function showTotalScore(state) {
     const modal = document.getElementById('total-modal');
     const total = totalScore(state);
-    document.getElementById('total-score').textContent = `${total}/25`;
+    document.getElementById('total-score').textContent = total;
 
     const breakdown = [
-        { label: 'Tenable',          score: state.tenable.score,     max: 10 },
-        { label: 'Guess the Player', score: state.guessPlayer.score, max: 5 },
-        { label: 'Who Am I',         score: state.whoAmI.score,      max: 5 },
-        { label: 'Guess the Club',   score: state.guessClub.score,   max: 5 }
+        { key: 'tenable',     label: 'Tenable',          score: state.tenable.score,     max: 10 },
+        { key: 'guessPlayer', label: 'Guess the Player', score: state.guessPlayer.score, max: 5 },
+        { key: 'whoAmI',      label: 'Who Am I',         score: state.whoAmI.score,      max: 5 },
+        { key: 'guessClub',   label: 'Guess the Club',   score: state.guessClub.score,   max: 5 }
     ];
 
     document.getElementById('total-breakdown').innerHTML = breakdown.map(b => `
-        <div class="breakdown-row">
+        <div class="breakdown-row" data-game="${b.key}">
+            <span class="breakdown-dot"></span>
             <span class="breakdown-label">${b.label}</span>
             <span class="breakdown-score">${b.score}/${b.max}</span>
         </div>

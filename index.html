@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Matchday">
     <meta name="theme-color" content="#F5F1E8">
     <meta name="color-scheme" content="light">
-    <title>Daily Football Quiz</title>
+    <title>Matchday</title>
     <link rel="stylesheet" href="css/styles.css">
 
     <!-- ================================================================
@@ -44,87 +45,77 @@
                 <polygon points="12,6 15.5,8.5 14,12.5 10,12.5 8.5,8.5" fill="currentColor"/>
                 <path d="M12 6 L12 2.5 M15.5 8.5 L19 7.5 M14 12.5 L17 15.5 M10 12.5 L7 15.5 M8.5 8.5 L5 7.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
             </symbol>
+            <symbol id="i-share" viewBox="0 0 24 24">
+                <path d="M12 3v12M12 3l-4 4M12 3l4 4M6 13v6a2 2 0 002 2h8a2 2 0 002-2v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-refresh" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 0114.85-6.85L21 8M21 3v5h-5M21 12a9 9 0 01-14.85 6.85L3 16M3 21v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
 
-            <!-- TILE HERO ART — each represents the game -->
+            <!-- TILE HERO ART -->
+            <symbol id="art-tenable" viewBox="0 0 100 100">
+                <g fill="currentColor">
+                    <rect x="44" y="10" width="12" height="6" rx="1.5"/>
+                    <rect x="40" y="19" width="20" height="6" rx="1.5"/>
+                    <rect x="36" y="28" width="28" height="6" rx="1.5"/>
+                    <rect x="32" y="37" width="36" height="6" rx="1.5"/>
+                    <rect x="28" y="46" width="44" height="6" rx="1.5"/>
+                    <rect x="24" y="55" width="52" height="6" rx="1.5"/>
+                    <rect x="20" y="64" width="60" height="6" rx="1.5"/>
+                    <rect x="16" y="73" width="68" height="6" rx="1.5"/>
+                    <rect x="12" y="82" width="76" height="6" rx="1.5"/>
+                    <rect x="8"  y="91" width="84" height="6" rx="1.5"/>
+                </g>
+            </symbol>
 
-            <!-- Tenable: classical pyramid of 10 horizontal bars, rank 1 (short) at top -->
-<symbol id="art-tenable" viewBox="0 0 100 100">
-    <g fill="currentColor">
-        <rect x="44" y="10" width="12" height="6" rx="1.5"/>
-        <rect x="40" y="19" width="20" height="6" rx="1.5"/>
-        <rect x="36" y="28" width="28" height="6" rx="1.5"/>
-        <rect x="32" y="37" width="36" height="6" rx="1.5"/>
-        <rect x="28" y="46" width="44" height="6" rx="1.5"/>
-        <rect x="24" y="55" width="52" height="6" rx="1.5"/>
-        <rect x="20" y="64" width="60" height="6" rx="1.5"/>
-        <rect x="16" y="73" width="68" height="6" rx="1.5"/>
-        <rect x="12" y="82" width="76" height="6" rx="1.5"/>
-        <rect x="8"  y="91" width="84" height="6" rx="1.5"/>
-    </g>
-</symbol>
-
-            <!-- Guess the Player: jersey seen from the back with large number "9" -->
             <symbol id="art-player" viewBox="0 0 100 100">
-    <g fill="currentColor">
-        <path d="M 30 18 L 20 24 L 14 40 L 24 46 L 28 40 L 28 84 Q 28 88 32 88 L 68 88 Q 72 88 72 84 L 72 40 L 76 46 L 86 40 L 80 24 L 70 18 L 60 18 Q 60 26 50 26 Q 40 26 40 18 Z"/>
-    </g>
-    <text x="50" y="72"
-          text-anchor="middle"
-          font-family="'New York', ui-serif, Georgia, serif"
-          font-weight="900"
-          font-size="44"
-          fill="#1D5832"
-          letter-spacing="-2">9</text>
-</symbol>
+                <g fill="currentColor">
+                    <path d="M 30 18 L 20 24 L 14 40 L 24 46 L 28 40 L 28 84 Q 28 88 32 88 L 68 88 Q 72 88 72 84 L 72 40 L 76 46 L 86 40 L 80 24 L 70 18 L 60 18 Q 60 26 50 26 Q 40 26 40 18 Z"/>
+                </g>
+                <text x="50" y="72"
+                      text-anchor="middle"
+                      font-family="'New York', ui-serif, Georgia, serif"
+                      font-weight="900"
+                      font-size="44"
+                      fill="#1D5832"
+                      letter-spacing="-2">9</text>
+            </symbol>
 
-            <!-- Who Am I: player silhouette (head + shoulders) with bold ? over face -->
-<symbol id="art-whoami" viewBox="0 0 100 100">
-    <g fill="currentColor">
-        <circle cx="50" cy="32" r="18"/>
-        <path d="M 18 96 Q 18 62 50 62 Q 82 62 82 96 Z"/>
-    </g>
-    <text x="50" y="44"
-          text-anchor="middle"
-          font-family="'New York', ui-serif, Georgia, serif"
-          font-weight="900"
-          font-size="28"
-          fill="#324B2A">?</text>
-</symbol>
+            <symbol id="art-whoami" viewBox="0 0 100 100">
+                <g fill="currentColor">
+                    <circle cx="50" cy="32" r="18"/>
+                    <path d="M 18 96 Q 18 62 50 62 Q 82 62 82 96 Z"/>
+                </g>
+                <text x="50" y="44"
+                      text-anchor="middle"
+                      font-family="'New York', ui-serif, Georgia, serif"
+                      font-weight="900"
+                      font-size="28"
+                      fill="#324B2A">?</text>
+            </symbol>
 
-            <!-- Guess the Club: football pitch with 4-3-3 formation dots -->
             <symbol id="art-club" viewBox="0 0 100 100">
-                <!-- pitch rectangle -->
                 <rect x="10" y="6" width="80" height="88" rx="3"
                       fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <!-- halfway line -->
                 <line x1="10" y1="50" x2="90" y2="50"
                       stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <!-- center circle -->
                 <circle cx="50" cy="50" r="10"
                         fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <!-- top penalty box -->
                 <rect x="30" y="6" width="40" height="12"
                       fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <!-- bottom penalty box -->
                 <rect x="30" y="82" width="40" height="12"
                       fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-
-                <!-- 4-3-3 formation dots (solid, full opacity current color) -->
                 <g fill="currentColor">
-                    <!-- front 3 (attackers, top) -->
                     <circle cx="26" cy="22" r="3"/>
                     <circle cx="50" cy="18" r="3"/>
                     <circle cx="74" cy="22" r="3"/>
-                    <!-- mid 3 -->
                     <circle cx="30" cy="40" r="3"/>
                     <circle cx="50" cy="38" r="3"/>
                     <circle cx="70" cy="40" r="3"/>
-                    <!-- back 4 (defenders) -->
                     <circle cx="22" cy="64" r="3"/>
                     <circle cx="42" cy="66" r="3"/>
                     <circle cx="58" cy="66" r="3"/>
                     <circle cx="78" cy="64" r="3"/>
-                    <!-- keeper (bottom) -->
                     <circle cx="50" cy="86" r="3"/>
                 </g>
             </symbol>
@@ -132,6 +123,20 @@
     </svg>
 
     <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <!-- Data error banner (shown when sheet fetch fails) -->
+    <div id="data-error-banner" class="data-error-banner" role="alert">
+        <div class="data-error-content">
+            <svg class="data-error-icon" viewBox="0 0 24 24"><use href="#i-info"/></svg>
+            <div class="data-error-text">
+                <strong>Couldn't load today's quiz</strong>
+                <span>Showing a demo. Tap retry when you're online.</span>
+            </div>
+            <button id="data-error-retry" class="data-error-retry" aria-label="Retry loading">
+                <svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>
+            </button>
+        </div>
+    </div>
 
     <!-- ================================================================
          HOME
@@ -149,71 +154,88 @@
                 <span class="matchweek-ticker-dot"></span>
             </div>
 
-            <div class="score-card">
-                <div class="score-card-left">
-                    <p class="score-label">Today's score</p>
-                    <div class="score-value">
-                        <span class="score-num" id="score-num">0</span>
-                        <span class="score-max">/25</span>
-                    </div>
+            <!-- SKELETON placeholders (visible while body.loading) -->
+            <div class="skeleton-menu" aria-hidden="true">
+                <div class="skeleton-score-card">
+                    <div class="skeleton-block skeleton-label"></div>
+                    <div class="skeleton-block skeleton-big"></div>
                 </div>
-                <div class="score-segments">
-                    <div class="score-segment" data-segment="tenable"><div class="score-segment-fill"></div></div>
-                    <div class="score-segment" data-segment="guessPlayer"><div class="score-segment-fill"></div></div>
-                    <div class="score-segment" data-segment="whoAmI"><div class="score-segment-fill"></div></div>
-                    <div class="score-segment" data-segment="guessClub"><div class="score-segment-fill"></div></div>
+                <div class="skeleton-games-grid">
+                    <div class="skeleton-tile"></div>
+                    <div class="skeleton-tile"></div>
+                    <div class="skeleton-tile"></div>
+                    <div class="skeleton-tile"></div>
                 </div>
             </div>
 
-            <div class="games-grid">
-                <button class="game-tile" data-game="tenable">
-                    <div class="tile-number">№ 01</div>
-                    <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-tenable"/></svg></div>
-                    <div class="tile-text">
-                        <h2 class="tile-title">Tenable</h2>
-                        <p class="tile-meta">Top 10 list</p>
+            <!-- REAL content -->
+            <div class="menu-real-content">
+                <div class="score-card">
+                    <div class="score-card-left">
+                        <p class="score-label">Today's score</p>
+                        <div class="score-value">
+                            <span class="score-num" id="score-num">0</span>
+                            <span class="score-max">/25</span>
+                        </div>
                     </div>
-                    <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
-                    <div class="tile-played-chip" data-played-chip="tenable"></div>
-                </button>
-
-                <button class="game-tile" data-game="guessPlayer">
-                    <div class="tile-number">№ 02</div>
-                    <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-player"/></svg></div>
-                    <div class="tile-text">
-                        <h2 class="tile-title">Guess the Player</h2>
-                        <p class="tile-meta">Career path</p>
+                    <div class="score-segments">
+                        <div class="score-segment" data-segment="tenable"><div class="score-segment-fill"></div></div>
+                        <div class="score-segment" data-segment="guessPlayer"><div class="score-segment-fill"></div></div>
+                        <div class="score-segment" data-segment="whoAmI"><div class="score-segment-fill"></div></div>
+                        <div class="score-segment" data-segment="guessClub"><div class="score-segment-fill"></div></div>
                     </div>
-                    <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
-                    <div class="tile-played-chip" data-played-chip="guessPlayer"></div>
-                </button>
+                </div>
 
-                <button class="game-tile" data-game="whoAmI">
-                    <div class="tile-number">№ 03</div>
-                    <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-whoami"/></svg></div>
-                    <div class="tile-text">
-                        <h2 class="tile-title">Who Am I</h2>
-                        <p class="tile-meta">Three clues</p>
-                    </div>
-                    <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
-                    <div class="tile-played-chip" data-played-chip="whoAmI"></div>
-                </button>
+                <div class="games-grid">
+                    <button class="game-tile" data-game="tenable">
+                        <div class="tile-number">№ 01</div>
+                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-tenable"/></svg></div>
+                        <div class="tile-text">
+                            <h2 class="tile-title">Tenable</h2>
+                            <p class="tile-meta">Top 10 list</p>
+                        </div>
+                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-played-chip" data-played-chip="tenable"></div>
+                    </button>
 
-                <button class="game-tile" data-game="guessClub">
-                    <div class="tile-number">№ 04</div>
-                    <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-club"/></svg></div>
-                    <div class="tile-text">
-                        <h2 class="tile-title">Guess the Club</h2>
-                        <p class="tile-meta">Starting XI</p>
-                    </div>
-                    <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
-                    <div class="tile-played-chip" data-played-chip="guessClub"></div>
-                </button>
-            </div>
+                    <button class="game-tile" data-game="guessPlayer">
+                        <div class="tile-number">№ 02</div>
+                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-player"/></svg></div>
+                        <div class="tile-text">
+                            <h2 class="tile-title">Guess the Player</h2>
+                            <p class="tile-meta">Career path</p>
+                        </div>
+                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-played-chip" data-played-chip="guessPlayer"></div>
+                    </button>
 
-            <div class="streak-section">
-                <p class="streak-header">Your week</p>
-                <div class="streak-strip" id="streak-strip"></div>
+                    <button class="game-tile" data-game="whoAmI">
+                        <div class="tile-number">№ 03</div>
+                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-whoami"/></svg></div>
+                        <div class="tile-text">
+                            <h2 class="tile-title">Who Am I</h2>
+                            <p class="tile-meta">Three clues</p>
+                        </div>
+                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-played-chip" data-played-chip="whoAmI"></div>
+                    </button>
+
+                    <button class="game-tile" data-game="guessClub">
+                        <div class="tile-number">№ 04</div>
+                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-club"/></svg></div>
+                        <div class="tile-text">
+                            <h2 class="tile-title">Guess the Club</h2>
+                            <p class="tile-meta">Starting XI</p>
+                        </div>
+                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-played-chip" data-played-chip="guessClub"></div>
+                    </button>
+                </div>
+
+                <div class="streak-section">
+                    <p class="streak-header">Your week</p>
+                    <div class="streak-strip" id="streak-strip"></div>
+                </div>
             </div>
         </div>
     </section>
@@ -309,6 +331,7 @@
             <div>
                 <p class="game-hero-eyebrow">№ 03 · Who Am I</p>
                 <p class="game-hero-question">Identify this player from three clues.</p>
+                <p class="game-hero-meta">A new clue unlocks after each wrong guess.</p>
             </div>
             <div class="game-hero-bottom">
                 <div class="hero-score-chip" id="whoAmI-score">5 pt</div>
@@ -380,7 +403,7 @@
         </div>
     </div>
 
-    <!-- Total modal -->
+    <!-- Total modal (matchday complete) -->
     <div id="total-modal" class="modal">
         <div class="modal-content">
             <div class="matchday-trophy">
@@ -391,7 +414,13 @@
                 <span id="total-score">0</span><span class="total-big-max">/25</span>
             </p>
             <div class="total-breakdown" id="total-breakdown"></div>
-            <button class="primary-btn" id="total-continue">Close</button>
+            <div class="modal-actions">
+                <button class="secondary-btn" id="total-continue">Close</button>
+                <button class="primary-btn primary-btn-share" id="total-share">
+                    <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
+                    <span>Share</span>
+                </button>
+            </div>
         </div>
     </div>
 

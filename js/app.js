@@ -1,7 +1,8 @@
 import { loadTodayData, loadSampleData } from './utils/data-loader.js';
 import { getState, countPlayed, totalScore } from './utils/storage.js';
-import { formatDisplayDate } from './utils/date-key.js';
+import { todayKey } from './utils/date-key.js';
 import { hapticLight } from './utils/haptics.js';
+import { recordToday, getLast7Days } from './utils/history.js';
 
 import { initTenable }      from './games/tenable.js';
 import { initGuessPlayer }  from './games/guess-player.js';
@@ -19,9 +20,15 @@ const GAME_MAX = {
 
 let todayData = null;
 let currentScreen = 'menu';
+let lastRenderedScore = 0;
+let isFirstRender = true;
+
+// ═══════════════════════════════════════
+// BOOTSTRAP
+// ═══════════════════════════════════════
 
 async function bootstrap() {
-    document.getElementById('date-display').textContent = formatDisplayDate();
+    renderBrandDate();
 
     try {
         todayData = USE_SAMPLE_DATA ? loadSampleData() : await loadTodayData();
@@ -50,7 +57,6 @@ async function bootstrap() {
         document.getElementById('total-modal').classList.remove('active');
     };
 
-    // ESC closes any open modal + returns to menu if from result
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         const resultModal = document.getElementById('result-modal');
@@ -66,10 +72,22 @@ async function bootstrap() {
     });
 }
 
-/**
- * Click on modal backdrop → close + return to menu (for result modal)
- * For total modal → just close
- */
+// ═══════════════════════════════════════
+// BRAND DATE — "TUESDAY, 15 APR"
+// ═══════════════════════════════════════
+
+function renderBrandDate() {
+    const now = new Date();
+    const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' }).toUpperCase();
+    const day = now.getDate();
+    const month = now.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+    document.getElementById('brand-date').textContent = `${weekday}, ${day} ${month}`;
+}
+
+// ═══════════════════════════════════════
+// MODAL DISMISSAL
+// ═══════════════════════════════════════
+
 function setupModalDismissal() {
     const resultModal = document.getElementById('result-modal');
     const totalModal  = document.getElementById('total-modal');
@@ -88,27 +106,109 @@ function setupModalDismissal() {
     });
 }
 
+// ═══════════════════════════════════════
+// MENU RENDER
+// ═══════════════════════════════════════
+
 async function renderMenu() {
     const state = await getState();
-    const played = countPlayed(state);
+    const total = totalScore(state);
 
-    document.getElementById('progress-count').textContent = `${played}/4`;
-    document.getElementById('progress-fill').style.width = `${(played / 4) * 100}%`;
+    // Hero score — count up on returning from a game
+    const numEl = document.getElementById('hero-score-num');
+    if (isFirstRender) {
+        numEl.textContent = total;
+        lastRenderedScore = total;
+        isFirstRender = false;
+    } else if (total !== lastRenderedScore) {
+        animateCountUp(numEl, lastRenderedScore, total, 600);
+        lastRenderedScore = total;
+    }
 
+    // Segment fills — each segment shows that game's score as fraction of its max
+    ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
+        const seg = document.querySelector(`.hero-segment[data-segment="${game}"] .hero-segment-fill`);
+        const s = state[game];
+        if (s && s.played) {
+            const frac = Math.min(1, s.score / GAME_MAX[game]);
+            seg.style.setProperty('--fill', frac.toFixed(2));
+        } else {
+            seg.style.setProperty('--fill', '0');
+        }
+    });
+
+    // Tiles — completed state + score chip
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
         const tile = document.querySelector(`.game-tile[data-game="${game}"]`);
         const done = state[game]?.played;
         tile.classList.toggle('completed', !!done);
 
-        // Show score on completed tile
-        const scoreEl = tile.querySelector(`[data-score-tile="${game}"]`);
+        const chipEl = tile.querySelector(`[data-score-tile="${game}"]`);
         if (done) {
-            scoreEl.textContent = `${state[game].score}/${GAME_MAX[game]}`;
+            chipEl.textContent = `${state[game].score}/${GAME_MAX[game]}`;
         } else {
-            scoreEl.textContent = '';
+            chipEl.textContent = '';
         }
     });
+
+    // Record today's score so streak strip reflects it
+    if (countPlayed(state) > 0) {
+        await recordToday(total);
+    }
+
+    // Streak strip
+    await renderStreakStrip();
 }
+
+async function renderStreakStrip() {
+    const strip = document.getElementById('streak-strip');
+    const days = await getLast7Days();
+    strip.innerHTML = days.map(d => {
+        if (d.isToday) {
+            return `<div class="streak-cell today">
+                <span class="streak-day">${d.dayNum}</span>
+                ${d.played ? `<span class="streak-score">${d.score}/25</span>` : ''}
+            </div>`;
+        }
+        if (d.played) {
+            return `<div class="streak-cell">
+                <span class="streak-day">${d.dayNum}</span>
+                <span class="streak-score">${d.score}/25</span>
+            </div>`;
+        }
+        return `<div class="streak-cell missed">
+            <span class="streak-day">${d.dayNum}</span>
+        </div>`;
+    }).join('');
+
+    // Scroll to the right (today) since cells are oldest-first
+    requestAnimationFrame(() => {
+        strip.scrollLeft = strip.scrollWidth;
+    });
+}
+
+function animateCountUp(el, from, to, duration) {
+    if (from === to) {
+        el.textContent = to;
+        return;
+    }
+    const start = performance.now();
+    const diff = to - from;
+    function step(now) {
+        const t = Math.min(1, (now - start) / duration);
+        // Quadratic ease-out
+        const eased = 1 - Math.pow(1 - t, 2);
+        const v = Math.round(from + diff * eased);
+        el.textContent = v;
+        if (t < 1) requestAnimationFrame(step);
+        else el.textContent = to;
+    }
+    requestAnimationFrame(step);
+}
+
+// ═══════════════════════════════════════
+// GAME DISPATCH
+// ═══════════════════════════════════════
 
 async function openGame(gameKey) {
     const state = await getState();
@@ -148,8 +248,7 @@ function navigate(target) {
 function showTotalScore(state) {
     const modal = document.getElementById('total-modal');
     const total = totalScore(state);
-    const max = 25;
-    document.getElementById('total-score').textContent = `${total}/${max}`;
+    document.getElementById('total-score').textContent = `${total}/25`;
 
     const breakdown = [
         { label: 'Tenable',          score: state.tenable.score,     max: 10 },

@@ -17,6 +17,14 @@ const GAME_MAX = {
     guessClub: 5
 };
 
+function getISOWeek(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
 let todayData = null;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
@@ -94,6 +102,13 @@ function renderGreeting() {
     // "Tuesday's matchday"
     const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
     document.getElementById('greeting-line-2').textContent = `${weekday}'s matchday`;
+};
+
+// Matchweek ticker — ISO week number
+const weekNum = getISOWeek(now);
+const label = document.getElementById('matchweek-label');
+if (label) {
+    label.textContent = `Matchweek ${weekNum} · ${now.getDate()} ${now.toLocaleDateString('en-GB', { month: 'short' })}`;
 }
 
 // ═══════════════════════════════════════

@@ -297,10 +297,10 @@ input {
 /* Hero art — large, cropped on right edge */
 .tile-art {
     position: absolute;
-    right: -18%;
-    bottom: -14%;
-    width: 90%;
-    height: 90%;
+    right: -8%;
+    bottom: -6%;
+    width: 70%;
+    height: 70%;
     z-index: 1;
     pointer-events: none;
     color: rgba(255, 255, 255, 0.22);

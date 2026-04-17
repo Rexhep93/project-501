@@ -20,10 +20,7 @@ export function initWhoAmI(gameData, gameState, finishCb) {
         return;
     }
 
-    // Ensure revealedHints is at least 1 (forward compat for existing saves)
-    if (!state.revealedHints || state.revealedHints < 1) {
-        state.revealedHints = 1;
-    }
+    if (!state.revealedHints || state.revealedHints < 1) state.revealedHints = 1;
 
     renderScore();
     renderLives();
@@ -42,9 +39,8 @@ export function initWhoAmI(gameData, gameState, finishCb) {
 function renderScore() {
     document.getElementById('whoAmI-score').textContent = `${calculatePoints(state.attempts)} pt`;
 }
-
 function renderLives(animateLatest = false) {
-    renderHearts(document.getElementById('whoAmI-lives'), MAX_ATTEMPTS, state.attempts, animateLatest);
+    renderHearts(document.getElementById('whoAmI-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
 function renderHints(animateNewest = false) {
@@ -54,13 +50,10 @@ function renderHints(animateNewest = false) {
     const total = data.hints.length;
     const revealed = Math.min(total, state.revealedHints);
 
-    // Revealed hints — rendered normally
     for (let i = 0; i < revealed; i++) {
         const card = document.createElement('div');
         card.className = 'hint-card';
-        if (animateNewest && i === revealed - 1) {
-            card.classList.add('just-revealed');
-        }
+        if (animateNewest && i === revealed - 1) card.classList.add('just-revealed');
         card.innerHTML = `
             <div class="hint-number">${i + 1}'</div>
             <p class="hint-text">${escapeHtml(data.hints[i])}</p>
@@ -68,7 +61,6 @@ function renderHints(animateNewest = false) {
         container.appendChild(card);
     }
 
-    // Locked hints — placeholder with hint count
     for (let i = revealed; i < total; i++) {
         const card = document.createElement('div');
         card.className = 'hint-card hint-locked';
@@ -101,16 +93,13 @@ async function handleSubmit(e) {
         state.solved = true;
         state.score = calculatePoints(state.attempts);
         state.attempts++;
-        // On correct answer, reveal all remaining hints for the result screen
         state.revealedHints = data.hints.length;
         await hapticSuccess();
         toast(`Nice — ${data.player}`, 'success');
         await finishGame();
     } else {
         state.attempts++;
-        // Unlock one more hint (capped at total hints)
         state.revealedHints = Math.min(data.hints.length, state.revealedHints + 1);
-
         await hapticError();
         const remaining = MAX_ATTEMPTS - state.attempts;
         if (remaining > 0) {

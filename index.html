@@ -11,20 +11,17 @@
     <title>Matchday</title>
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- ================================================================
-         SVG SPRITE
-         ================================================================ -->
+    <!-- SVG SPRITE -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
-            <!-- UI -->
-            <symbol id="i-heart" viewBox="0 0 24 24">
-                <path d="M12 21s-7.5-4.5-9.5-9.5C1.2 8.6 3 5 6.5 5c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3C21 5 22.8 8.6 21.5 11.5 19.5 16.5 12 21 12 21z"/>
-            </symbol>
             <symbol id="i-back" viewBox="0 0 24 24">
                 <path d="M15 18 9 12l6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
             </symbol>
             <symbol id="i-arrow-right" viewBox="0 0 24 24">
                 <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </symbol>
+            <symbol id="i-chev-right" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
             </symbol>
             <symbol id="i-check" viewBox="0 0 24 24">
                 <path d="m5 12 5 5L20 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -40,11 +37,6 @@
             <symbol id="i-shield" viewBox="0 0 32 32">
                 <path d="M16 4 6 7v9c0 6 4 11 10 12 6-1 10-6 10-12V7l-10-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
             </symbol>
-            <symbol id="i-ball" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-                <polygon points="12,6 15.5,8.5 14,12.5 10,12.5 8.5,8.5" fill="currentColor"/>
-                <path d="M12 6 L12 2.5 M15.5 8.5 L19 7.5 M14 12.5 L17 15.5 M10 12.5 L7 15.5 M8.5 8.5 L5 7.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-            </symbol>
             <symbol id="i-share" viewBox="0 0 24 24">
                 <path d="M12 3v12M12 3l-4 4M12 3l4 4M6 13v6a2 2 0 002 2h8a2 2 0 002-2v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </symbol>
@@ -52,7 +44,7 @@
                 <path d="M3 12a9 9 0 0114.85-6.85L21 8M21 3v5h-5M21 12a9 9 0 01-14.85 6.85L3 16M3 21v-5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </symbol>
 
-            <!-- TILE HERO ART -->
+            <!-- TILE HERO ART (unchanged) -->
             <symbol id="art-tenable" viewBox="0 0 100 100">
                 <g fill="currentColor">
                     <rect x="44" y="10" width="12" height="6" rx="1.5"/>
@@ -67,55 +59,29 @@
                     <rect x="8"  y="91" width="84" height="6" rx="1.5"/>
                 </g>
             </symbol>
-
             <symbol id="art-player" viewBox="0 0 100 100">
                 <g fill="currentColor">
                     <path d="M 30 18 L 20 24 L 14 40 L 24 46 L 28 40 L 28 84 Q 28 88 32 88 L 68 88 Q 72 88 72 84 L 72 40 L 76 46 L 86 40 L 80 24 L 70 18 L 60 18 Q 60 26 50 26 Q 40 26 40 18 Z"/>
                 </g>
-                <text x="50" y="72"
-                      text-anchor="middle"
-                      font-family="'New York', ui-serif, Georgia, serif"
-                      font-weight="900"
-                      font-size="44"
-                      fill="#1D5832"
-                      letter-spacing="-2">9</text>
+                <text x="50" y="72" text-anchor="middle" font-family="'New York', ui-serif, Georgia, serif" font-weight="900" font-size="44" fill="#1D5832" letter-spacing="-2">9</text>
             </symbol>
-
             <symbol id="art-whoami" viewBox="0 0 100 100">
                 <g fill="currentColor">
                     <circle cx="50" cy="32" r="18"/>
                     <path d="M 18 96 Q 18 62 50 62 Q 82 62 82 96 Z"/>
                 </g>
-                <text x="50" y="44"
-                      text-anchor="middle"
-                      font-family="'New York', ui-serif, Georgia, serif"
-                      font-weight="900"
-                      font-size="28"
-                      fill="#324B2A">?</text>
+                <text x="50" y="44" text-anchor="middle" font-family="'New York', ui-serif, Georgia, serif" font-weight="900" font-size="28" fill="#324B2A">?</text>
             </symbol>
-
             <symbol id="art-club" viewBox="0 0 100 100">
-                <rect x="10" y="6" width="80" height="88" rx="3"
-                      fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <line x1="10" y1="50" x2="90" y2="50"
-                      stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <circle cx="50" cy="50" r="10"
-                        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <rect x="30" y="6" width="40" height="12"
-                      fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <rect x="30" y="82" width="40" height="12"
-                      fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+                <rect x="10" y="6" width="80" height="88" rx="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+                <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+                <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+                <rect x="30" y="6" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
+                <rect x="30" y="82" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
                 <g fill="currentColor">
-                    <circle cx="26" cy="22" r="3"/>
-                    <circle cx="50" cy="18" r="3"/>
-                    <circle cx="74" cy="22" r="3"/>
-                    <circle cx="30" cy="40" r="3"/>
-                    <circle cx="50" cy="38" r="3"/>
-                    <circle cx="70" cy="40" r="3"/>
-                    <circle cx="22" cy="64" r="3"/>
-                    <circle cx="42" cy="66" r="3"/>
-                    <circle cx="58" cy="66" r="3"/>
-                    <circle cx="78" cy="64" r="3"/>
+                    <circle cx="26" cy="22" r="3"/><circle cx="50" cy="18" r="3"/><circle cx="74" cy="22" r="3"/>
+                    <circle cx="30" cy="40" r="3"/><circle cx="50" cy="38" r="3"/><circle cx="70" cy="40" r="3"/>
+                    <circle cx="22" cy="64" r="3"/><circle cx="42" cy="66" r="3"/><circle cx="58" cy="66" r="3"/><circle cx="78" cy="64" r="3"/>
                     <circle cx="50" cy="86" r="3"/>
                 </g>
             </symbol>
@@ -124,7 +90,7 @@
 
     <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
-    <!-- Data error banner (shown when sheet fetch fails) -->
+    <!-- Data error banner -->
     <div id="data-error-banner" class="data-error-banner" role="alert">
         <div class="data-error-content">
             <svg class="data-error-icon" viewBox="0 0 24 24"><use href="#i-info"/></svg>
@@ -144,17 +110,14 @@
     <section id="menu-screen" class="screen active">
         <div class="menu-container">
 
-            <header class="greeting">
-                <p class="greeting-line-1" id="greeting-line-1">Good evening</p>
-                <h1 class="greeting-line-2" id="greeting-line-2">Today's Matchday</h1>
+            <header class="masthead">
+                <p class="masthead-date" id="masthead-date">FRI · 17 APR</p>
+                <h1 class="masthead-title" id="masthead-title">
+                    Matchday <span class="muted">№</span> <span id="masthead-num">127</span>
+                </h1>
             </header>
 
-            <div class="matchweek-ticker">
-                <span id="matchweek-label">Matchweek</span>
-                <span class="matchweek-ticker-dot"></span>
-            </div>
-
-            <!-- SKELETON placeholders (visible while body.loading) -->
+            <!-- SKELETON placeholders -->
             <div class="skeleton-menu" aria-hidden="true">
                 <div class="skeleton-score-card">
                     <div class="skeleton-block skeleton-label"></div>
@@ -170,20 +133,15 @@
 
             <!-- REAL content -->
             <div class="menu-real-content">
-                <div class="score-card">
-                    <div class="score-card-left">
-                        <p class="score-label">Today's score</p>
-                        <div class="score-value">
-                            <span class="score-num" id="score-num">0</span>
-                            <span class="score-max">/25</span>
-                        </div>
-                    </div>
-                    <div class="score-segments">
-                        <div class="score-segment" data-segment="tenable"><div class="score-segment-fill"></div></div>
-                        <div class="score-segment" data-segment="guessPlayer"><div class="score-segment-fill"></div></div>
-                        <div class="score-segment" data-segment="whoAmI"><div class="score-segment-fill"></div></div>
-                        <div class="score-segment" data-segment="guessClub"><div class="score-segment-fill"></div></div>
-                    </div>
+
+                <!-- Week strip: above score card -->
+                <div class="week-strip-section">
+                    <div class="week-strip" id="week-strip"></div>
+                </div>
+
+                <!-- Score card: state switches via data-state -->
+                <div class="score-card" id="score-card" data-state="fresh">
+                    <!-- filled by JS -->
                 </div>
 
                 <div class="games-grid">
@@ -194,7 +152,7 @@
                             <h2 class="tile-title">Tenable</h2>
                             <p class="tile-meta">Top 10 list</p>
                         </div>
-                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-chev"><svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg></div>
                         <div class="tile-played-chip" data-played-chip="tenable"></div>
                     </button>
 
@@ -205,7 +163,7 @@
                             <h2 class="tile-title">Guess the Player</h2>
                             <p class="tile-meta">Career path</p>
                         </div>
-                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-chev"><svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg></div>
                         <div class="tile-played-chip" data-played-chip="guessPlayer"></div>
                     </button>
 
@@ -216,7 +174,7 @@
                             <h2 class="tile-title">Who Am I</h2>
                             <p class="tile-meta">Three clues</p>
                         </div>
-                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-chev"><svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg></div>
                         <div class="tile-played-chip" data-played-chip="whoAmI"></div>
                     </button>
 
@@ -227,14 +185,9 @@
                             <h2 class="tile-title">Guess the Club</h2>
                             <p class="tile-meta">Starting XI</p>
                         </div>
-                        <div class="tile-play">Play <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg></div>
+                        <div class="tile-chev"><svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg></div>
                         <div class="tile-played-chip" data-played-chip="guessClub"></div>
                     </button>
-                </div>
-
-                <div class="streak-section">
-                    <p class="streak-header">Your week</p>
-                    <div class="streak-strip" id="streak-strip"></div>
                 </div>
             </div>
         </div>
@@ -248,16 +201,16 @@
             <button class="back-btn" data-back>
                 <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
             </button>
-            <div class="header-lives" id="tenable-lives" data-count="3"></div>
+            <div class="header-attempts" id="tenable-attempts"></div>
         </header>
 
-        <div class="game-hero">
-            <div>
-                <p class="game-hero-eyebrow">№ 01 · Tenable</p>
-                <p class="game-hero-question" id="tenable-question"></p>
-                <p class="game-hero-meta" id="tenable-subtitle"></p>
-            </div>
-            <div class="game-hero-bottom">
+        <div class="game-hero" id="tenable-hero">
+            <div class="game-hero-top">
+                <div class="game-hero-eyebrow-wrap">
+                    <p class="game-hero-eyebrow">№ 01 · Tenable</p>
+                    <p class="game-hero-question" id="tenable-question"></p>
+                    <p class="game-hero-meta" id="tenable-subtitle"></p>
+                </div>
                 <div class="hero-score-chip" id="tenable-score">0 / 10</div>
             </div>
         </div>
@@ -268,9 +221,7 @@
 
         <div class="input-strip">
             <form id="tenable-form" autocomplete="off">
-                <input type="text" id="tenable-input" placeholder="Name a player…"
-                       autocomplete="off" autocorrect="off" autocapitalize="words"
-                       spellcheck="false">
+                <input type="text" id="tenable-input" placeholder="Name a player…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
                 <button type="submit" class="submit-btn">
                     <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
@@ -283,19 +234,17 @@
          ================================================================ -->
     <section id="guessPlayer-screen" class="screen game-screen">
         <header class="game-header">
-            <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
-            </button>
-            <div class="header-lives" id="guessPlayer-lives" data-count="5"></div>
+            <button class="back-btn" data-back><svg viewBox="0 0 24 24"><use href="#i-back"/></svg></button>
+            <div class="header-attempts" id="guessPlayer-attempts"></div>
         </header>
 
-        <div class="game-hero">
-            <div>
-                <p class="game-hero-eyebrow">№ 02 · Guess the Player</p>
-                <p class="game-hero-question">Who is this player?</p>
-                <p class="game-hero-meta">Clubs below — not in order.</p>
-            </div>
-            <div class="game-hero-bottom">
+        <div class="game-hero" id="guessPlayer-hero">
+            <div class="game-hero-top">
+                <div class="game-hero-eyebrow-wrap">
+                    <p class="game-hero-eyebrow">№ 02 · Guess the Player</p>
+                    <p class="game-hero-question">Who is this player?</p>
+                    <p class="game-hero-meta">Clubs below — not in order.</p>
+                </div>
                 <div class="hero-score-chip" id="guessPlayer-score">5 pt</div>
             </div>
         </div>
@@ -306,9 +255,7 @@
 
         <div class="input-strip">
             <form id="guessPlayer-form" autocomplete="off">
-                <input type="text" id="guessPlayer-input" placeholder="Name the player…"
-                       autocomplete="off" autocorrect="off" autocapitalize="words"
-                       spellcheck="false">
+                <input type="text" id="guessPlayer-input" placeholder="Name the player…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
                 <button type="submit" class="submit-btn">
                     <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
@@ -321,19 +268,17 @@
          ================================================================ -->
     <section id="whoAmI-screen" class="screen game-screen">
         <header class="game-header">
-            <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
-            </button>
-            <div class="header-lives" id="whoAmI-lives" data-count="5"></div>
+            <button class="back-btn" data-back><svg viewBox="0 0 24 24"><use href="#i-back"/></svg></button>
+            <div class="header-attempts" id="whoAmI-attempts"></div>
         </header>
 
-        <div class="game-hero">
-            <div>
-                <p class="game-hero-eyebrow">№ 03 · Who Am I</p>
-                <p class="game-hero-question">Identify this player from three clues.</p>
-                <p class="game-hero-meta">A new clue unlocks after each wrong guess.</p>
-            </div>
-            <div class="game-hero-bottom">
+        <div class="game-hero" id="whoAmI-hero">
+            <div class="game-hero-top">
+                <div class="game-hero-eyebrow-wrap">
+                    <p class="game-hero-eyebrow">№ 03 · Who Am I</p>
+                    <p class="game-hero-question">Identify this player from three clues.</p>
+                    <p class="game-hero-meta">A new clue unlocks after each wrong guess.</p>
+                </div>
                 <div class="hero-score-chip" id="whoAmI-score">5 pt</div>
             </div>
         </div>
@@ -344,9 +289,7 @@
 
         <div class="input-strip">
             <form id="whoAmI-form" autocomplete="off">
-                <input type="text" id="whoAmI-input" placeholder="Name the player…"
-                       autocomplete="off" autocorrect="off" autocapitalize="words"
-                       spellcheck="false">
+                <input type="text" id="whoAmI-input" placeholder="Name the player…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
                 <button type="submit" class="submit-btn">
                     <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
@@ -359,18 +302,16 @@
          ================================================================ -->
     <section id="guessClub-screen" class="screen game-screen">
         <header class="game-header">
-            <button class="back-btn" data-back>
-                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
-            </button>
-            <div class="header-lives" id="guessClub-lives" data-count="3"></div>
+            <button class="back-btn" data-back><svg viewBox="0 0 24 24"><use href="#i-back"/></svg></button>
+            <div class="header-attempts" id="guessClub-attempts"></div>
         </header>
 
-        <div class="game-hero">
-            <div>
-                <p class="game-hero-eyebrow">№ 04 · Guess the Club</p>
-                <p class="game-hero-question">Which club lined up like this?</p>
-            </div>
-            <div class="game-hero-bottom">
+        <div class="game-hero" id="guessClub-hero">
+            <div class="game-hero-top">
+                <div class="game-hero-eyebrow-wrap">
+                    <p class="game-hero-eyebrow">№ 04 · Guess the Club</p>
+                    <p class="game-hero-question">Which club lined up like this?</p>
+                </div>
                 <div class="hero-score-chip" id="guessClub-score">5 pt</div>
             </div>
         </div>
@@ -382,9 +323,7 @@
 
         <div class="input-strip">
             <form id="guessClub-form" autocomplete="off">
-                <input type="text" id="guessClub-input" placeholder="Name the club…"
-                       autocomplete="off" autocorrect="off" autocapitalize="words"
-                       spellcheck="false">
+                <input type="text" id="guessClub-input" placeholder="Name the club…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
                 <button type="submit" class="submit-btn">
                     <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
@@ -392,7 +331,7 @@
         </div>
     </section>
 
-    <!-- Result modal -->
+    <!-- Result modal (per-game) -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div class="result-icon" id="result-icon"></div>
@@ -403,26 +342,60 @@
         </div>
     </div>
 
-    <!-- Total modal (matchday complete) -->
-    <div id="total-modal" class="modal">
-        <div class="modal-content">
-            <div class="matchday-trophy">
-                <svg viewBox="0 0 24 24"><use href="#i-ball"/></svg>
+    <!-- Matchday-complete CELEBRATION (full-screen) -->
+    <section id="celebration" class="celebration">
+        <div class="celeb-accent a1"></div>
+        <div class="celeb-accent a2"></div>
+        <div class="celeb-accent a3"></div>
+        <div class="celeb-accent a4"></div>
+
+        <header class="celeb-header">
+            <button class="celeb-close" id="celeb-close" aria-label="Close">
+                <svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>
+            </button>
+        </header>
+
+        <div class="celeb-body">
+            <p class="celeb-eyebrow">Matchday complete</p>
+            <h1 class="celeb-headline" id="celeb-headline">Well played.</h1>
+
+            <div class="celeb-recap" id="celeb-recap">
+                <div class="celeb-recap-row" data-game="tenable">
+                    <span class="celeb-recap-label">Tenable</span>
+                    <div class="celeb-recap-bar"><div class="celeb-recap-fill"></div></div>
+                    <span class="celeb-recap-score">0/10</span>
+                </div>
+                <div class="celeb-recap-row" data-game="guessPlayer">
+                    <span class="celeb-recap-label">Player</span>
+                    <div class="celeb-recap-bar"><div class="celeb-recap-fill"></div></div>
+                    <span class="celeb-recap-score">0/5</span>
+                </div>
+                <div class="celeb-recap-row" data-game="whoAmI">
+                    <span class="celeb-recap-label">Who Am I</span>
+                    <div class="celeb-recap-bar"><div class="celeb-recap-fill"></div></div>
+                    <span class="celeb-recap-score">0/5</span>
+                </div>
+                <div class="celeb-recap-row" data-game="guessClub">
+                    <span class="celeb-recap-label">Club</span>
+                    <div class="celeb-recap-bar"><div class="celeb-recap-fill"></div></div>
+                    <span class="celeb-recap-score">0/5</span>
+                </div>
             </div>
-            <h2 class="result-title">Matchday complete</h2>
-            <p class="total-big" id="total-score-wrap">
-                <span id="total-score">0</span><span class="total-big-max">/25</span>
-            </p>
-            <div class="total-breakdown" id="total-breakdown"></div>
-            <div class="modal-actions">
-                <button class="secondary-btn" id="total-continue">Close</button>
-                <button class="primary-btn primary-btn-share" id="total-share">
-                    <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
-                    <span>Share</span>
-                </button>
+
+            <div class="celeb-score-wrap">
+                <span class="celeb-score-num" id="celeb-score-num">0</span>
+                <span class="celeb-score-max">/ 25</span>
             </div>
         </div>
-    </div>
+
+        <div class="celeb-footer">
+            <button class="celeb-share" id="celeb-share">
+                <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
+                <span>Share your matchday</span>
+            </button>
+            <button class="celeb-see-review" id="celeb-see-review">See the board</button>
+        </div>
+    </section>
 
     <script type="module" src="js/app.js"></script>
 </body>

@@ -427,20 +427,43 @@ async function openGame(gameKey) {
 
 function setupHeroShrink(gameKey) {
     const hero = document.getElementById(`${gameKey}-hero`);
-    const input = document.getElementById(`${gameKey}-input`);
     const form = document.getElementById(`${gameKey}-form`);
-    if (!hero || !input || !form) return;
+    const input = document.getElementById(`${gameKey}-input`);
+    if (!hero || !form || !input) return;
 
-    const shrinkOnce = () => {
+    // Shrink only on first real submit (user typed something and pressed enter).
+    // Do NOT trigger on focus — the input auto-focuses on screen open, which
+    // would shrink the hero before the user can read the question.
+    const shrinkOnce = (e) => {
+        // Ignore empty submits (happens if user just hits enter on empty field)
+        if (!input.value.trim()) return;
         if (!hero.classList.contains('shrunk')) {
             hero.classList.add('shrunk');
         }
     };
 
-    // Shrink on focus (keyboard about to appear)
-    input.addEventListener('focus', shrinkOnce, { once: true });
-    // Also shrink on first submit as a fallback
-    form.addEventListener('submit', shrinkOnce, { once: true });
+    form.addEventListener('submit', shrinkOnce);
+
+    // Tap-to-expand: tapping the shrunk hero temporarily expands it
+    hero.addEventListener('click', (e) => {
+        // Don't expand if user clicks the score chip or a button
+        if (e.target.closest('.hero-score-chip')) return;
+        if (hero.classList.contains('shrunk')) {
+            hero.classList.remove('shrunk');
+            // Auto-re-shrink after 4s if user doesn't interact
+            setTimeout(() => {
+                // Only re-shrink if they've already made a submit attempt
+                if (input.value === '' && form.dataset.everSubmitted === '1') {
+                    hero.classList.add('shrunk');
+                }
+            }, 4000);
+        }
+    });
+
+    // Track first submit for re-shrink logic above
+    form.addEventListener('submit', () => {
+        if (input.value.trim()) form.dataset.everSubmitted = '1';
+    });
 }
 
 function navigate(target) {

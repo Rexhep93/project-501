@@ -21,9 +21,7 @@ export function initGuessPlayer(gameData, gameState, finishCb) {
         return;
     }
 
-    if (!state.revealedClubs || state.revealedClubs < 1) {
-        state.revealedClubs = 1;
-    }
+    if (!state.revealedClubs || state.revealedClubs < 1) state.revealedClubs = 1;
 
     renderScore();
     renderLives();
@@ -43,13 +41,11 @@ export function initGuessPlayer(gameData, gameState, finishCb) {
 function pointsForAttempt(attemptsDone) {
     return Math.max(0, 5 - attemptsDone);
 }
-
 function renderScore() {
     document.getElementById('guessPlayer-score').textContent = `${pointsForAttempt(state.attempts)} pt`;
 }
-
 function renderLives(animateLatest = false) {
-    renderHearts(document.getElementById('guessPlayer-lives'), MAX_ATTEMPTS, state.attempts, animateLatest);
+    renderHearts(document.getElementById('guessPlayer-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
 function renderClubs(staggerFromIndex = -1) {
@@ -66,7 +62,6 @@ function renderClubs(staggerFromIndex = -1) {
 
         if (club && isRevealed) {
             card.classList.add('revealed');
-            // Staggered entry animation for newly revealed clubs
             if (staggerFromIndex >= 0 && i >= staggerFromIndex) {
                 const delay = (i - staggerFromIndex) * 80;
                 card.style.animationDelay = `${delay}ms`;
@@ -129,7 +124,6 @@ async function handleSubmit(e) {
         state.revealedClubs = data.clubs.length;
         await hapticSuccess();
         toast(`Nice — ${data.player}`, 'success');
-        // Stagger reveal of newly unlocked cards
         renderClubs(prevRevealed);
         fetchAndShowLogos();
         await finishGame();

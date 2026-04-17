@@ -275,8 +275,6 @@ function renderScoreCard(state, total, played) {
     if (played === 0) {
         card.dataset.state = 'fresh';
         const otd = todayData?.onThisDay;
-        console.log('[OnThisDay DEBUG] todayData:', todayData);
-        console.log('[OnThisDay DEBUG] otd:', otd);
         if (otd && otd.headline) {
             card.innerHTML = `
                 <div class="sc-otd">

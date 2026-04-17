@@ -20,13 +20,12 @@ export function initTenable(gameData, gameState, finishCb) {
         return;
     }
 
-    // Ensure derived fields exist (forward compat)
     if (typeof state.wrongGuesses !== 'number') state.wrongGuesses = 0;
 
     document.getElementById('tenable-question').textContent = data.question;
     document.getElementById('tenable-subtitle').textContent = data.subtitle || '';
 
-    renderHearts(document.getElementById('tenable-lives'), MAX_LIVES, state.wrongGuesses);
+    renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses);
     renderPyramid();
     renderScoreChip();
 
@@ -52,9 +51,6 @@ function renderPyramid() {
     const pyramid = document.getElementById('tenable-pyramid');
     pyramid.innerHTML = '';
 
-    // Classic pyramid: rank 1 on TOP (narrowest), rank 10 on BOTTOM (widest).
-    // Width range 68% → 100% (was 52%→100%) so long names like
-    // "Alexander Isak" fit on top rows without truncation.
     for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
@@ -136,7 +132,7 @@ async function handleSubmit(e) {
         toast(msg, 'error');
         shakeInput(input);
         input.value = '';
-        renderHearts(document.getElementById('tenable-lives'), MAX_LIVES, state.wrongGuesses, true);
+        renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses, true);
         await saveState();
 
         if (remaining <= 0) {

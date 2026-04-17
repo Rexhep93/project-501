@@ -274,12 +274,24 @@ function renderScoreCard(state, total, played) {
     // 3 states: fresh (0 played), progress (1-3 played), done (4 played)
     if (played === 0) {
         card.dataset.state = 'fresh';
-        card.innerHTML = `
-            <div class="sc-fresh">
-                <p class="sc-fresh-eyebrow">Today's quiz</p>
-                <p class="sc-fresh-quote">Four games waiting.</p>
-            </div>
-        `;
+        const otd = todayData?.onThisDay;
+        if (otd && otd.headline) {
+            card.innerHTML = `
+                <div class="sc-otd">
+                    <p class="sc-otd-eyebrow">On this day · ${otd.year || ''}</p>
+                    <h3 class="sc-otd-headline">${escapeHtml(otd.headline)}</h3>
+                    ${otd.story ? `<p class="sc-otd-story">${escapeHtml(otd.story)}</p>` : ''}
+                </div>
+            `;
+        } else {
+            // Bare fallback if no on-this-day data at all
+            card.innerHTML = `
+                <div class="sc-otd">
+                    <p class="sc-otd-eyebrow">Matchday ${getMatchdayNumber()}</p>
+                    <h3 class="sc-otd-headline">Four games waiting.</h3>
+                </div>
+            `;
+        }
         lastRenderedScore = 0;
         isFirstRender = false;
         return;
@@ -517,3 +529,9 @@ document.addEventListener('visibilitychange', async () => {
         await renderMenu();
     }
 });
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+}

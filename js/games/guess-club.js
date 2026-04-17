@@ -12,10 +12,6 @@ let onFinish = null;
 const MAX_ATTEMPTS = 3;
 const POINTS_PER_ATTEMPT = [5, 3, 1];
 
-/**
- * Pure scoring function — single source of truth.
- * attemptNumber is 0-indexed (0 = first attempt).
- */
 function pointsForAttempt(attemptNumber) {
     if (attemptNumber < 0 || attemptNumber >= POINTS_PER_ATTEMPT.length) return 0;
     return POINTS_PER_ATTEMPT[attemptNumber];
@@ -31,7 +27,6 @@ export function initGuessClub(gameData, gameState, finishCb) {
         return;
     }
 
-    // Sanity check: lineup should start with GK
     if (data.lineup[0]?.position !== 'GK') {
         console.warn('[guessClub] First lineup player should be GK, got:', data.lineup[0]?.position);
     }
@@ -60,13 +55,12 @@ function renderYearBadge() {
 }
 
 function renderScore() {
-    // Show the points they'd earn with their NEXT attempt
     const pt = pointsForAttempt(state.attempts);
     document.getElementById('guessClub-score').textContent = `${pt} pt`;
 }
 
 function renderLives(animateLatest = false) {
-    renderHearts(document.getElementById('guessClub-lives'), MAX_ATTEMPTS, state.attempts, animateLatest);
+    renderHearts(document.getElementById('guessClub-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
 function parseFormation(str) {
@@ -80,7 +74,6 @@ function renderFormation() {
     container.innerHTML = '';
     const rows = parseFormation(data.formation || '4-3-3');
 
-    // Sanity check: formation row sum must equal lineup length
     const expectedTotal = rows.reduce((a, b) => a + b, 0);
     if (expectedTotal !== data.lineup.length) {
         console.warn(`[guessClub] Formation ${data.formation} expects ${expectedTotal} players but lineup has ${data.lineup.length}`);
@@ -101,8 +94,6 @@ function renderFormation() {
     const rowsContainer = document.createElement('div');
     rowsContainer.className = 'pitch-rows';
 
-    // Lineup order: keeper -> defenders -> midfielders -> attackers
-    // Display: attackers on top, keeper at bottom
     const rowIndices = [];
     let startIdx = 0;
     for (const r of rows) {

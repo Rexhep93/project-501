@@ -20,11 +20,19 @@ const GAME_MAX = {
     guessClub: 5
 };
 
+const GAME_LABELS = {
+    tenable: 'Tenable',
+    guessPlayer: 'Player',
+    whoAmI: 'Who Am I',
+    guessClub: 'Club'
+};
+
 let todayData = null;
 let dataLoadFailed = false;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
 let isFirstRender = true;
+let celebrationShown = false;
 
 // ═══════════════════════════════════════
 // BOOTSTRAP
@@ -32,7 +40,7 @@ let isFirstRender = true;
 
 async function bootstrap() {
     initViewportHandling();
-    renderGreeting();
+    renderMasthead();
     showSkeleton();
 
     try {
@@ -47,9 +55,7 @@ async function bootstrap() {
     hideSkeleton();
     await renderMenu();
 
-    if (dataLoadFailed) {
-        showDataErrorBanner();
-    }
+    if (dataLoadFailed) showDataErrorBanner();
 
     document.querySelectorAll('[data-back]').forEach(btn => {
         btn.addEventListener('click', () => navigate('menu'));
@@ -64,29 +70,17 @@ async function bootstrap() {
     });
 
     setupModalDismissal();
-
-    document.getElementById('total-continue').onclick = () => {
-        document.getElementById('total-modal').classList.remove('active');
-    };
-
-    const shareBtn = document.getElementById('total-share');
-    if (shareBtn) {
-        shareBtn.onclick = async () => {
-            hapticLight();
-            const state = await getState();
-            await shareResult(state);
-        };
-    }
+    setupCelebration();
 
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         const resultModal = document.getElementById('result-modal');
-        const totalModal  = document.getElementById('total-modal');
+        const celeb = document.getElementById('celebration');
         if (resultModal.classList.contains('active')) {
             resultModal.classList.remove('active');
             navigate('menu');
-        } else if (totalModal.classList.contains('active')) {
-            totalModal.classList.remove('active');
+        } else if (celeb.classList.contains('active')) {
+            celeb.classList.remove('active');
         } else if (currentScreen !== 'menu') {
             navigate('menu');
         }
@@ -97,75 +91,54 @@ async function bootstrap() {
 // SKELETON / ERROR STATES
 // ═══════════════════════════════════════
 
-function showSkeleton() {
-    document.body.classList.add('loading');
-}
-
-function hideSkeleton() {
-    document.body.classList.remove('loading');
-}
+function showSkeleton() { document.body.classList.add('loading'); }
+function hideSkeleton() { document.body.classList.remove('loading'); }
 
 function showDataErrorBanner() {
     const banner = document.getElementById('data-error-banner');
-    if (banner) {
-        banner.classList.add('visible');
-        const retryBtn = document.getElementById('data-error-retry');
-        if (retryBtn) {
-            retryBtn.onclick = async () => {
-                banner.classList.remove('visible');
-                showSkeleton();
-                try {
-                    todayData = await loadTodayData();
-                    dataLoadFailed = false;
-                } catch (e) {
-                    todayData = loadSampleData();
-                    dataLoadFailed = true;
-                }
-                hideSkeleton();
-                await renderMenu();
-                if (dataLoadFailed) showDataErrorBanner();
-                else toast("Today's quiz loaded", 'success');
-            };
-        }
+    if (!banner) return;
+    banner.classList.add('visible');
+    const retryBtn = document.getElementById('data-error-retry');
+    if (retryBtn) {
+        retryBtn.onclick = async () => {
+            banner.classList.remove('visible');
+            showSkeleton();
+            try {
+                todayData = await loadTodayData();
+                dataLoadFailed = false;
+            } catch (e) {
+                todayData = loadSampleData();
+                dataLoadFailed = true;
+            }
+            hideSkeleton();
+            await renderMenu();
+            if (dataLoadFailed) showDataErrorBanner();
+            else toast("Today's quiz loaded", 'success');
+        };
     }
 }
 
 // ═══════════════════════════════════════
-// GREETING + MATCHWEEK
+// MASTHEAD (date + matchday number)
 // ═══════════════════════════════════════
 
-function getISOWeek(date) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
-
-function renderGreeting() {
+function getMatchdayNumber() {
+    // Anchor: Matchday 1 = Jan 1 2026. Compute days since then.
+    const anchor = new Date(2026, 0, 1);
     const now = new Date();
-    const hour = now.getHours();
-    let partOfDay;
-    if (hour < 6)       partOfDay = 'evening';
-    else if (hour < 12) partOfDay = 'morning';
-    else if (hour < 18) partOfDay = 'afternoon';
-    else                partOfDay = 'evening';
+    const days = Math.floor((now - anchor) / (1000 * 60 * 60 * 24));
+    return Math.max(1, days + 1);
+}
 
-    const greetings = {
-        morning:   'Good morning',
-        afternoon: 'Good afternoon',
-        evening:   'Good evening'
-    };
-    document.getElementById('greeting-line-1').textContent = greetings[partOfDay];
-
-    const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
-    document.getElementById('greeting-line-2').textContent = `${weekday}'s Matchday`;
-
-    const weekNum = getISOWeek(now);
-    const label = document.getElementById('matchweek-label');
-    if (label) {
-        label.textContent = `Matchweek ${weekNum}`;
-    }
+function renderMasthead() {
+    const now = new Date();
+    const weekday = now.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
+    const day = now.getDate();
+    const month = now.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+    const dateEl = document.getElementById('masthead-date');
+    if (dateEl) dateEl.textContent = `${weekday} · ${day} ${month}`;
+    const numEl = document.getElementById('masthead-num');
+    if (numEl) numEl.textContent = getMatchdayNumber();
 }
 
 // ═══════════════════════════════════════
@@ -174,20 +147,75 @@ function renderGreeting() {
 
 function setupModalDismissal() {
     const resultModal = document.getElementById('result-modal');
-    const totalModal  = document.getElementById('total-modal');
-
     resultModal.addEventListener('click', (e) => {
         if (e.target === resultModal) {
             resultModal.classList.remove('active');
             navigate('menu');
         }
     });
+}
 
-    totalModal.addEventListener('click', (e) => {
-        if (e.target === totalModal) {
-            totalModal.classList.remove('active');
-        }
+// ═══════════════════════════════════════
+// CELEBRATION
+// ═══════════════════════════════════════
+
+function setupCelebration() {
+    const celeb = document.getElementById('celebration');
+    document.getElementById('celeb-close').onclick = () => {
+        celeb.classList.remove('active');
+    };
+    document.getElementById('celeb-see-review').onclick = () => {
+        celeb.classList.remove('active');
+    };
+    document.getElementById('celeb-share').onclick = async () => {
+        hapticLight();
+        const state = await getState();
+        await shareResult(state);
+    };
+}
+
+function showCelebration(state) {
+    const celeb = document.getElementById('celebration');
+    const total = totalScore(state);
+
+    // Reset fills so animation re-plays
+    document.querySelectorAll('#celeb-recap .celeb-recap-fill').forEach(f => {
+        f.style.transform = 'scaleX(0)';
     });
+
+    // Set recap scores + labels
+    const games = ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'];
+    games.forEach(g => {
+        const row = document.querySelector(`.celeb-recap-row[data-game="${g}"]`);
+        if (!row) return;
+        const s = state[g];
+        const score = s?.score || 0;
+        const max = GAME_MAX[g];
+        row.querySelector('.celeb-recap-score').textContent = `${score}/${max}`;
+    });
+
+    // Reset big score to 0 before animating
+    const numEl = document.getElementById('celeb-score-num');
+    numEl.textContent = '0';
+
+    celeb.classList.add('active');
+
+    // Staggered bar fills (starts ~400ms in, gives CSS fade-up time)
+    games.forEach((g, i) => {
+        setTimeout(() => {
+            const row = document.querySelector(`.celeb-recap-row[data-game="${g}"]`);
+            if (!row) return;
+            const s = state[g];
+            const frac = s ? Math.min(1, (s.score || 0) / GAME_MAX[g]) : 0;
+            const fill = row.querySelector('.celeb-recap-fill');
+            fill.style.transform = `scaleX(${frac.toFixed(2)})`;
+        }, 500 + i * 150);
+    });
+
+    // Count up big number after bars finish (around 1.2s total)
+    setTimeout(() => {
+        animateCountUp(numEl, 0, total, 900);
+    }, 1200);
 }
 
 // ═══════════════════════════════════════
@@ -197,30 +225,101 @@ function setupModalDismissal() {
 async function renderMenu() {
     const state = await getState();
     const total = totalScore(state);
+    const played = countPlayed(state);
 
-    const numEl = document.getElementById('score-num');
-    if (isFirstRender) {
-        numEl.textContent = total;
-        lastRenderedScore = total;
+    renderScoreCard(state, total, played);
+    renderTiles(state);
+
+    if (played > 0) await recordToday(total);
+
+    await renderWeekStrip(state);
+}
+
+function renderScoreCard(state, total, played) {
+    const card = document.getElementById('score-card');
+    if (!card) return;
+
+    // 3 states: fresh (0 played), progress (1-3 played), done (4 played)
+    if (played === 0) {
+        card.dataset.state = 'fresh';
+        card.innerHTML = `
+            <div class="sc-fresh">
+                <p class="sc-fresh-eyebrow">Today's edition</p>
+                <p class="sc-fresh-quote">"Four games. Take your time."</p>
+            </div>
+        `;
+        lastRenderedScore = 0;
         isFirstRender = false;
-    } else if (total !== lastRenderedScore) {
-        animateCountUp(numEl, lastRenderedScore, total, 600);
-        lastRenderedScore = total;
+        return;
     }
 
-    ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
-        const seg = document.querySelector(`.score-segment[data-segment="${game}"] .score-segment-fill`);
-        const s = state[game];
-        if (s && s.played) {
-            const frac = Math.min(1, s.score / GAME_MAX[game]);
-            seg.style.setProperty('--fill', frac.toFixed(2));
-        } else {
-            seg.style.setProperty('--fill', '0');
+    if (played < 4) {
+        card.dataset.state = 'progress';
+        card.innerHTML = `
+            <div class="sc-progress">
+                <p class="sc-label">Today's score</p>
+                <div class="sc-value">
+                    <span class="sc-num" id="score-num">${isFirstRender ? total : lastRenderedScore}</span>
+                    <span class="sc-max">/25</span>
+                </div>
+                <p class="sc-sub">${played} of 4 played</p>
+            </div>
+            <div class="sc-segments">
+                ${['tenable','guessPlayer','whoAmI','guessClub'].map(g => `
+                    <div class="sc-segment" data-segment="${g}"><div class="sc-segment-fill"></div></div>
+                `).join('')}
+            </div>
+        `;
+        const numEl = document.getElementById('score-num');
+        if (!isFirstRender && total !== lastRenderedScore) {
+            animateCountUp(numEl, lastRenderedScore, total, 600);
         }
-    });
+        lastRenderedScore = total;
+        isFirstRender = false;
 
+        // Fill segments
+        ['tenable','guessPlayer','whoAmI','guessClub'].forEach(g => {
+            const seg = card.querySelector(`.sc-segment[data-segment="${g}"] .sc-segment-fill`);
+            if (!seg) return;
+            const s = state[g];
+            if (s && s.played) {
+                const frac = Math.min(1, s.score / GAME_MAX[g]);
+                requestAnimationFrame(() => seg.style.setProperty('--fill', frac.toFixed(2)));
+            } else {
+                seg.style.setProperty('--fill', '0');
+            }
+        });
+        return;
+    }
+
+    // DONE state
+    card.dataset.state = 'done';
+    card.innerHTML = `
+        <div class="sc-done-left">
+            <p class="sc-done-eyebrow">Matchday complete</p>
+            <div class="sc-done-value">
+                <span class="sc-done-num">${total}</span>
+                <span class="sc-done-max">/25</span>
+            </div>
+        </div>
+        <button class="sc-done-share" id="sc-done-share">
+            <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
+            <span>Share</span>
+        </button>
+    `;
+    document.getElementById('sc-done-share').onclick = async (e) => {
+        e.stopPropagation();
+        hapticLight();
+        await shareResult(state);
+    };
+    lastRenderedScore = total;
+    isFirstRender = false;
+}
+
+function renderTiles(state) {
     ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
         const tile = document.querySelector(`.game-tile[data-game="${game}"]`);
+        if (!tile) return;
         const done = state[game]?.played;
         tile.classList.toggle('completed', !!done);
 
@@ -231,52 +330,41 @@ async function renderMenu() {
             chip.textContent = '';
         }
     });
-
-    if (countPlayed(state) > 0) {
-        await recordToday(total);
-    }
-
-    await renderStreakStrip(state);
 }
 
-async function renderStreakStrip(state) {
-    const strip = document.getElementById('streak-strip');
+async function renderWeekStrip(state) {
+    const strip = document.getElementById('week-strip');
+    if (!strip) return;
     const days = await getLast7Days();
-    const todayPlayedCount = countPlayed(state);
+    const played = countPlayed(state);
+    const fillFrac = (played / 4).toFixed(2);
 
     strip.innerHTML = days.map(d => {
         const weekday = shortWeekday(d.date);
 
         if (d.isToday) {
-            const segs = [0, 1, 2, 3].map(i =>
-                `<div class="streak-progress-seg ${i < todayPlayedCount ? 'filled' : ''}"></div>`
-            ).join('');
             return `
-                <div class="streak-cell today">
-                    <span class="streak-weekday">${weekday}</span>
-                    <span class="streak-daynum">${d.dayNum}</span>
-                    <div class="streak-progress">${segs}</div>
+                <div class="day-cell today">
+                    <div class="today-ring-fill" style="--fill: ${fillFrac};"></div>
+                    <div class="today-ring"></div>
+                    <span class="day-cell-weekday">${weekday}</span>
+                    <span class="day-cell-num">${d.dayNum}</span>
                 </div>`;
         }
         if (d.played) {
             return `
-                <div class="streak-cell">
-                    <span class="streak-weekday">${weekday}</span>
-                    <span class="streak-daynum">${d.dayNum}</span>
-                    <span class="streak-score-mini">${d.score}</span>
+                <div class="day-cell">
+                    <span class="day-cell-weekday">${weekday}</span>
+                    <span class="day-cell-num">${d.dayNum}</span>
+                    <span class="day-cell-score">${d.score}</span>
                 </div>`;
         }
         return `
-            <div class="streak-cell missed">
-                <span class="streak-weekday">${weekday}</span>
-                <span class="streak-daynum">${d.dayNum}</span>
-                <span class="streak-score-mini">&nbsp;</span>
+            <div class="day-cell missed">
+                <span class="day-cell-weekday">${weekday}</span>
+                <span class="day-cell-num">${d.dayNum}</span>
             </div>`;
     }).join('');
-
-    requestAnimationFrame(() => {
-        strip.scrollLeft = strip.scrollWidth;
-    });
 }
 
 function shortWeekday(dateStr) {
@@ -286,10 +374,8 @@ function shortWeekday(dateStr) {
 }
 
 function animateCountUp(el, from, to, duration) {
-    if (from === to) {
-        el.textContent = to;
-        return;
-    }
+    if (!el) return;
+    if (from === to) { el.textContent = to; return; }
     const start = performance.now();
     const diff = to - from;
     function step(now) {
@@ -312,12 +398,17 @@ async function openGame(gameKey) {
     const gameData  = todayData[gameKey];
     const gameState = state[gameKey];
 
+    // Reset hero to full state when opening
+    const hero = document.getElementById(`${gameKey}-hero`);
+    if (hero) hero.classList.remove('shrunk');
+
     const finishCb = async () => {
         await renderMenu();
         navigate('menu');
         const newState = await getState();
-        if (countPlayed(newState) === 4) {
-            showTotalScore(newState);
+        if (countPlayed(newState) === 4 && !celebrationShown) {
+            celebrationShown = true;
+            setTimeout(() => showCelebration(newState), 500);
         }
     };
 
@@ -329,6 +420,27 @@ async function openGame(gameKey) {
         case 'whoAmI':      initWhoAmI(gameData, gameState, finishCb); break;
         case 'guessClub':   initGuessClub(gameData, gameState, finishCb); break;
     }
+
+    // Hook hero-shrink: shrink on first input focus OR first submit
+    setupHeroShrink(gameKey);
+}
+
+function setupHeroShrink(gameKey) {
+    const hero = document.getElementById(`${gameKey}-hero`);
+    const input = document.getElementById(`${gameKey}-input`);
+    const form = document.getElementById(`${gameKey}-form`);
+    if (!hero || !input || !form) return;
+
+    const shrinkOnce = () => {
+        if (!hero.classList.contains('shrunk')) {
+            hero.classList.add('shrunk');
+        }
+    };
+
+    // Shrink on focus (keyboard about to appear)
+    input.addEventListener('focus', shrinkOnce, { once: true });
+    // Also shrink on first submit as a fallback
+    form.addEventListener('submit', shrinkOnce, { once: true });
 }
 
 function navigate(target) {
@@ -342,29 +454,6 @@ function navigate(target) {
         const content = screen.querySelector('.game-content, .menu-container');
         if (content) content.scrollTop = 0;
     }
-}
-
-function showTotalScore(state) {
-    const modal = document.getElementById('total-modal');
-    const total = totalScore(state);
-    document.getElementById('total-score').textContent = total;
-
-    const breakdown = [
-        { key: 'tenable',     label: 'Tenable',          score: state.tenable.score,     max: 10 },
-        { key: 'guessPlayer', label: 'Guess the Player', score: state.guessPlayer.score, max: 5 },
-        { key: 'whoAmI',      label: 'Who Am I',         score: state.whoAmI.score,      max: 5 },
-        { key: 'guessClub',   label: 'Guess the Club',   score: state.guessClub.score,   max: 5 }
-    ];
-
-    document.getElementById('total-breakdown').innerHTML = breakdown.map(b => `
-        <div class="breakdown-row" data-game="${b.key}">
-            <span class="breakdown-dot"></span>
-            <span class="breakdown-label">${b.label}</span>
-            <span class="breakdown-score">${b.score}/${b.max}</span>
-        </div>
-    `).join('');
-
-    setTimeout(() => modal.classList.add('active'), 400);
 }
 
 document.addEventListener('DOMContentLoaded', bootstrap);

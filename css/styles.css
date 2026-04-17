@@ -255,7 +255,7 @@ body.loading .menu-real-content { display: none; }
     position: absolute;
     inset: 6px;
     border-radius: 8px;
-    border: 1.5px solid var(--accent);
+    border: 1.5px solid #2E7D4B;
     pointer-events: none;
     z-index: 2;
 }

@@ -1,22 +1,22 @@
-// Renders SVG hearts for lives display
-const HEART_SVG = `<svg viewBox="0 0 24 24"><use href="#i-heart"/></svg>`;
+// Renders attempt dots for the header.
+// Kept the name `renderHearts` for backward compatibility with game files.
+// Filled dot = attempt remaining. Hollow = used.
 
-/**
- * Renders N hearts in container, with `lostCount` shown as broken
- */
 export function renderHearts(container, total, lostCount, animateLatest = false) {
+    if (!container) return;
     container.innerHTML = '';
     for (let i = 0; i < total; i++) {
-        const wrap = document.createElement('span');
-        wrap.className = 'life-heart';
-        const isLost = i >= (total - lostCount);
-        if (isLost) {
-            wrap.classList.add('lost');
+        const dot = document.createElement('span');
+        dot.className = 'attempt-dot';
+        // Fill from left: dots 0..(total-lost-1) are filled, rest are used
+        const isUsed = i >= (total - lostCount);
+        if (isUsed) {
+            dot.classList.add('used');
+            // Animate the one that was just flipped to used
             if (animateLatest && i === (total - lostCount)) {
-                wrap.classList.add('just-lost');
+                dot.classList.add('just-used');
             }
         }
-        wrap.innerHTML = HEART_SVG;
-        container.appendChild(wrap);
+        container.appendChild(dot);
     }
 }

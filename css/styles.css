@@ -174,7 +174,7 @@ body.loading .menu-real-content { display: none; }
 .data-error-retry svg { width: 16px; height: 16px; }
 
 /* ════════════════════════════════════════
-   HOME — Masthead
+   HOME — Masthead (logo + title)
    ════════════════════════════════════════ */
 .menu-container {
     flex: 1;
@@ -192,7 +192,18 @@ body.loading .menu-real-content { display: none; }
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-3);
-    margin: 0 0 6px;
+    margin: 0 0 8px;
+}
+.masthead-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.masthead-logo {
+    width: 34px;
+    height: 38px;
+    flex-shrink: 0;
+    display: block;
 }
 .masthead-title {
     font-family: var(--font-serif);
@@ -200,10 +211,9 @@ body.loading .menu-real-content { display: none; }
     font-weight: 600;
     color: var(--ink);
     margin: 0;
-    line-height: 1.05;
+    line-height: 1;
     letter-spacing: -0.015em;
 }
-.masthead-title .muted { color: var(--ink-3); font-weight: 500; }
 
 /* ════════════════════════════════════════
    WEEK STRIP (now above score card)
@@ -495,7 +505,6 @@ body.loading .menu-real-content { display: none; }
     letter-spacing: 0.04em;
     transition: opacity 0.2s ease;
 }
-/* Hide № badge on completed tiles so played chip dominates top-left→right */
 .game-tile.completed .tile-number { opacity: 0; }
 
 .tile-art {
@@ -531,7 +540,6 @@ body.loading .menu-real-content { display: none; }
     margin: 0;
 }
 
-/* Chevron circle (replaces big Play pill) */
 .tile-chev {
     position: absolute;
     bottom: 14px; right: 14px;
@@ -550,7 +558,6 @@ body.loading .menu-real-content { display: none; }
 .tile-chev svg { width: 12px; height: 12px; }
 .game-tile.completed .tile-chev { display: none; }
 
-/* Played chip — prominent, game-soft colored */
 .tile-played-chip {
     position: absolute;
     top: 14px; right: 14px;
@@ -592,7 +599,6 @@ body.loading .menu-real-content { display: none; }
 .back-btn:active { background: var(--divider); transform: scale(0.94); }
 .back-btn svg { width: 22px; height: 22px; }
 
-/* Attempts dots (replaces hearts) */
 .header-attempts {
     display: flex;
     gap: 7px;
@@ -692,7 +698,6 @@ body.loading .menu-real-content { display: none; }
     overflow: hidden;
 }
 
-/* Score chip — inline, top-right */
 .hero-score-chip {
     background: rgba(255, 255, 255, 0.18);
     color: white;
@@ -710,7 +715,6 @@ body.loading .menu-real-content { display: none; }
     z-index: 2;
 }
 
-/* Shrunk hero state */
 .game-hero.shrunk {
     padding: 12px 18px 12px;
 }
@@ -1440,7 +1444,6 @@ body.loading .menu-real-content { display: none; }
     animation: celeb-fade-up 0.5s var(--ease-ios) 0.25s forwards;
 }
 
-/* Big score — serif display, types in */
 .celeb-score-wrap {
     display: flex;
     align-items: baseline;
@@ -1468,7 +1471,6 @@ body.loading .menu-real-content { display: none; }
     font-variant-numeric: tabular-nums;
 }
 
-/* Segment recap — 4 bars that fill sequentially */
 .celeb-recap {
     display: flex;
     flex-direction: column;
@@ -1521,7 +1523,6 @@ body.loading .menu-real-content { display: none; }
     letter-spacing: -0.005em;
 }
 
-/* Celebration footer with share + close */
 .celeb-footer {
     padding: 0 24px;
     display: flex;
@@ -1568,7 +1569,6 @@ body.loading .menu-real-content { display: none; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Confetti-lite: subtle corner accents */
 .celeb-accent {
     position: absolute;
     width: 180px;

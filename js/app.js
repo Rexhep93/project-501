@@ -1,7 +1,7 @@
 import { loadTodayData, loadSampleData } from './utils/data-loader.js';
 import { getState, countPlayed, totalScore } from './utils/storage.js';
 import { hapticLight } from './utils/haptics.js';
-import { recordToday, getLast7Days } from './utils/history.js';
+import { recordToday, getLast7Days, getLifetimeStats } from './utils/history.js';
 import { initViewportHandling } from './utils/viewport.js';
 import { shareResult } from './utils/share.js';
 import { toast } from './utils/toast.js';
@@ -233,6 +233,38 @@ async function renderMenu() {
     if (played > 0) await recordToday(total);
 
     await renderWeekStrip(state);
+    await renderLifetimeStats();
+}
+
+async function renderLifetimeStats() {
+    const el = document.getElementById('lifetime-stats');
+    if (!el) return;
+    const stats = await getLifetimeStats();
+
+    // If user has never played, show nothing — empty state instead of zeros
+    if (stats.days === 0) {
+        el.innerHTML = '';
+        return;
+    }
+
+    el.innerHTML = `
+        <div class="lifetime-row">
+            <div class="lifetime-item">
+                <span class="lifetime-value">${stats.streak}</span>
+                <span class="lifetime-label">Day streak</span>
+            </div>
+            <div class="lifetime-divider"></div>
+            <div class="lifetime-item">
+                <span class="lifetime-value">${stats.total.toLocaleString('en-GB')}</span>
+                <span class="lifetime-label">Total points</span>
+            </div>
+            <div class="lifetime-divider"></div>
+            <div class="lifetime-item">
+                <span class="lifetime-value">${stats.best}<span class="lifetime-value-max">/25</span></span>
+                <span class="lifetime-label">Best matchday</span>
+            </div>
+        </div>
+    `;
 }
 
 function renderScoreCard(state, total, played) {
@@ -244,8 +276,8 @@ function renderScoreCard(state, total, played) {
         card.dataset.state = 'fresh';
         card.innerHTML = `
             <div class="sc-fresh">
-                <p class="sc-fresh-eyebrow">Today's edition</p>
-                <p class="sc-fresh-quote">"Four games. Take your time."</p>
+                <p class="sc-fresh-eyebrow">Today's quiz</p>
+                <p class="sc-fresh-quote">Four games waiting.</p>
             </div>
         `;
         lastRenderedScore = 0;

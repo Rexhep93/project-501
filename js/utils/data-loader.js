@@ -1,22 +1,17 @@
 // Data loader: haalt CSV's van Google Sheets, parsed ze, vindt vandaag's rij
 import { todayKey } from './date-key.js';
 
-// Jouw Google Sheet URLs (pub?output=csv) - invullen voor deploy
-// Per spel één sheet, of alles in één sheet met meerdere tabs
 const SHEET_URLS = {
     tenable:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=0&single=true&output=csv',
     guessPlayer: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1712109612&single=true&output=csv',
     whoAmI:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1874756698&single=true&output=csv',
-    guessClub:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1260064264&single=true&output=csv'
+    guessClub:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1260064264&single=true&output=csv',
+    onThisDay:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1976129747&single=true&output=csv'
 };
 
 const CACHE_KEY = 'voetbalquiz_data_cache';
-const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 uur
+const CACHE_TTL = 6 * 60 * 60 * 1000;
 
-/**
- * Simpele CSV parser die quoted strings en newlines binnen quotes ondersteunt
- * Geen dependency op PapaParse om bundle klein te houden
- */
 function parseCSV(text) {
     const rows = [];
     let row = [];
@@ -28,58 +23,38 @@ function parseCSV(text) {
         const next = text[i + 1];
 
         if (inQuotes) {
-            if (c === '"' && next === '"') {
-                field += '"';
-                i++;
-            } else if (c === '"') {
-                inQuotes = false;
-            } else {
-                field += c;
-            }
+            if (c === '"' && next === '"') { field += '"'; i++; }
+            else if (c === '"') { inQuotes = false; }
+            else { field += c; }
         } else {
-            if (c === '"') {
-                inQuotes = true;
-            } else if (c === ',') {
-                row.push(field);
-                field = '';
-            } else if (c === '\n' || c === '\r') {
+            if (c === '"') { inQuotes = true; }
+            else if (c === ',') { row.push(field); field = ''; }
+            else if (c === '\n' || c === '\r') {
                 if (c === '\r' && next === '\n') i++;
                 row.push(field);
                 rows.push(row);
                 row = [];
                 field = '';
-            } else {
-                field += c;
-            }
+            } else { field += c; }
         }
     }
     if (field.length > 0 || row.length > 0) {
         row.push(field);
         rows.push(row);
     }
-
-    // Filter lege rijen
     return rows.filter(r => r.some(cell => cell.trim().length > 0));
 }
 
-/**
- * Zet CSV array om naar object-array op basis van header-rij
- */
 function toObjects(rows) {
     if (rows.length < 2) return [];
     const headers = rows[0].map(h => h.trim());
     return rows.slice(1).map(row => {
         const obj = {};
-        headers.forEach((h, i) => {
-            obj[h] = (row[i] || '').trim();
-        });
+        headers.forEach((h, i) => { obj[h] = (row[i] || '').trim(); });
         return obj;
     });
 }
 
-/**
- * Fetch één CSV, parse naar objecten
- */
 async function fetchSheet(url) {
     if (!url || url.startsWith('REPLACE_')) {
         throw new Error('Sheet URL niet geconfigureerd');
@@ -91,19 +66,11 @@ async function fetchSheet(url) {
     return toObjects(rows);
 }
 
-/**
- * Zoek de rij voor vandaag op basis van de 'date' kolom (YYYY-MM-DD)
- */
 function findTodayRow(rows) {
     const today = todayKey();
     return rows.find(r => r.date === today) || null;
 }
 
-/**
- * Parse een Tenable-rij uit Google Sheet
- * Verwachte kolommen: date, question, subtitle, answer1..answer10, aliases1..aliases10
- * aliases zijn pipe-separated: "Ronald Koeman|Koeman|R. Koeman"
- */
 function parseTenableRow(row) {
     if (!row) return null;
     const answers = [];
@@ -112,7 +79,6 @@ function parseTenableRow(row) {
         const aliasStr = row[`aliases${rank}`] || '';
         if (!name) continue;
         const aliases = [name, ...aliasStr.split('|').map(a => a.trim()).filter(Boolean)];
-        // Dedupe
         const unique = [...new Set(aliases)];
         answers.push({ rank, name, aliases: unique });
     }
@@ -124,9 +90,6 @@ function parseTenableRow(row) {
     };
 }
 
-/**
- * Guess the Player: date, player, aliases, club1..club5, years1..years5
- */
 function parseGuessPlayerRow(row) {
     if (!row) return null;
     const aliases = [row.player, ...(row.aliases || '').split('|').map(a => a.trim()).filter(Boolean)];
@@ -145,9 +108,6 @@ function parseGuessPlayerRow(row) {
     };
 }
 
-/**
- * Who Am I: date, player, aliases, hint1, hint2, hint3
- */
 function parseWhoAmIRow(row) {
     if (!row) return null;
     const aliases = [row.player, ...(row.aliases || '').split('|').map(a => a.trim()).filter(Boolean)];
@@ -160,10 +120,6 @@ function parseWhoAmIRow(row) {
     };
 }
 
-/**
- * Guess the Club: date, club, aliases, year, formation, lineup
- * lineup format: "GK:DE:1|RB:BR:22|CB:ES:3|..." (11x, position:country:shirt)
- */
 function parseGuessClubRow(row) {
     if (!row) return null;
     const aliases = [row.club, ...(row.aliases || '').split('|').map(a => a.trim()).filter(Boolean)];
@@ -183,11 +139,20 @@ function parseGuessClubRow(row) {
 }
 
 /**
- * Haal alle 4 de games' data op en parse vandaag's rij
- * Met cache fallback als fetch faalt
+ * On this day: date, year, headline, story
  */
+function parseOnThisDayRow(row) {
+    if (!row) return null;
+    const year = row.year ? parseInt(row.year, 10) : null;
+    return {
+        date: row.date,
+        year: isNaN(year) ? null : year,
+        headline: row.headline || '',
+        story: row.story || ''
+    };
+}
+
 export async function loadTodayData() {
-    // Probeer cache
     let cached = null;
     try {
         const raw = localStorage.getItem(CACHE_KEY);
@@ -200,24 +165,32 @@ export async function loadTodayData() {
 
     if (cached) return cached.data;
 
-    // Fetch parallel
     try {
-        const [tenableRows, guessPlayerRows, whoAmIRows, guessClubRows] =
+        // On this day is OPTIONAL — its fetch may fail (URL not configured yet)
+        // without breaking the core 4 games.
+        const onThisDayPromise = fetchSheet(SHEET_URLS.onThisDay)
+            .catch(err => {
+                console.warn('[DataLoader] onThisDay fetch skipped:', err.message);
+                return null;
+            });
+
+        const [tenableRows, guessPlayerRows, whoAmIRows, guessClubRows, onThisDayRows] =
             await Promise.all([
                 fetchSheet(SHEET_URLS.tenable),
                 fetchSheet(SHEET_URLS.guessPlayer),
                 fetchSheet(SHEET_URLS.whoAmI),
-                fetchSheet(SHEET_URLS.guessClub)
+                fetchSheet(SHEET_URLS.guessClub),
+                onThisDayPromise
             ]);
 
         const data = {
             tenable:     parseTenableRow(findTodayRow(tenableRows)),
             guessPlayer: parseGuessPlayerRow(findTodayRow(guessPlayerRows)),
             whoAmI:      parseWhoAmIRow(findTodayRow(whoAmIRows)),
-            guessClub:   parseGuessClubRow(findTodayRow(guessClubRows))
+            guessClub:   parseGuessClubRow(findTodayRow(guessClubRows)),
+            onThisDay:   onThisDayRows ? parseOnThisDayRow(findTodayRow(onThisDayRows)) : getPlaceholderOnThisDay()
         };
 
-        // Cache
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify({
                 date: todayKey(),
@@ -229,7 +202,6 @@ export async function loadTodayData() {
         return data;
     } catch (err) {
         console.error('[DataLoader] Fetch faalde:', err);
-        // Fallback naar stale cache als die er is
         try {
             const raw = localStorage.getItem(CACHE_KEY);
             if (raw) {
@@ -238,15 +210,66 @@ export async function loadTodayData() {
                 return stale.data;
             }
         } catch (e) { /* ignore */ }
-        // Ultimate fallback: dev sample data
         return loadSampleData();
     }
 }
 
 /**
- * Built-in sample data for development/testing
- * Works without Google Sheet config
+ * Placeholder on-this-day for when sheet is not configured.
+ * Rotates through a small built-in set based on day-of-year so users see
+ * variety even before you've filled the sheet.
  */
+function getPlaceholderOnThisDay() {
+    const placeholders = [
+        {
+            year: 1999,
+            headline: "Solskjær scores in the 93rd minute",
+            story: "Manchester United completed the treble with a last-gasp winner against Bayern Munich in the Champions League final."
+        },
+        {
+            year: 1986,
+            headline: "The Hand of God",
+            story: "Maradona punched the ball past Shilton, then ran half the pitch to score the Goal of the Century in the same match."
+        },
+        {
+            year: 2005,
+            headline: "The Miracle of Istanbul",
+            story: "Liverpool came back from 3–0 down at half-time against AC Milan to win the Champions League on penalties."
+        },
+        {
+            year: 1974,
+            headline: "Cruyff's turn",
+            story: "In a group stage match against Sweden, Johan Cruyff invented the move that would carry his name forever."
+        },
+        {
+            year: 1950,
+            headline: "The Maracanazo",
+            story: "Uruguay silenced 200,000 Brazilians at the Maracanã, winning the World Cup final 2–1 on home soil."
+        },
+        {
+            year: 2012,
+            headline: "Agüerooooo",
+            story: "Sergio Agüero's 94th-minute winner against QPR handed Manchester City their first league title in 44 years."
+        },
+        {
+            year: 1970,
+            headline: "The greatest team goal ever",
+            story: "Brazil's fourth in the World Cup final: Clodoaldo, Rivellino, Jairzinho, Pelé, Carlos Alberto. Nine passes. One myth."
+        }
+    ];
+
+    // Pick deterministically by day-of-year so it rotates daily
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    const item = placeholders[dayOfYear % placeholders.length];
+
+    return {
+        date: todayKey(),
+        ...item
+    };
+}
+
 export function loadSampleData() {
     return {
         tenable: {
@@ -255,15 +278,15 @@ export function loadSampleData() {
             subtitle: 'From highest to lowest.',
             answers: [
                 { rank: 1,  name: 'Alexander Isak',   aliases: ['Isak', 'A. Isak'] },
-                { rank: 2,  name: 'Florian Wirtz',  aliases: ['Wirtz', 'F. Wirtz', 'Wirts'] },
+                { rank: 2,  name: 'Florian Wirtz',    aliases: ['Wirtz', 'F. Wirtz', 'Wirts'] },
                 { rank: 3,  name: 'Moisés Caicedo',   aliases: ['Moises Caicedo', 'Caicedo', 'Moises'] },
                 { rank: 4,  name: 'Enzo Fernández',   aliases: ['Enzo', 'Enzo Fernandez'] },
-                { rank: 5,  name: 'Declan Rice',     aliases: ['Rice', 'Declan'] },
+                { rank: 5,  name: 'Declan Rice',      aliases: ['Rice', 'Declan'] },
                 { rank: 6,  name: 'Jack Grealish',    aliases: ['Grealish', 'J. Grealish'] },
-                { rank: 7,  name: 'Romelu Lukaku',  aliases: ['Lukaku', 'Romeo Lukaku', 'Rome Lukaku'] },
-                { rank: 8,  name: 'Paul Pogba',  aliases: ['Pogba', 'Paul', 'Pogbmaster'] },
-                { rank: 9,  name: 'Mykhailo Mudryk',   aliases: ['Mudryk', 'Mudrik'] },
-                { rank: 10, name: 'Antony',   aliases: ['Antoni'] }
+                { rank: 7,  name: 'Romelu Lukaku',    aliases: ['Lukaku'] },
+                { rank: 8,  name: 'Paul Pogba',       aliases: ['Pogba'] },
+                { rank: 9,  name: 'Mykhailo Mudryk',  aliases: ['Mudryk', 'Mudrik'] },
+                { rank: 10, name: 'Antony',           aliases: ['Antoni'] }
             ]
         },
         guessPlayer: {
@@ -276,7 +299,7 @@ export function loadSampleData() {
                 { order: 2, name: 'Valencia' },
                 { order: 3, name: 'Juventus' },
                 { order: 4, name: 'Barcelona' },
-                { order: 5, name: 'Manchester City' },
+                { order: 5, name: 'Manchester City' }
             ]
         },
         whoAmI: {
@@ -296,18 +319,19 @@ export function loadSampleData() {
             year: '2014/15',
             formation: '4-3-3',
             lineup: [
-                { position: 'GK', country: 'DE', },
-                { position: 'RB', country: 'BR', },
-                { position: 'CB', country: 'ES', },
-                { position: 'CB', country: 'AR', },
-                { position: 'LB', country: 'ES', },
-                { position: 'CM', country: 'HR', },
-                { position: 'CM', country: 'ES', },
-                { position: 'CM', country: 'ES', },
-                { position: 'RW', country: 'AR', },
-                { position: 'ST', country: 'UY', },
-                { position: 'LW', country: 'BR', }
+                { position: 'GK', country: 'DE' },
+                { position: 'RB', country: 'BR' },
+                { position: 'CB', country: 'ES' },
+                { position: 'CB', country: 'AR' },
+                { position: 'LB', country: 'ES' },
+                { position: 'CM', country: 'HR' },
+                { position: 'CM', country: 'ES' },
+                { position: 'CM', country: 'ES' },
+                { position: 'RW', country: 'AR' },
+                { position: 'ST', country: 'UY' },
+                { position: 'LW', country: 'BR' }
             ]
-        }
+        },
+        onThisDay: getPlaceholderOnThisDay()
     };
 }

@@ -43,6 +43,8 @@ function renderLives(animateLatest = false) {
     renderHearts(document.getElementById('whoAmI-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
 
+const HINT_LABELS = ["1'", "45+'", "90+'"];
+
 function renderHints(animateNewest = false) {
     const container = document.getElementById('hints-container');
     container.innerHTML = '';
@@ -55,7 +57,7 @@ function renderHints(animateNewest = false) {
         card.className = 'hint-card';
         if (animateNewest && i === revealed - 1) card.classList.add('just-revealed');
         card.innerHTML = `
-            <div class="hint-number">${i + 1}'</div>
+            <div class="hint-number">${HINT_LABELS[i] || `${i + 1}'`}</div>
             <p class="hint-text">${escapeHtml(data.hints[i])}</p>
         `;
         container.appendChild(card);
@@ -65,7 +67,7 @@ function renderHints(animateNewest = false) {
         const card = document.createElement('div');
         card.className = 'hint-card hint-locked';
         card.innerHTML = `
-            <div class="hint-number">${i + 1}'</div>
+            <div class="hint-number">${HINT_LABELS[i] || `${i + 1}'`}</div>
             <p class="hint-text"><span class="hint-locked-label">Hint unlocks after a wrong guess</span></p>
         `;
         container.appendChild(card);

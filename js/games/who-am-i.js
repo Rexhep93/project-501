@@ -7,19 +7,17 @@ import { toast } from '../utils/toast.js';
 let data = null;
 let state = null;
 let onFinish = null;
+let dateKey = null;
 
 const MAX_ATTEMPTS = 5;
 
-export function initWhoAmI(gameData, gameState, finishCb) {
+export function initWhoAmI(gameData, gameState, finishCb, forDate) {
     data = gameData;
     state = { ...gameState };
     onFinish = finishCb;
+    dateKey = forDate;
 
-    if (!data || !data.hints || data.hints.length === 0) {
-        renderNoData();
-        return;
-    }
-
+    if (!data || !data.hints || data.hints.length === 0) { renderNoData(); return; }
     if (!state.revealedHints || state.revealedHints < 1) state.revealedHints = 1;
 
     renderScore();
@@ -36,22 +34,16 @@ export function initWhoAmI(gameData, gameState, finishCb) {
     if (state.played) showResult();
 }
 
-function renderScore() {
-    document.getElementById('whoAmI-score').textContent = `${calculatePoints(state.attempts)} pt`;
-}
-function renderLives(animateLatest = false) {
-    renderHearts(document.getElementById('whoAmI-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
-}
+function renderScore() { document.getElementById('whoAmI-score').textContent = `${calculatePoints(state.attempts)} pt`; }
+function renderLives(animateLatest = false) { renderHearts(document.getElementById('whoAmI-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest); }
 
 const HINT_LABELS = ["1'", "45+'", "90+'"];
 
 function renderHints(animateNewest = false) {
     const container = document.getElementById('hints-container');
     container.innerHTML = '';
-
     const total = data.hints.length;
     const revealed = Math.min(total, state.revealedHints);
-
     for (let i = 0; i < revealed; i++) {
         const card = document.createElement('div');
         card.className = 'hint-card';
@@ -62,7 +54,6 @@ function renderHints(animateNewest = false) {
         `;
         container.appendChild(card);
     }
-
     for (let i = revealed; i < total; i++) {
         const card = document.createElement('div');
         card.className = 'hint-card hint-locked';
@@ -75,15 +66,12 @@ function renderHints(animateNewest = false) {
 }
 
 function renderNoData() {
-    document.getElementById('hints-container').innerHTML =
-        `<p class="empty-state">No quiz today. Come back tomorrow.</p>`;
+    document.getElementById('hints-container').innerHTML = `<p class="empty-state">No quiz this day.</p>`;
     document.getElementById('whoAmI-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('whoAmI-input').disabled = true;
 }
 
-function calculatePoints(attemptsDone) {
-    return Math.max(0, 5 - attemptsDone);
-}
+function calculatePoints(attemptsDone) { return Math.max(0, 5 - attemptsDone); }
 
 async function handleSubmit(e) {
     e.preventDefault();
@@ -104,13 +92,9 @@ async function handleSubmit(e) {
         state.revealedHints = Math.min(data.hints.length, state.revealedHints + 1);
         await hapticError();
         const remaining = MAX_ATTEMPTS - state.attempts;
-        if (remaining > 0) {
-            toast(`Missed · new hint unlocked`, 'warn');
-        } else {
-            toast(`Missed · it was ${data.player}`, 'error');
-        }
+        if (remaining > 0) toast(`Missed · new hint unlocked`, 'warn');
+        else toast(`Missed · it was ${data.player}`, 'error');
         shakeInput(input);
-
         if (state.attempts >= MAX_ATTEMPTS) {
             state.solved = false;
             state.score = 0;
@@ -120,7 +104,7 @@ async function handleSubmit(e) {
             renderScore();
             renderHints(true);
             input.value = '';
-            await updateGameState('whoAmI', state);
+            await updateGameState('whoAmI', state, dateKey);
         }
     }
 }
@@ -134,7 +118,7 @@ function shakeInput(input) {
 
 async function finishGame() {
     state.played = true;
-    await updateGameState('whoAmI', state);
+    await updateGameState('whoAmI', state, dateKey);
     document.getElementById('whoAmI-input').disabled = true;
     renderLives();
     renderScore();
@@ -148,22 +132,16 @@ function showResult() {
     const title  = document.getElementById('result-title');
     const score  = document.getElementById('result-score');
     const reveal = document.getElementById('result-reveal');
-
     icon.className = 'result-icon ' + (state.solved ? 'success' : 'fail');
     icon.innerHTML = state.solved
         ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
-
     title.textContent = state.solved ? 'Nicely done.' : 'Not this time.';
     score.innerHTML = state.solved
         ? `You scored <strong>${state.score} out of 5</strong>.<br><span class="reveal-player">${escapeHtml(data.player)}</span>`
         : `<span class="reveal-player">${escapeHtml(data.player)}</span>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
-    document.getElementById('result-continue').onclick = () => {
-        modal.classList.remove('active');
-        onFinish && onFinish();
-    };
 }
 
 function escapeHtml(str) {

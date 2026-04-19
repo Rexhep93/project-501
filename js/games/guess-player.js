@@ -8,19 +8,17 @@ import { toast } from '../utils/toast.js';
 let data = null;
 let state = null;
 let onFinish = null;
+let dateKey = null;
 
 const MAX_ATTEMPTS = 5;
 
-export function initGuessPlayer(gameData, gameState, finishCb) {
+export function initGuessPlayer(gameData, gameState, finishCb, forDate) {
     data = gameData;
     state = { ...gameState };
     onFinish = finishCb;
+    dateKey = forDate;
 
-    if (!data || !data.clubs || data.clubs.length === 0) {
-        renderNoData();
-        return;
-    }
-
+    if (!data || !data.clubs || data.clubs.length === 0) { renderNoData(); return; }
     if (!state.revealedClubs || state.revealedClubs < 1) state.revealedClubs = 1;
 
     renderScore();
@@ -38,28 +36,20 @@ export function initGuessPlayer(gameData, gameState, finishCb) {
     if (state.played) showResult();
 }
 
-function pointsForAttempt(attemptsDone) {
-    return Math.max(0, 5 - attemptsDone);
-}
-function renderScore() {
-    document.getElementById('guessPlayer-score').textContent = `${pointsForAttempt(state.attempts)} pt`;
-}
-function renderLives(animateLatest = false) {
-    renderHearts(document.getElementById('guessPlayer-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
-}
+function pointsForAttempt(attemptsDone) { return Math.max(0, 5 - attemptsDone); }
+function renderScore() { document.getElementById('guessPlayer-score').textContent = `${pointsForAttempt(state.attempts)} pt`; }
+function renderLives(animateLatest = false) { renderHearts(document.getElementById('guessPlayer-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest); }
 
 function renderClubs(staggerFromIndex = -1) {
     const container = document.getElementById('clubs-container');
     container.innerHTML = '';
     const totalSlots = Math.max(5, data.clubs.length);
-
     for (let i = 0; i < totalSlots; i++) {
         const club = data.clubs[i];
         const card = document.createElement('div');
         card.className = 'club-card';
         const orderNum = i + 1;
         const isRevealed = orderNum <= state.revealedClubs;
-
         if (club && isRevealed) {
             card.classList.add('revealed');
             if (staggerFromIndex >= 0 && i >= staggerFromIndex) {
@@ -80,12 +70,8 @@ function renderClubs(staggerFromIndex = -1) {
             card.classList.add('locked');
             card.innerHTML = `
                 <div class="club-order">${orderNum}</div>
-                <div class="club-logo">
-                    <svg class="club-logo-fallback" viewBox="0 0 32 32"><use href="#i-shield"/></svg>
-                </div>
-                <div class="club-info">
-                    <p class="locked-placeholder">Hidden</p>
-                </div>
+                <div class="club-logo"><svg class="club-logo-fallback" viewBox="0 0 32 32"><use href="#i-shield"/></svg></div>
+                <div class="club-info"><p class="locked-placeholder">Hidden</p></div>
             `;
         }
         container.appendChild(card);
@@ -104,8 +90,7 @@ async function fetchAndShowLogos() {
 }
 
 function renderNoData() {
-    document.getElementById('clubs-container').innerHTML =
-        `<p class="empty-state">No quiz today. Come back tomorrow.</p>`;
+    document.getElementById('clubs-container').innerHTML = `<p class="empty-state">No quiz this day.</p>`;
     document.getElementById('guessPlayer-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('guessPlayer-input').disabled = true;
 }
@@ -137,7 +122,6 @@ async function handleSubmit(e) {
             toast(`Missed · it was ${data.player}`, 'error');
         }
         shakeInput(input);
-
         if (state.attempts >= MAX_ATTEMPTS) {
             state.solved = false;
             state.score = 0;
@@ -154,7 +138,7 @@ async function handleSubmit(e) {
             renderLives(true);
             renderScore();
             input.value = '';
-            await updateGameState('guessPlayer', state);
+            await updateGameState('guessPlayer', state, dateKey);
         }
     }
 }
@@ -168,7 +152,7 @@ function shakeInput(input) {
 
 async function finishGame() {
     state.played = true;
-    await updateGameState('guessPlayer', state);
+    await updateGameState('guessPlayer', state, dateKey);
     document.getElementById('guessPlayer-input').disabled = true;
     renderLives();
     renderScore();
@@ -186,17 +170,12 @@ function showResult() {
     icon.innerHTML = state.solved
         ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
-
     title.textContent = state.solved ? 'Nicely done.' : 'Not this time.';
     score.innerHTML = state.solved
         ? `You scored <strong>${state.score} out of 5</strong>.<br><span class="reveal-player">${escapeHtml(data.player)}</span>`
         : `<span class="reveal-player">${escapeHtml(data.player)}</span>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
-    document.getElementById('result-continue').onclick = () => {
-        modal.classList.remove('active');
-        onFinish && onFinish();
-    };
 }
 
 function escapeHtml(str) {

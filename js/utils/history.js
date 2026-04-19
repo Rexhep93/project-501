@@ -1,5 +1,4 @@
-// Per-day score history for streak strip (last 7 days)
-// Stores a simple map: { "2026-04-15": 22, "2026-04-14": 18, ... }
+// Per-day score history for streak strip + lifetime stats
 
 import { todayKey } from './date-key.js';
 
@@ -39,17 +38,30 @@ async function loadHistory() {
 }
 
 async function saveHistory(history) {
-    // Keep last MAX_DAYS — enough for all lifetime stats + 7-day strip
     const keys = Object.keys(history).sort().reverse().slice(0, MAX_DAYS);
     const trimmed = {};
     for (const k of keys) trimmed[k] = history[k];
     await rawSet(HISTORY_KEY, JSON.stringify(trimmed));
 }
 
-export async function recordToday(totalScore) {
+/**
+ * Record a score for a specific date (defaults to today).
+ * Keeps the HIGHER of existing and new — so time-travel can't overwrite a
+ * better earlier score.
+ */
+export async function recordScore(totalScore, dateKey = null) {
+    const d = dateKey || todayKey();
     const history = await loadHistory();
-    history[todayKey()] = totalScore;
-    await saveHistory(history);
+    const existing = history[d];
+    if (typeof existing !== 'number' || totalScore > existing) {
+        history[d] = totalScore;
+        await saveHistory(history);
+    }
+}
+
+// Back-compat alias
+export async function recordToday(totalScore) {
+    return recordScore(totalScore, todayKey());
 }
 
 export async function getLast7Days() {
@@ -57,7 +69,6 @@ export async function getLast7Days() {
     const todayStr = todayKey();
     const out = [];
     const now = new Date();
-
     for (let i = 6; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(now.getDate() - i);
@@ -66,7 +77,6 @@ export async function getLast7Days() {
         const day = String(d.getDate()).padStart(2, '0');
         const dateStr = `${y}-${m}-${day}`;
         const score = history[dateStr];
-
         out.push({
             date: dateStr,
             dayNum: d.getDate(),
@@ -79,17 +89,14 @@ export async function getLast7Days() {
 }
 
 /**
- * Lifetime stats from history:
- * - streak: consecutive days played ending today or yesterday
- * - total: sum of all daily scores
- * - best: highest single-day score
- * - days: number of days played (any score recorded)
+ * Lifetime stats. Streak = consecutive days (ending today or yesterday) with
+ * a recorded score. Oude dagen inhalen herstelt geen gebroken streak.
  */
 export async function getLifetimeStats() {
     const history = await loadHistory();
     const entries = Object.entries(history)
         .filter(([, v]) => typeof v === 'number')
-        .sort((a, b) => a[0].localeCompare(b[0])); // oldest → newest
+        .sort((a, b) => a[0].localeCompare(b[0]));
 
     if (entries.length === 0) {
         return { streak: 0, total: 0, best: 0, days: 0 };
@@ -99,19 +106,19 @@ export async function getLifetimeStats() {
     const best = entries.reduce((max, [, v]) => (v > max ? v : max), 0);
     const days = entries.length;
 
-    // Streak calculation: count back from today (or yesterday if today not played)
     const todayStr = todayKey();
-    const yesterdayStr = (() => {
-        const d = new Date();
-        d.setDate(d.getDate() - 1);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    })();
+    const yDate = new Date();
+    yDate.setDate(yDate.getDate() - 1);
+    const yesterdayStr = `${yDate.getFullYear()}-${String(yDate.getMonth() + 1).padStart(2, '0')}-${String(yDate.getDate()).padStart(2, '0')}`;
 
     let streak = 0;
-    let cursor = history[todayStr] !== undefined ? new Date() : (history[yesterdayStr] !== undefined ? (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d; })() : null);
+    let cursor = null;
+    if (history[todayStr] !== undefined) {
+        cursor = new Date();
+    } else if (history[yesterdayStr] !== undefined) {
+        cursor = new Date();
+        cursor.setDate(cursor.getDate() - 1);
+    }
 
     if (cursor) {
         while (true) {

@@ -1,11 +1,13 @@
-// Storage abstractie: Capacitor Preferences indien beschikbaar, anders localStorage
-// Zodat we op iOS native opslag gebruiken en op web de fallback
+// Storage abstractie: Capacitor Preferences indien beschikbaar, anders localStorage.
+// NEW: state is keyed PER DAY. Key format: voetbalquiz_daily_state_YYYY-MM-DD
+// Migration: old key 'voetbalquiz_daily_state' (single-day) is read once, moved
+// to its date-suffixed equivalent, then removed.
 
 import { todayKey } from './date-key.js';
 
-const STORAGE_KEY = 'voetbalquiz_daily_state';
+const STORAGE_PREFIX = 'voetbalquiz_daily_state_';
+const LEGACY_KEY = 'voetbalquiz_daily_state';
 
-// Detect Capacitor Preferences plugin (beschikbaar na cap sync)
 let prefs = null;
 try {
     if (window.Capacitor?.Plugins?.Preferences) {
@@ -29,87 +31,111 @@ async function rawSet(key, value) {
     }
 }
 
-/**
- * Default state shape voor een dag.
- * Tenable: lives is afgeleid uit history — no stored duplicate.
- * WhoAmI: revealedHints tracks progressive hint reveal (1..3).
- */
-function defaultState() {
+async function rawRemove(key) {
+    if (prefs) {
+        await prefs.remove({ key });
+    } else {
+        localStorage.removeItem(key);
+    }
+}
+
+function defaultState(dateKey) {
     return {
-        date: todayKey(),
-        tenable:     { played: false, score: 0, revealedRanks: [], history: [], wrongGuesses: 0 },
+        date: dateKey,
+        tenable:     { played: false, score: 0, revealedRanks: [], history: [], wrongGuesses: 0, hintsUsed: [], revealedFirstLetters: {} },
         guessPlayer: { played: false, score: 0, attempts: 0, revealedClubs: 1, solved: false },
         whoAmI:      { played: false, score: 0, attempts: 0, revealedHints: 1, solved: false },
-        guessClub:   { played: false, score: 0, attempts: 0, solved: false }
+        guessClub:   { played: false, score: 0, attempts: 0, solved: false, shirtsRevealed: false }
     };
 }
 
+function keyFor(dateKey) {
+    return STORAGE_PREFIX + dateKey;
+}
+
 /**
- * Haal state op voor vandaag. Reset als datum is gewisseld.
+ * Migrate legacy key if it exists and matches today.
  */
-export async function getState() {
+let migrationDone = false;
+async function migrateLegacyIfNeeded() {
+    if (migrationDone) return;
+    migrationDone = true;
     try {
-        const raw = await rawGet(STORAGE_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed.date === todayKey()) {
-                // Merge met default voor forward-compat als we velden toevoegen
-                const base = defaultState();
-                const merged = {
-                    ...base,
-                    ...parsed,
-                    tenable:     { ...base.tenable,     ...(parsed.tenable     || {}) },
-                    guessPlayer: { ...base.guessPlayer, ...(parsed.guessPlayer || {}) },
-                    whoAmI:      { ...base.whoAmI,      ...(parsed.whoAmI      || {}) },
-                    guessClub:   { ...base.guessClub,   ...(parsed.guessClub   || {}) }
-                };
-                // Migration: convert old 'lives' field into 'wrongGuesses' (derived).
-                // If old save had lives:2, that means 1 wrong guess.
-                if (typeof parsed.tenable?.lives === 'number' &&
-                    typeof merged.tenable.wrongGuesses !== 'number') {
-                    merged.tenable.wrongGuesses = 3 - parsed.tenable.lives;
-                }
-                return merged;
+        const raw = await rawGet(LEGACY_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed.date) {
+            const newKey = keyFor(parsed.date);
+            const existing = await rawGet(newKey);
+            if (!existing) {
+                await rawSet(newKey, raw);
             }
         }
+        await rawRemove(LEGACY_KEY);
     } catch (e) {
-        console.warn('[Storage] getState fout:', e);
+        console.warn('[Storage] Legacy migration failed:', e);
     }
-    return defaultState();
 }
 
 /**
- * Sla state op
+ * Get state for a specific date (defaults to today).
+ * Merges with default shape for forward-compat.
  */
-export async function saveState(state) {
+export async function getState(dateKey = null) {
+    await migrateLegacyIfNeeded();
+    const d = dateKey || todayKey();
     try {
-        await rawSet(STORAGE_KEY, JSON.stringify(state));
+        const raw = await rawGet(keyFor(d));
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const base = defaultState(d);
+            const merged = {
+                ...base,
+                ...parsed,
+                date: d,
+                tenable:     { ...base.tenable,     ...(parsed.tenable     || {}) },
+                guessPlayer: { ...base.guessPlayer, ...(parsed.guessPlayer || {}) },
+                whoAmI:      { ...base.whoAmI,      ...(parsed.whoAmI      || {}) },
+                guessClub:   { ...base.guessClub,   ...(parsed.guessClub   || {}) }
+            };
+            // Legacy migration: old 'lives' → wrongGuesses
+            if (typeof parsed.tenable?.lives === 'number' &&
+                typeof merged.tenable.wrongGuesses !== 'number') {
+                merged.tenable.wrongGuesses = 3 - parsed.tenable.lives;
+            }
+            return merged;
+        }
     } catch (e) {
-        console.error('[Storage] saveState fout:', e);
+        console.warn('[Storage] getState error:', e);
+    }
+    return defaultState(d);
+}
+
+export async function saveState(state) {
+    const d = state.date || todayKey();
+    try {
+        await rawSet(keyFor(d), JSON.stringify(state));
+    } catch (e) {
+        console.error('[Storage] saveState error:', e);
     }
 }
 
 /**
- * Update één spel's state en sla direct op
+ * Update one game's state for a given date (defaults to today).
  */
-export async function updateGameState(gameKey, patch) {
-    const state = await getState();
+export async function updateGameState(gameKey, patch, dateKey = null) {
+    const d = dateKey || todayKey();
+    const state = await getState(d);
     state[gameKey] = { ...state[gameKey], ...patch };
     await saveState(state);
     return state;
 }
 
-/**
- * Hoeveel spellen heeft de gebruiker al gespeeld vandaag?
- */
 export function countPlayed(state) {
     return ['tenable', 'guessPlayer', 'whoAmI', 'guessClub']
         .filter(k => state[k]?.played).length;
 }
 
-/**
- * Totaalscore over alle 4
- */
 export function totalScore(state) {
     return (state.tenable?.score     || 0)
          + (state.guessPlayer?.score || 0)

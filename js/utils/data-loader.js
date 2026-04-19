@@ -1,5 +1,7 @@
-// Data loader: haalt CSV's van Google Sheets, parsed ze, vindt vandaag's rij
-import { todayKey } from './date-key.js';
+// Data loader: haalt CSV's van Google Sheets, parsed ze, vindt rij per datum.
+// Caches ALL rows (7+ days worth) so time-travel works without extra fetches.
+
+import { todayKey, last7DateKeys } from './date-key.js';
 
 const SHEET_URLS = {
     tenable:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=0&single=true&output=csv',
@@ -9,19 +11,20 @@ const SHEET_URLS = {
     onThisDay:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1976129747&single=true&output=csv'
 };
 
-const CACHE_KEY = 'voetbalquiz_data_cache';
+const CACHE_KEY = 'voetbalquiz_data_cache_v2';
 const CACHE_TTL = 6 * 60 * 60 * 1000;
+
+// In-memory cache of ALL parsed rows — lets us time-travel without refetch
+let allRowsCache = null;
 
 function parseCSV(text) {
     const rows = [];
     let row = [];
     let field = '';
     let inQuotes = false;
-
     for (let i = 0; i < text.length; i++) {
         const c = text[i];
         const next = text[i + 1];
-
         if (inQuotes) {
             if (c === '"' && next === '"') { field += '"'; i++; }
             else if (c === '"') { inQuotes = false; }
@@ -56,19 +59,15 @@ function toObjects(rows) {
 }
 
 async function fetchSheet(url) {
-    if (!url || url.startsWith('REPLACE_')) {
-        throw new Error('Sheet URL niet geconfigureerd');
-    }
+    if (!url || url.startsWith('REPLACE_')) throw new Error('Sheet URL niet geconfigureerd');
     const res = await fetch(url, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`Sheet fetch faalde: ${res.status}`);
     const text = await res.text();
-    const rows = parseCSV(text);
-    return toObjects(rows);
+    return toObjects(parseCSV(text));
 }
 
-function findTodayRow(rows) {
-    const today = todayKey();
-    return rows.find(r => r.date === today) || null;
+function findRow(rows, dateKey) {
+    return rows.find(r => r.date === dateKey) || null;
 }
 
 function parseTenableRow(row) {
@@ -79,15 +78,9 @@ function parseTenableRow(row) {
         const aliasStr = row[`aliases${rank}`] || '';
         if (!name) continue;
         const aliases = [name, ...aliasStr.split('|').map(a => a.trim()).filter(Boolean)];
-        const unique = [...new Set(aliases)];
-        answers.push({ rank, name, aliases: unique });
+        answers.push({ rank, name, aliases: [...new Set(aliases)] });
     }
-    return {
-        date: row.date,
-        question: row.question,
-        subtitle: row.subtitle || '',
-        answers
-    };
+    return { date: row.date, question: row.question, subtitle: row.subtitle || '', answers };
 }
 
 function parseGuessPlayerRow(row) {
@@ -100,24 +93,14 @@ function parseGuessPlayerRow(row) {
         if (!name) continue;
         clubs.push({ order: i, name, years });
     }
-    return {
-        date: row.date,
-        player: row.player,
-        aliases: [...new Set(aliases)],
-        clubs
-    };
+    return { date: row.date, player: row.player, aliases: [...new Set(aliases)], clubs };
 }
 
 function parseWhoAmIRow(row) {
     if (!row) return null;
     const aliases = [row.player, ...(row.aliases || '').split('|').map(a => a.trim()).filter(Boolean)];
     const hints = [row.hint1, row.hint2, row.hint3].filter(Boolean);
-    return {
-        date: row.date,
-        player: row.player,
-        aliases: [...new Set(aliases)],
-        hints
-    };
+    return { date: row.date, player: row.player, aliases: [...new Set(aliases)], hints };
 }
 
 function parseGuessClubRow(row) {
@@ -127,7 +110,6 @@ function parseGuessClubRow(row) {
         const [position, country, shirt] = entry.split(':').map(s => s.trim());
         return { position, country, shirt: shirt || '' };
     }).filter(p => p.position && p.country);
-
     return {
         date: row.date,
         club: row.club,
@@ -138,9 +120,6 @@ function parseGuessClubRow(row) {
     };
 }
 
-/**
- * On this day: date, year, headline, story
- */
 function parseOnThisDayRow(row) {
     if (!row) return null;
     const year = row.year ? parseInt(row.year, 10) : null;
@@ -152,27 +131,28 @@ function parseOnThisDayRow(row) {
     };
 }
 
-export async function loadTodayData() {
-    let cached = null;
+/**
+ * Load all sheet rows into memory. Fetches once per session (with TTL cache in
+ * localStorage). Returns a map of arrays by sheet name.
+ */
+async function loadAllRows() {
+    if (allRowsCache) return allRowsCache;
+
+    // Try persistent cache
     try {
         const raw = localStorage.getItem(CACHE_KEY);
         if (raw) {
-            cached = JSON.parse(raw);
-            if (cached.date !== todayKey()) cached = null;
-            else if (Date.now() - cached.timestamp > CACHE_TTL) cached = null;
+            const cached = JSON.parse(raw);
+            if (Date.now() - cached.timestamp < CACHE_TTL) {
+                allRowsCache = cached.rows;
+                return allRowsCache;
+            }
         }
     } catch (e) { /* ignore */ }
 
-    if (cached) return cached.data;
-
     try {
-        // On this day is OPTIONAL — its fetch may fail (URL not configured yet)
-        // without breaking the core 4 games.
         const onThisDayPromise = fetchSheet(SHEET_URLS.onThisDay)
-            .catch(err => {
-                console.warn('[DataLoader] onThisDay fetch skipped:', err.message);
-                return null;
-            });
+            .catch(err => { console.warn('[DataLoader] onThisDay fetch skipped:', err.message); return null; });
 
         const [tenableRows, guessPlayerRows, whoAmIRows, guessClubRows, onThisDayRows] =
             await Promise.all([
@@ -183,23 +163,22 @@ export async function loadTodayData() {
                 onThisDayPromise
             ]);
 
-        const data = {
-            tenable:     parseTenableRow(findTodayRow(tenableRows)),
-            guessPlayer: parseGuessPlayerRow(findTodayRow(guessPlayerRows)),
-            whoAmI:      parseWhoAmIRow(findTodayRow(whoAmIRows)),
-            guessClub:   parseGuessClubRow(findTodayRow(guessClubRows)),
-            onThisDay:   onThisDayRows ? parseOnThisDayRow(findTodayRow(onThisDayRows)) : getPlaceholderOnThisDay()
+        allRowsCache = {
+            tenable: tenableRows,
+            guessPlayer: guessPlayerRows,
+            whoAmI: whoAmIRows,
+            guessClub: guessClubRows,
+            onThisDay: onThisDayRows || []
         };
 
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify({
-                date: todayKey(),
                 timestamp: Date.now(),
-                data
+                rows: allRowsCache
             }));
         } catch (e) { /* ignore */ }
 
-        return data;
+        return allRowsCache;
     } catch (err) {
         console.error('[DataLoader] Fetch faalde:', err);
         try {
@@ -207,71 +186,68 @@ export async function loadTodayData() {
             if (raw) {
                 const stale = JSON.parse(raw);
                 console.warn('[DataLoader] Fallback op stale cache');
-                return stale.data;
+                allRowsCache = stale.rows;
+                return allRowsCache;
             }
         } catch (e) { /* ignore */ }
-        return loadSampleData();
+        throw err;
     }
 }
 
 /**
- * Placeholder on-this-day for when sheet is not configured.
- * Rotates through a small built-in set based on day-of-year so users see
- * variety even before you've filled the sheet.
+ * Load data for a specific date. If any of the 4 games has no row, returns null
+ * for that game (UI shows "No quiz that day"). On-this-day falls back to
+ * placeholder.
  */
-function getPlaceholderOnThisDay() {
-    const placeholders = [
-        {
-            year: 1999,
-            headline: "Solskjær scores in the 93rd minute",
-            story: "Manchester United completed the treble with a last-gasp winner against Bayern Munich in the Champions League final."
-        },
-        {
-            year: 1986,
-            headline: "The Hand of God",
-            story: "Maradona punched the ball past Shilton, then ran half the pitch to score the Goal of the Century in the same match."
-        },
-        {
-            year: 2005,
-            headline: "The Miracle of Istanbul",
-            story: "Liverpool came back from 3–0 down at half-time against AC Milan to win the Champions League on penalties."
-        },
-        {
-            year: 1974,
-            headline: "Cruyff's turn",
-            story: "In a group stage match against Sweden, Johan Cruyff invented the move that would carry his name forever."
-        },
-        {
-            year: 1950,
-            headline: "The Maracanazo",
-            story: "Uruguay silenced 200,000 Brazilians at the Maracanã, winning the World Cup final 2–1 on home soil."
-        },
-        {
-            year: 2012,
-            headline: "Agüerooooo",
-            story: "Sergio Agüero's 94th-minute winner against QPR handed Manchester City their first league title in 44 years."
-        },
-        {
-            year: 1970,
-            headline: "The greatest team goal ever",
-            story: "Brazil's fourth in the World Cup final: Clodoaldo, Rivellino, Jairzinho, Pelé, Carlos Alberto. Nine passes. One myth."
-        }
-    ];
-
-    // Pick deterministically by day-of-year so it rotates daily
-    const now = new Date();
-    const start = new Date(now.getFullYear(), 0, 0);
-    const dayOfYear = Math.floor((now - start) / (1000 * 60 * 60 * 24));
-    const item = placeholders[dayOfYear % placeholders.length];
-
+export async function loadDataForDate(dateKey) {
+    const rows = await loadAllRows();
     return {
-        date: todayKey(),
-        ...item
+        date: dateKey,
+        tenable:     parseTenableRow(findRow(rows.tenable, dateKey)),
+        guessPlayer: parseGuessPlayerRow(findRow(rows.guessPlayer, dateKey)),
+        whoAmI:      parseWhoAmIRow(findRow(rows.whoAmI, dateKey)),
+        guessClub:   parseGuessClubRow(findRow(rows.guessClub, dateKey)),
+        onThisDay:   parseOnThisDayRow(findRow(rows.onThisDay, dateKey)) || getPlaceholderOnThisDay(dateKey)
     };
+}
+
+export async function loadTodayData() {
+    return loadDataForDate(todayKey());
+}
+
+/**
+ * Which of the last-7-days actually have playable data?
+ * Returns array of date keys where at least one of the 4 games has a row.
+ */
+export async function availableDatesInLast7() {
+    const rows = await loadAllRows();
+    const keys = last7DateKeys();
+    return keys.filter(k => {
+        return findRow(rows.tenable, k) || findRow(rows.guessPlayer, k)
+            || findRow(rows.whoAmI, k) || findRow(rows.guessClub, k);
+    });
+}
+
+function getPlaceholderOnThisDay(dateKey) {
+    const placeholders = [
+        { year: 1999, headline: "Solskjær scores in the 93rd minute", story: "Manchester United completed the treble with a last-gasp winner against Bayern Munich in the Champions League final." },
+        { year: 1986, headline: "The Hand of God", story: "Maradona punched the ball past Shilton, then ran half the pitch to score the Goal of the Century in the same match." },
+        { year: 2005, headline: "The Miracle of Istanbul", story: "Liverpool came back from 3–0 down at half-time against AC Milan to win the Champions League on penalties." },
+        { year: 1974, headline: "Cruyff's turn", story: "In a group stage match against Sweden, Johan Cruyff invented the move that would carry his name forever." },
+        { year: 1950, headline: "The Maracanazo", story: "Uruguay silenced 200,000 Brazilians at the Maracanã, winning the World Cup final 2–1 on home soil." },
+        { year: 2012, headline: "Agüerooooo", story: "Sergio Agüero's 94th-minute winner against QPR handed Manchester City their first league title in 44 years." },
+        { year: 1970, headline: "The greatest team goal ever", story: "Brazil's fourth in the World Cup final: Clodoaldo, Rivellino, Jairzinho, Pelé, Carlos Alberto. Nine passes. One myth." }
+    ];
+    // Deterministic by date
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const dayOfYear = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 0)) / 86400000);
+    const item = placeholders[dayOfYear % placeholders.length];
+    return { date: dateKey, ...item };
 }
 
 export function loadSampleData() {
     return {
+        date: todayKey(),
         tenable: {
             date: todayKey(),
             question: 'Most expensive signings by Premier League clubs',
@@ -291,7 +267,6 @@ export function loadSampleData() {
         },
         guessPlayer: {
             date: todayKey(),
-            subtitle: 'The clubs are not in order.',
             player: 'Joao Cancelo',
             aliases: ['João Cancelo', 'Cancelo', 'J. Cancelo'],
             clubs: [
@@ -319,19 +294,19 @@ export function loadSampleData() {
             year: '2014/15',
             formation: '4-3-3',
             lineup: [
-                { position: 'GK', country: 'DE' },
-                { position: 'RB', country: 'BR' },
-                { position: 'CB', country: 'ES' },
-                { position: 'CB', country: 'AR' },
-                { position: 'LB', country: 'ES' },
-                { position: 'CM', country: 'HR' },
-                { position: 'CM', country: 'ES' },
-                { position: 'CM', country: 'ES' },
-                { position: 'RW', country: 'AR' },
-                { position: 'ST', country: 'UY' },
-                { position: 'LW', country: 'BR' }
+                { position: 'GK', country: 'DE', shirt: '1' },
+                { position: 'RB', country: 'BR', shirt: '22' },
+                { position: 'CB', country: 'ES', shirt: '3' },
+                { position: 'CB', country: 'AR', shirt: '24' },
+                { position: 'LB', country: 'ES', shirt: '18' },
+                { position: 'CM', country: 'HR', shirt: '4' },
+                { position: 'CM', country: 'ES', shirt: '6' },
+                { position: 'CM', country: 'ES', shirt: '8' },
+                { position: 'RW', country: 'AR', shirt: '10' },
+                { position: 'ST', country: 'UY', shirt: '9' },
+                { position: 'LW', country: 'BR', shirt: '11' }
             ]
         },
-        onThisDay: getPlaceholderOnThisDay()
+        onThisDay: getPlaceholderOnThisDay(todayKey())
     };
 }

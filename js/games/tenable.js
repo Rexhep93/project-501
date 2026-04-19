@@ -1,26 +1,28 @@
 import { findMatchIndex } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
-import { hapticSuccess, hapticError } from '../utils/haptics.js';
+import { hapticSuccess, hapticError, hapticLight } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
 import { toast } from '../utils/toast.js';
 
 let data = null;
 let state = null;
 let onFinish = null;
+let dateKey = null;
 
 const MAX_LIVES = 3;
+const MAX_HINTS = 3;
 
-export function initTenable(gameData, gameState, finishCb) {
+export function initTenable(gameData, gameState, finishCb, forDate) {
     data = gameData;
     state = { ...gameState };
     onFinish = finishCb;
+    dateKey = forDate;
 
-    if (!data) {
-        renderNoData();
-        return;
-    }
+    if (!data) { renderNoData(); return; }
 
     if (typeof state.wrongGuesses !== 'number') state.wrongGuesses = 0;
+    if (!state.revealedFirstLetters) state.revealedFirstLetters = {};
+    if (!Array.isArray(state.hintsUsed)) state.hintsUsed = [];
 
     document.getElementById('tenable-question').textContent = data.question;
     document.getElementById('tenable-subtitle').textContent = data.subtitle || '';
@@ -28,6 +30,7 @@ export function initTenable(gameData, gameState, finishCb) {
     renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses);
     renderPyramid();
     renderScoreChip();
+    renderHintButton();
 
     const form = document.getElementById('tenable-form');
     const input = document.getElementById('tenable-input');
@@ -47,38 +50,91 @@ function renderScoreChip() {
     document.getElementById('tenable-score').textContent = `${state.revealedRanks.length} / 10`;
 }
 
+/**
+ * Hint button becomes visible after the first wrong guess.
+ * Tapping it reveals the first letter of a random un-revealed rank, or the
+ * rank itself if >= MAX_HINTS already used (no further hints).
+ */
+function renderHintButton() {
+    const btn = document.getElementById('tenable-hint-btn');
+    if (!btn) return;
+    const canHint = state.wrongGuesses > 0 && state.hintsUsed.length < MAX_HINTS && !state.played;
+    btn.style.display = canHint ? 'inline-flex' : 'none';
+    btn.onclick = handleHint;
+    // Badge: remaining hints
+    const badge = btn.querySelector('.hint-count');
+    if (badge) {
+        const left = MAX_HINTS - state.hintsUsed.length;
+        badge.textContent = String(left);
+    }
+}
+
+async function handleHint() {
+    // Find unrevealed ranks that don't yet have a first-letter shown
+    const unrevealed = data.answers
+        .filter(a => !state.revealedRanks.includes(a.rank))
+        .filter(a => !state.revealedFirstLetters[a.rank]);
+
+    if (unrevealed.length === 0) {
+        toast('No more hints available', 'warn');
+        return;
+    }
+
+    // Random pick
+    const pick = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+    const letter = (pick.name[0] || '?').toUpperCase();
+    state.revealedFirstLetters[pick.rank] = letter;
+    state.hintsUsed.push(pick.rank);
+    await saveState();
+    await hapticLight();
+    toast(`#${pick.rank} starts with "${letter}"`, 'warn');
+
+    // Update slot to show the hint inline
+    const slot = document.querySelector(`.pyramid-slot[data-rank="${pick.rank}"]`);
+    if (slot && !slot.classList.contains('revealed')) {
+        slot.classList.add('hint');
+        slot.innerHTML = `
+            <span class="slot-rank">${pick.rank}</span>
+            <span class="slot-name"><span class="slot-hint-letter">${letter}</span><span class="slot-hint-dots">…</span></span>
+        `;
+    }
+    renderHintButton();
+}
+
 function renderPyramid() {
     const pyramid = document.getElementById('tenable-pyramid');
     pyramid.innerHTML = '';
-
     for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
         slot.className = 'pyramid-slot';
-
         const widthPct = 68 + ((rank - 1) / 9) * 32;
         slot.style.setProperty('--slot-width', `${widthPct}%`);
-
         const isRevealed = state.revealedRanks.includes(rank);
         const answer = data.answers.find(a => a.rank === rank);
+        const hintLetter = state.revealedFirstLetters[rank];
 
         if (isRevealed && answer) {
             slot.classList.add('revealed');
             slot.innerHTML = `<span class="slot-rank">${rank}</span><span class="slot-name">${escapeHtml(answer.name)}</span>`;
+        } else if (hintLetter) {
+            slot.classList.add('hint');
+            slot.innerHTML = `<span class="slot-rank">${rank}</span><span class="slot-name"><span class="slot-hint-letter">${hintLetter}</span><span class="slot-hint-dots">…</span></span>`;
         } else {
             slot.innerHTML = `<span class="slot-rank">${rank}</span><span class="slot-name"></span>`;
         }
-
         slot.dataset.rank = rank;
         pyramid.appendChild(slot);
     }
 }
 
 function renderNoData() {
-    document.getElementById('tenable-question').textContent = 'No quiz today';
-    document.getElementById('tenable-subtitle').textContent = 'Come back tomorrow';
+    document.getElementById('tenable-question').textContent = 'No quiz this day';
+    document.getElementById('tenable-subtitle').textContent = 'No data available';
     document.getElementById('tenable-pyramid').innerHTML = '';
     document.getElementById('tenable-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('tenable-input').disabled = true;
+    const btn = document.getElementById('tenable-hint-btn');
+    if (btn) btn.style.display = 'none';
 }
 
 async function handleSubmit(e) {
@@ -111,6 +167,7 @@ async function handleSubmit(e) {
 
         const slot = document.querySelector(`.pyramid-slot[data-rank="${answer.rank}"]`);
         if (slot) {
+            slot.classList.remove('hint');
             slot.classList.add('revealed');
             slot.innerHTML = `<span class="slot-rank">${answer.rank}</span><span class="slot-name">${escapeHtml(answer.name)}</span>`;
         }
@@ -133,6 +190,7 @@ async function handleSubmit(e) {
         shakeInput(input);
         input.value = '';
         renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses, true);
+        renderHintButton();
         await saveState();
 
         if (remaining <= 0) {
@@ -150,19 +208,21 @@ function shakeInput(input) {
 
 async function saveState() {
     state.score = state.revealedRanks.length;
-    await updateGameState('tenable', state);
+    await updateGameState('tenable', state, dateKey);
 }
 
 async function finishGame() {
     state.played = true;
     state.score = state.revealedRanks.length;
-    await updateGameState('tenable', state);
+    await updateGameState('tenable', state, dateKey);
     document.getElementById('tenable-input').disabled = true;
+    renderHintButton();
 
     const missed = data.answers.filter(a => !state.revealedRanks.includes(a.rank));
     for (const m of missed) {
         const slot = document.querySelector(`.pyramid-slot[data-rank="${m.rank}"]`);
         if (slot) {
+            slot.classList.remove('hint');
             slot.classList.add('ghost');
             slot.innerHTML = `<span class="slot-rank">${m.rank}</span><span class="slot-name">${escapeHtml(m.name)}</span>`;
         }
@@ -202,10 +262,6 @@ function showResult() {
         }).join('');
 
     modal.classList.add('active');
-    document.getElementById('result-continue').onclick = () => {
-        modal.classList.remove('active');
-        onFinish && onFinish();
-    };
 }
 
 function escapeHtml(str) {

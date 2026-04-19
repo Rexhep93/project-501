@@ -8,6 +8,7 @@ import { toast } from '../utils/toast.js';
 let data = null;
 let state = null;
 let onFinish = null;
+let dateKey = null;
 
 const MAX_ATTEMPTS = 3;
 const POINTS_PER_ATTEMPT = [5, 3, 1];
@@ -17,19 +18,14 @@ function pointsForAttempt(attemptNumber) {
     return POINTS_PER_ATTEMPT[attemptNumber];
 }
 
-export function initGuessClub(gameData, gameState, finishCb) {
+export function initGuessClub(gameData, gameState, finishCb, forDate) {
     data = gameData;
     state = { ...gameState };
     onFinish = finishCb;
+    dateKey = forDate;
 
-    if (!data || !data.lineup || data.lineup.length === 0) {
-        renderNoData();
-        return;
-    }
-
-    if (data.lineup[0]?.position !== 'GK') {
-        console.warn('[guessClub] First lineup player should be GK, got:', data.lineup[0]?.position);
-    }
+    if (!data || !data.lineup || data.lineup.length === 0) { renderNoData(); return; }
+    if (typeof state.shirtsRevealed !== 'boolean') state.shirtsRevealed = false;
 
     renderYearBadge();
     renderScore();
@@ -55,10 +51,8 @@ function renderYearBadge() {
 }
 
 function renderScore() {
-    const pt = pointsForAttempt(state.attempts);
-    document.getElementById('guessClub-score').textContent = `${pt} pt`;
+    document.getElementById('guessClub-score').textContent = `${pointsForAttempt(state.attempts)} pt`;
 }
-
 function renderLives(animateLatest = false) {
     renderHearts(document.getElementById('guessClub-attempts'), MAX_ATTEMPTS, state.attempts, animateLatest);
 }
@@ -74,11 +68,6 @@ function renderFormation() {
     container.innerHTML = '';
     const rows = parseFormation(data.formation || '4-3-3');
 
-    const expectedTotal = rows.reduce((a, b) => a + b, 0);
-    if (expectedTotal !== data.lineup.length) {
-        console.warn(`[guessClub] Formation ${data.formation} expects ${expectedTotal} players but lineup has ${data.lineup.length}`);
-    }
-
     const pitch = document.createElement('div');
     pitch.className = 'pitch';
     pitch.innerHTML = `
@@ -93,7 +82,6 @@ function renderFormation() {
 
     const rowsContainer = document.createElement('div');
     rowsContainer.className = 'pitch-rows';
-
     const rowIndices = [];
     let startIdx = 0;
     for (const r of rows) {
@@ -101,6 +89,8 @@ function renderFormation() {
         startIdx += r;
     }
     const displayRows = [...rowIndices].reverse();
+
+    const showShirts = state.shirtsRevealed || state.played;
 
     for (const rowPlayers of displayRows) {
         const rowEl = document.createElement('div');
@@ -110,6 +100,9 @@ function renderFormation() {
             const fUrl = flagUrl(player.country);
             const playerEl = document.createElement('div');
             playerEl.className = 'pitch-player';
+            const shirtHtml = (showShirts && player.shirt)
+                ? `<div class="shirt-number">${escapeHtml(String(player.shirt))}</div>`
+                : '';
             playerEl.innerHTML = `
                 <div class="flag-bubble" title="${escapeHtml(cn)}">
                     ${fUrl
@@ -117,20 +110,18 @@ function renderFormation() {
                         : `<svg class="flag-fallback" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`
                     }
                 </div>
-                ${player.shirt ? `<div class="shirt-number">${escapeHtml(String(player.shirt))}</div>` : ''}
+                ${shirtHtml}
             `;
             rowEl.appendChild(playerEl);
         }
         rowsContainer.appendChild(rowEl);
     }
-
     pitch.appendChild(rowsContainer);
     container.appendChild(pitch);
 }
 
 function renderNoData() {
-    document.getElementById('formation-container').innerHTML =
-        `<p class="empty-state">No quiz today. Come back tomorrow.</p>`;
+    document.getElementById('formation-container').innerHTML = `<p class="empty-state">No quiz this day.</p>`;
     document.getElementById('guessClub-year').textContent = '';
     document.getElementById('guessClub-form').onsubmit = (e) => e.preventDefault();
     document.getElementById('guessClub-input').disabled = true;
@@ -168,9 +159,19 @@ async function handleSubmit(e) {
     } else {
         state.attempts++;
         await hapticError();
+
+        // Reveal all shirts on first wrong guess
+        let revealedShirtsNow = false;
+        if (!state.shirtsRevealed) {
+            state.shirtsRevealed = true;
+            revealedShirtsNow = true;
+        }
+
         const remaining = MAX_ATTEMPTS - state.attempts;
         if (remaining > 0) {
-            toast(`Missed · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'error');
+            toast(revealedShirtsNow
+                ? `Missed · shirt numbers revealed`
+                : `Missed · ${remaining} ${remaining === 1 ? 'try' : 'tries'} left`, 'warn');
         } else {
             toast(`Missed · it was ${data.club}`, 'error');
         }
@@ -183,8 +184,9 @@ async function handleSubmit(e) {
         } else {
             renderLives(true);
             renderScore();
+            if (revealedShirtsNow) renderFormation();
             input.value = '';
-            await updateGameState('guessClub', state);
+            await updateGameState('guessClub', state, dateKey);
         }
     }
 }
@@ -198,8 +200,9 @@ function shakeInput(input) {
 
 async function finishGame() {
     state.played = true;
-    await updateGameState('guessClub', state);
+    await updateGameState('guessClub', state, dateKey);
     document.getElementById('guessClub-input').disabled = true;
+    renderFormation();  // ensure shirts visible
     renderLives();
     renderScore();
     setTimeout(() => showResult(), 600);
@@ -211,22 +214,16 @@ function showResult() {
     const title  = document.getElementById('result-title');
     const score  = document.getElementById('result-score');
     const reveal = document.getElementById('result-reveal');
-
     icon.className = 'result-icon ' + (state.solved ? 'success' : 'fail');
     icon.innerHTML = state.solved
         ? `<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>`
         : `<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>`;
-
     title.textContent = state.solved ? 'Nicely done.' : 'Not this time.';
     score.innerHTML = state.solved
         ? `You scored <strong>${state.score} out of 5</strong>.<br><span class="reveal-player">${escapeHtml(data.club)}</span>`
         : `<span class="reveal-player">${escapeHtml(data.club)}</span>`;
     reveal.innerHTML = '';
     modal.classList.add('active');
-    document.getElementById('result-continue').onclick = () => {
-        modal.classList.remove('active');
-        onFinish && onFinish();
-    };
 }
 
 function escapeHtml(str) {

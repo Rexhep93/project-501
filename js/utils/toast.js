@@ -1,6 +1,3 @@
-// Toast feedback — top-positioned, slides down, auto-dismisses
-// API:  toast('Correct!', 'success')   // type: success | error | warn
-
 const ICONS = {
     success: '<svg viewBox="0 0 24 24"><use href="#i-check"/></svg>',
     error:   '<svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>',
@@ -13,13 +10,9 @@ const MAX_VISIBLE = 2;
 export function toast(message, type = 'success') {
     const stack = document.getElementById('toast-stack');
     if (!stack) return;
-
-    // Trim oldest if too many on screen
     while (stack.children.length >= MAX_VISIBLE) {
-        const oldest = stack.children[0];
-        oldest.remove();
+        stack.children[0].remove();
     }
-
     const el = document.createElement('div');
     el.className = `toast toast-${type}`;
     el.innerHTML = `
@@ -27,7 +20,6 @@ export function toast(message, type = 'success') {
         <span class="toast-text">${escapeHtml(message)}</span>
     `;
     stack.appendChild(el);
-
     setTimeout(() => {
         el.classList.add('toast-out');
         setTimeout(() => el.remove(), 300);

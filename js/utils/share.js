@@ -1,106 +1,151 @@
-// Wordle-style share feature.
-// Produces a spoiler-free emoji grid summarising today's Matchday.
-// Uses Web Share API when available (iOS Safari supports it in standalone PWA),
-// falls back to clipboard copy with a toast confirmation.
+// Share feature — renders the celebration screen as an image and shares it.
+// Uses html2canvas (lazy-loaded from CDN on first use).
+// Falls back to text-emoji share if canvas/Web Share API with files isn't
+// supported, OR if html2canvas fails to load (offline etc).
 
 import { toast } from './toast.js';
 import { todayKey } from './date-key.js';
 
-const GAME_MAX = {
-    tenable: 10,
-    guessPlayer: 5,
-    whoAmI: 5,
-    guessClub: 5
-};
+const HTML2CANVAS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+let html2canvasPromise = null;
+
+function loadHtml2Canvas() {
+    if (window.html2canvas) return Promise.resolve(window.html2canvas);
+    if (html2canvasPromise) return html2canvasPromise;
+    html2canvasPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = HTML2CANVAS_URL;
+        script.async = true;
+        script.onload = () => resolve(window.html2canvas);
+        script.onerror = () => {
+            html2canvasPromise = null;
+            reject(new Error('Could not load html2canvas'));
+        };
+        document.head.appendChild(script);
+    });
+    return html2canvasPromise;
+}
 
 /**
- * Build a spoiler-free emoji grid showing per-game performance.
- * Tenable uses 🟩 (got) / ⬜ (missed) for each of 10 ranks.
- * Other games use a single pill showing score fraction.
+ * Build the fallback emoji-text share (used when image-share isn't possible).
  */
 export function buildShareText(state) {
     const dateStr = formatDateForShare(todayKey());
     const lines = [`Matchday · ${dateStr}`];
-
-    const total = (state.tenable?.score || 0)
-                + (state.guessPlayer?.score || 0)
-                + (state.whoAmI?.score || 0)
-                + (state.guessClub?.score || 0);
+    const total = (state.tenable?.score || 0) + (state.guessPlayer?.score || 0)
+                + (state.whoAmI?.score || 0) + (state.guessClub?.score || 0);
     lines.push(`${total}/25`);
     lines.push('');
-
-    // Tenable: 10-cell row showing which ranks were revealed
     if (state.tenable?.played) {
         const revealed = new Set(state.tenable.revealedRanks || []);
         let row = '1⃣ ';
-        for (let r = 1; r <= 10; r++) {
-            row += revealed.has(r) ? '🟩' : '⬜';
-        }
+        for (let r = 1; r <= 10; r++) row += revealed.has(r) ? '🟩' : '⬜';
         lines.push(row);
     } else {
         lines.push('1⃣ ⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛');
     }
-
-    // Other games: score out of 5 as filled circles
     lines.push(formatGameRow('2⃣', state.guessPlayer));
     lines.push(formatGameRow('3⃣', state.whoAmI));
     lines.push(formatGameRow('4⃣', state.guessClub));
-
     lines.push('');
-    lines.push('matchday.app'); // Change this to your actual URL
-
+    lines.push('matchday.app');
     return lines.join('\n');
 }
 
 function formatGameRow(label, gameState) {
-    if (!gameState?.played) {
-        return `${label} ⬛⬛⬛⬛⬛`;
-    }
+    if (!gameState?.played) return `${label} ⬛⬛⬛⬛⬛`;
     const score = gameState.score || 0;
     let row = label + ' ';
-    for (let i = 0; i < 5; i++) {
-        row += i < score ? '🟩' : '⬜';
-    }
+    for (let i = 0; i < 5; i++) row += i < score ? '🟩' : '⬜';
     return row;
 }
 
 function formatDateForShare(dateKey) {
     const [y, m, d] = dateKey.split('-').map(Number);
-    const dt = new Date(y, m - 1, d);
-    return dt.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'short'
-    });
+    return new Date(y, m - 1, d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 /**
- * Share today's result. Uses Web Share API if available (native share sheet),
- * otherwise falls back to clipboard with a toast.
+ * Render a given DOM element to a PNG Blob.
+ */
+async function elementToBlob(el) {
+    const html2canvas = await loadHtml2Canvas();
+    const bgColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--base').trim() || '#F5F1E8';
+    const canvas = await html2canvas(el, {
+        backgroundColor: bgColor,
+        scale: 2,                 // retina quality
+        useCORS: true,
+        logging: false,
+        // Mobile fix: force known viewport size (html2canvas misreads 100vh on iOS)
+        windowWidth: el.offsetWidth,
+        windowHeight: el.offsetHeight
+    });
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+}
+
+/**
+ * Share today's result as an image of the celebration screen.
+ * Falls back to emoji-text if anything fails.
  */
 export async function shareResult(state) {
+    const celebEl = document.getElementById('celebration-share-card');
     const text = buildShareText(state);
 
-    // Try Web Share API first — this gives the native iOS share sheet
-    if (navigator.share) {
+    // Attempt image share if celebration DOM is available
+    if (celebEl) {
         try {
-            await navigator.share({
-                title: 'My Matchday',
-                text: text
-            });
-            return true;
+            const blob = await elementToBlob(celebEl);
+            if (blob) {
+                const file = new File([blob], `matchday-${todayKey()}.png`, { type: 'image/png' });
+
+                // Web Share API with files
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            title: 'My Matchday',
+                            text: `Matchday · ${formatDateForShare(todayKey())}`,
+                            files: [file]
+                        });
+                        return true;
+                    } catch (e) {
+                        if (e.name === 'AbortError') return false;
+                        // share failed for other reasons, fall through to download
+                    }
+                }
+
+                // Fallback: trigger download of the image
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `matchday-${todayKey()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                toast('Image downloaded', 'success');
+                return true;
+            }
         } catch (e) {
-            // User cancelled, or share failed — fall through to clipboard
-            if (e.name === 'AbortError') return false;
+            console.warn('[Share] Image generation failed, falling back to text:', e);
+            // fall through to text share below
         }
     }
 
-    // Clipboard fallback
+    // Text fallback (no celebration DOM, or html2canvas unavailable)
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'My Matchday', text });
+            return true;
+        } catch (e) {
+            if (e.name === 'AbortError') return false;
+        }
+    }
     try {
         await navigator.clipboard.writeText(text);
         toast('Copied to clipboard', 'success');
         return true;
     } catch (e) {
-        // Last-resort fallback for very old browsers
         try {
             const ta = document.createElement('textarea');
             ta.value = text;
@@ -109,7 +154,7 @@ export async function shareResult(state) {
             document.body.appendChild(ta);
             ta.select();
             document.execCommand('copy');
-            document.body.removeChild(ta);
+            ta.remove();
             toast('Copied to clipboard', 'success');
             return true;
         } catch (e2) {

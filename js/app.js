@@ -1,10 +1,12 @@
-import { loadTodayData, loadSampleData } from './utils/data-loader.js';
+import { loadDataForDate, loadSampleData } from './utils/data-loader.js';
 import { getState, countPlayed, totalScore } from './utils/storage.js';
 import { hapticLight } from './utils/haptics.js';
-import { recordToday, getLast7Days, getLifetimeStats } from './utils/history.js';
+import { recordScore, getLast7Days, getLifetimeStats } from './utils/history.js';
 import { initViewportHandling } from './utils/viewport.js';
 import { shareResult } from './utils/share.js';
 import { toast } from './utils/toast.js';
+import { todayKey, dateToKey, keyToDate, isToday } from './utils/date-key.js';
+import { getSettings, saveSettings, applyTheme, initThemeListener } from './utils/settings.js';
 
 import { initTenable }      from './games/tenable.js';
 import { initGuessPlayer }  from './games/guess-player.js';
@@ -13,42 +15,32 @@ import { initGuessClub }    from './games/guess-club.js';
 
 const USE_SAMPLE_DATA = false;
 
-const GAME_MAX = {
-    tenable: 10,
-    guessPlayer: 5,
-    whoAmI: 5,
-    guessClub: 5
-};
+const GAME_MAX = { tenable: 10, guessPlayer: 5, whoAmI: 5, guessClub: 5 };
 
-const GAME_LABELS = {
-    tenable: 'Tenable',
-    guessPlayer: 'Player',
-    whoAmI: 'Who Am I',
-    guessClub: 'Club'
-};
-
-let todayData = null;
+let currentDate = todayKey();   // dateKey of the day currently loaded/shown
+let currentData = null;         // the data for currentDate
 let dataLoadFailed = false;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
 let isFirstRender = true;
-let celebrationShown = false;
+let celebrationShownForDate = null;  // which date's celebration we've already shown this session
 
 // ═══════════════════════════════════════
 // BOOTSTRAP
 // ═══════════════════════════════════════
 
 async function bootstrap() {
+    initThemeListener();
     initViewportHandling();
     renderMasthead();
     showSkeleton();
 
     try {
-        todayData = USE_SAMPLE_DATA ? loadSampleData() : await loadTodayData();
+        currentData = USE_SAMPLE_DATA ? loadSampleData() : await loadDataForDate(currentDate);
         dataLoadFailed = false;
     } catch (e) {
-        console.error('Data load failed completely, using sample:', e);
-        todayData = loadSampleData();
+        console.error('Data load failed, using sample:', e);
+        currentData = loadSampleData();
         dataLoadFailed = true;
     }
 
@@ -71,16 +63,20 @@ async function bootstrap() {
 
     setupModalDismissal();
     setupCelebration();
+    setupSettings();
+    setupBackToToday();
 
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         const resultModal = document.getElementById('result-modal');
         const celeb = document.getElementById('celebration');
+        const settings = document.getElementById('settings-screen');
         if (resultModal.classList.contains('active')) {
-            resultModal.classList.remove('active');
-            navigate('menu');
+            closeResultModal();
         } else if (celeb.classList.contains('active')) {
             celeb.classList.remove('active');
+        } else if (settings.classList.contains('active')) {
+            closeSettings();
         } else if (currentScreen !== 'menu') {
             navigate('menu');
         }
@@ -88,7 +84,7 @@ async function bootstrap() {
 }
 
 // ═══════════════════════════════════════
-// SKELETON / ERROR STATES
+// SKELETON / ERROR
 // ═══════════════════════════════════════
 
 function showSkeleton() { document.body.classList.add('loading'); }
@@ -104,55 +100,96 @@ function showDataErrorBanner() {
             banner.classList.remove('visible');
             showSkeleton();
             try {
-                todayData = await loadTodayData();
+                currentData = await loadDataForDate(currentDate);
                 dataLoadFailed = false;
             } catch (e) {
-                todayData = loadSampleData();
+                currentData = loadSampleData();
                 dataLoadFailed = true;
             }
             hideSkeleton();
             await renderMenu();
             if (dataLoadFailed) showDataErrorBanner();
-            else toast("Today's quiz loaded", 'success');
+            else toast("Quiz loaded", 'success');
         };
     }
 }
 
 // ═══════════════════════════════════════
-// MASTHEAD (date + matchday number)
+// MASTHEAD
 // ═══════════════════════════════════════
-
-function getMatchdayNumber() {
-    // Anchor: Matchday 1 = Jan 1 2026. Compute days since then.
-    const anchor = new Date(2026, 0, 1);
-    const now = new Date();
-    const days = Math.floor((now - anchor) / (1000 * 60 * 60 * 24));
-    return Math.max(1, days + 1);
-}
 
 function renderMasthead() {
-    const now = new Date();
-    const weekday = now.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
-    const day = now.getDate();
-    const month = now.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+    const d = keyToDate(currentDate);
+    const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase();
+    const day = d.getDate();
+    const month = d.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
     const dateEl = document.getElementById('masthead-date');
     if (dateEl) dateEl.textContent = `${weekday} · ${day} ${month}`;
-    const numEl = document.getElementById('masthead-num');
-    if (numEl) numEl.textContent = getMatchdayNumber();
+}
+
+function setupBackToToday() {
+    const btn = document.getElementById('back-to-today');
+    if (!btn) return;
+    btn.onclick = async () => {
+        await loadDay(todayKey());
+    };
+}
+
+function updateBackToTodayVisibility() {
+    const btn = document.getElementById('back-to-today');
+    if (!btn) return;
+    btn.style.display = isToday(currentDate) ? 'none' : 'inline-flex';
 }
 
 // ═══════════════════════════════════════
-// MODAL DISMISSAL
+// RESULT MODAL
 // ═══════════════════════════════════════
+
+function closeResultModal() {
+    const modal = document.getElementById('result-modal');
+    modal.classList.remove('active');
+}
 
 function setupModalDismissal() {
     const resultModal = document.getElementById('result-modal');
+
+    // Backdrop tap
     resultModal.addEventListener('click', (e) => {
         if (e.target === resultModal) {
-            resultModal.classList.remove('active');
-            navigate('menu');
+            closeResultModal();
         }
     });
+
+    // Explicit close buttons
+    const closeBtn = document.getElementById('result-close');
+    if (closeBtn) closeBtn.onclick = () => closeResultModal();
+
+    const continueBtn = document.getElementById('result-continue');
+    if (continueBtn) {
+        continueBtn.onclick = async () => {
+            closeResultModal();
+            // After closing, navigate back to menu + refresh + maybe show celebration
+            await handleGameFinished();
+        };
+    }
+
+    const reviewBtn = document.getElementById('result-review');
+    if (reviewBtn) {
+        reviewBtn.onclick = () => {
+            // Just close, leave the game screen visible so user can review
+            closeResultModal();
+        };
+    }
+}
+
+async function handleGameFinished() {
+    await renderMenu();
+    navigate('menu');
+    const newState = await getState(currentDate);
+    if (countPlayed(newState) === 4 && celebrationShownForDate !== currentDate) {
+        celebrationShownForDate = currentDate;
+        setTimeout(() => showCelebration(newState), 500);
+    }
 }
 
 // ═══════════════════════════════════════
@@ -161,15 +198,11 @@ function setupModalDismissal() {
 
 function setupCelebration() {
     const celeb = document.getElementById('celebration');
-    document.getElementById('celeb-close').onclick = () => {
-        celeb.classList.remove('active');
-    };
-    document.getElementById('celeb-see-review').onclick = () => {
-        celeb.classList.remove('active');
-    };
+    document.getElementById('celeb-close').onclick = () => celeb.classList.remove('active');
+    document.getElementById('celeb-see-review').onclick = () => celeb.classList.remove('active');
     document.getElementById('celeb-share').onclick = async () => {
         hapticLight();
-        const state = await getState();
+        const state = await getState(currentDate);
         await shareResult(state);
     };
 }
@@ -178,12 +211,10 @@ function showCelebration(state) {
     const celeb = document.getElementById('celebration');
     const total = totalScore(state);
 
-    // Reset fills so animation re-plays
     document.querySelectorAll('#celeb-recap .celeb-recap-fill').forEach(f => {
         f.style.transform = 'scaleX(0)';
     });
 
-    // Set recap scores + labels
     const games = ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'];
     games.forEach(g => {
         const row = document.querySelector(`.celeb-recap-row[data-game="${g}"]`);
@@ -194,13 +225,18 @@ function showCelebration(state) {
         row.querySelector('.celeb-recap-score').textContent = `${score}/${max}`;
     });
 
-    // Reset big score to 0 before animating
     const numEl = document.getElementById('celeb-score-num');
     numEl.textContent = '0';
 
+    // Set date on the share-ready card
+    const celebDate = document.getElementById('celeb-date');
+    if (celebDate) {
+        const d = keyToDate(currentDate);
+        celebDate.textContent = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
     celeb.classList.add('active');
 
-    // Staggered bar fills (starts ~400ms in, gives CSS fade-up time)
     games.forEach((g, i) => {
         setTimeout(() => {
             const row = document.querySelector(`.celeb-recap-row[data-game="${g}"]`);
@@ -212,10 +248,50 @@ function showCelebration(state) {
         }, 500 + i * 150);
     });
 
-    // Count up big number after bars finish (around 1.2s total)
     setTimeout(() => {
         animateCountUp(numEl, 0, total, 900);
     }, 1200);
+}
+
+// ═══════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════
+
+function setupSettings() {
+    const btn = document.getElementById('settings-btn');
+    if (btn) btn.onclick = openSettings;
+
+    const closeBtn = document.getElementById('settings-close');
+    if (closeBtn) closeBtn.onclick = closeSettings;
+
+    // Theme radio group
+    document.querySelectorAll('[data-theme-option]').forEach(el => {
+        el.onclick = () => {
+            const theme = el.dataset.themeOption;
+            saveSettings({ theme });
+            updateSettingsUI();
+            hapticLight();
+        };
+    });
+
+    updateSettingsUI();
+}
+
+function openSettings() {
+    hapticLight();
+    updateSettingsUI();
+    document.getElementById('settings-screen').classList.add('active');
+}
+
+function closeSettings() {
+    document.getElementById('settings-screen').classList.remove('active');
+}
+
+function updateSettingsUI() {
+    const current = getSettings().theme;
+    document.querySelectorAll('[data-theme-option]').forEach(el => {
+        el.classList.toggle('selected', el.dataset.themeOption === current);
+    });
 }
 
 // ═══════════════════════════════════════
@@ -223,16 +299,20 @@ function showCelebration(state) {
 // ═══════════════════════════════════════
 
 async function renderMenu() {
-    const state = await getState();
+    const state = await getState(currentDate);
     const total = totalScore(state);
     const played = countPlayed(state);
 
+    renderMasthead();
+    updateBackToTodayVisibility();
     renderScoreCard(state, total, played);
     renderTiles(state);
 
-    if (played > 0) await recordToday(total);
+    // Only record to history if we played on today — oude dagen inhalen slaat
+    // wel de beste score op, maar niet als vandaag.
+    if (played > 0) await recordScore(total, currentDate);
 
-    await renderWeekStrip(state);
+    await renderWeekStrip();
     await renderLifetimeStats();
 }
 
@@ -240,13 +320,7 @@ async function renderLifetimeStats() {
     const el = document.getElementById('lifetime-stats');
     if (!el) return;
     const stats = await getLifetimeStats();
-
-    // If user has never played, show nothing — empty state instead of zeros
-    if (stats.days === 0) {
-        el.innerHTML = '';
-        return;
-    }
-
+    if (stats.days === 0) { el.innerHTML = ''; return; }
     el.innerHTML = `
         <div class="lifetime-row">
             <div class="lifetime-item">
@@ -271,10 +345,9 @@ function renderScoreCard(state, total, played) {
     const card = document.getElementById('score-card');
     if (!card) return;
 
-    // 3 states: fresh (0 played), progress (1-3 played), done (4 played)
     if (played === 0) {
         card.dataset.state = 'fresh';
-        const otd = todayData?.onThisDay;
+        const otd = currentData?.onThisDay;
         if (otd && otd.headline) {
             card.innerHTML = `
                 <div class="sc-otd">
@@ -284,10 +357,9 @@ function renderScoreCard(state, total, played) {
                 </div>
             `;
         } else {
-            // Bare fallback if no on-this-day data at all
             card.innerHTML = `
                 <div class="sc-otd">
-                    <p class="sc-otd-eyebrow">Matchday ${getMatchdayNumber()}</p>
+                    <p class="sc-otd-eyebrow">${isToday(currentDate) ? "Today's matchday" : "That day"}</p>
                     <h3 class="sc-otd-headline">Four games waiting.</h3>
                 </div>
             `;
@@ -301,7 +373,7 @@ function renderScoreCard(state, total, played) {
         card.dataset.state = 'progress';
         card.innerHTML = `
             <div class="sc-progress">
-                <p class="sc-label">Today's score</p>
+                <p class="sc-label">${isToday(currentDate) ? "Today's score" : 'Score'}</p>
                 <div class="sc-value">
                     <span class="sc-num" id="score-num">${isFirstRender ? total : lastRenderedScore}</span>
                     <span class="sc-max">/25</span>
@@ -320,8 +392,6 @@ function renderScoreCard(state, total, played) {
         }
         lastRenderedScore = total;
         isFirstRender = false;
-
-        // Fill segments
         ['tenable','guessPlayer','whoAmI','guessClub'].forEach(g => {
             const seg = card.querySelector(`.sc-segment[data-segment="${g}"] .sc-segment-fill`);
             if (!seg) return;
@@ -336,7 +406,6 @@ function renderScoreCard(state, total, played) {
         return;
     }
 
-    // DONE state
     card.dataset.state = 'done';
     card.innerHTML = `
         <div class="sc-done-left">
@@ -354,7 +423,11 @@ function renderScoreCard(state, total, played) {
     document.getElementById('sc-done-share').onclick = async (e) => {
         e.stopPropagation();
         hapticLight();
-        await shareResult(state);
+        // Show celebration screen invisibly to render the share-card, then share
+        const celebState = await getState(currentDate);
+        showCelebration(celebState);
+        await new Promise(r => setTimeout(r, 400));  // wait for bars to animate
+        await shareResult(celebState);
     };
     lastRenderedScore = total;
     isFirstRender = false;
@@ -366,49 +439,75 @@ function renderTiles(state) {
         if (!tile) return;
         const done = state[game]?.played;
         tile.classList.toggle('completed', !!done);
-
         const chip = tile.querySelector(`[data-played-chip="${game}"]`);
-        if (done) {
-            chip.textContent = `${state[game].score}/${GAME_MAX[game]}`;
-        } else {
-            chip.textContent = '';
-        }
+        if (done) chip.textContent = `${state[game].score}/${GAME_MAX[game]}`;
+        else chip.textContent = '';
     });
 }
 
-async function renderWeekStrip(state) {
+async function renderWeekStrip() {
     const strip = document.getElementById('week-strip');
     if (!strip) return;
     const days = await getLast7Days();
-    const played = countPlayed(state);
-    const fillFrac = (played / 4).toFixed(2);
+    const todayState = await getState(todayKey());
+    const todayPlayed = countPlayed(todayState);
+    const todayFillFrac = (todayPlayed / 4).toFixed(2);
 
     strip.innerHTML = days.map(d => {
         const weekday = shortWeekday(d.date);
+        const isSelected = d.date === currentDate;
+        const classes = ['day-cell'];
+        classes.push('shirt-cell');
+        if (d.isToday) classes.push('today');
+        if (isSelected) classes.push('selected');
+        if (d.played && !d.isToday) classes.push('played');
 
-        if (d.isToday) {
-            return `
-                <div class="day-cell today">
-                    <div class="today-ring-fill" style="--fill: ${fillFrac};"></div>
-                    <div class="today-ring"></div>
-                    <span class="day-cell-weekday">${weekday}</span>
-                    <span class="day-cell-num">${d.dayNum}</span>
-                </div>`;
-        }
-        if (d.played) {
-            return `
-                <div class="day-cell">
-                    <span class="day-cell-weekday">${weekday}</span>
-                    <span class="day-cell-num">${d.dayNum}</span>
-                    <span class="day-cell-score">${d.score}</span>
-                </div>`;
-        }
+        // Today shows progress indicator. Played days show a check.
+        // We render each cell as a shirt SVG with day number as the "kit number".
         return `
-            <div class="day-cell missed">
-                <span class="day-cell-weekday">${weekday}</span>
-                <span class="day-cell-num">${d.dayNum}</span>
-            </div>`;
+            <button class="${classes.join(' ')}" data-date="${d.date}">
+                <svg class="shirt-svg" viewBox="0 0 40 44" aria-hidden="true">
+                    <defs>
+                        <clipPath id="clip-shirt-${d.date}"><path d="M 8 4 L 14 2 Q 15 8 20 8 Q 25 8 26 2 L 32 4 L 38 10 L 34 16 L 32 13 L 32 40 Q 32 42 30 42 L 10 42 Q 8 42 8 40 L 8 13 L 6 16 L 2 10 Z"/></clipPath>
+                    </defs>
+                    <path d="M 8 4 L 14 2 Q 15 8 20 8 Q 25 8 26 2 L 32 4 L 38 10 L 34 16 L 32 13 L 32 40 Q 32 42 30 42 L 10 42 Q 8 42 8 40 L 8 13 L 6 16 L 2 10 Z"
+                          class="shirt-fill"/>
+                    ${d.isToday ? `<rect x="0" y="0" width="40" height="44" clip-path="url(#clip-shirt-${d.date})" class="shirt-today-fill" style="--fill: ${todayFillFrac};"/>` : ''}
+                    ${d.played && !d.isToday ? `<rect x="0" y="0" width="40" height="44" clip-path="url(#clip-shirt-${d.date})" class="shirt-played-fill"/>` : ''}
+                </svg>
+                <div class="day-cell-inner">
+                    <span class="day-cell-weekday">${weekday}</span>
+                    <span class="day-cell-num">${d.dayNum}</span>
+                    ${d.played && !d.isToday ? `<svg class="day-cell-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>` : ''}
+                </div>
+            </button>`;
     }).join('');
+
+    // Bind clicks
+    strip.querySelectorAll('.day-cell').forEach(el => {
+        el.onclick = async () => {
+            const target = el.dataset.date;
+            if (target === currentDate) return;
+            hapticLight();
+            await loadDay(target);
+        };
+    });
+}
+
+async function loadDay(dateKey) {
+    currentDate = dateKey;
+    isFirstRender = true;  // reset so score doesn't animate from wrong value
+    showSkeleton();
+    try {
+        currentData = await loadDataForDate(currentDate);
+        dataLoadFailed = false;
+    } catch (e) {
+        currentData = loadSampleData();
+        dataLoadFailed = true;
+    }
+    hideSkeleton();
+    await renderMenu();
+    if (dataLoadFailed) showDataErrorBanner();
 }
 
 function shortWeekday(dateStr) {
@@ -438,34 +537,23 @@ function animateCountUp(el, from, to, duration) {
 // ═══════════════════════════════════════
 
 async function openGame(gameKey) {
-    const state = await getState();
-    const gameData  = todayData[gameKey];
+    const state = await getState(currentDate);
+    const gameData  = currentData[gameKey];
     const gameState = state[gameKey];
 
-    // Reset hero to full state when opening
     const hero = document.getElementById(`${gameKey}-hero`);
     if (hero) hero.classList.remove('shrunk');
 
-    const finishCb = async () => {
-        await renderMenu();
-        navigate('menu');
-        const newState = await getState();
-        if (countPlayed(newState) === 4 && !celebrationShown) {
-            celebrationShown = true;
-            setTimeout(() => showCelebration(newState), 500);
-        }
-    };
+    const finishCb = handleGameFinished;
 
     navigate(`${gameKey}-screen`);
 
     switch (gameKey) {
-        case 'tenable':     initTenable(gameData, gameState, finishCb); break;
-        case 'guessPlayer': initGuessPlayer(gameData, gameState, finishCb); break;
-        case 'whoAmI':      initWhoAmI(gameData, gameState, finishCb); break;
-        case 'guessClub':   initGuessClub(gameData, gameState, finishCb); break;
+        case 'tenable':     initTenable(gameData, gameState, finishCb, currentDate); break;
+        case 'guessPlayer': initGuessPlayer(gameData, gameState, finishCb, currentDate); break;
+        case 'whoAmI':      initWhoAmI(gameData, gameState, finishCb, currentDate); break;
+        case 'guessClub':   initGuessClub(gameData, gameState, finishCb, currentDate); break;
     }
-
-    // Hook hero-shrink: shrink on first input focus OR first submit
     setupHeroShrink(gameKey);
 }
 
@@ -475,28 +563,18 @@ function setupHeroShrink(gameKey) {
     const input = document.getElementById(`${gameKey}-input`);
     if (!hero || !form || !input) return;
 
-    // Shrink only on first real submit (user typed something and pressed enter).
-    // Do NOT trigger on focus — the input auto-focuses on screen open, which
-    // would shrink the hero before the user can read the question.
-    const shrinkOnce = (e) => {
-        // Ignore empty submits (happens if user just hits enter on empty field)
+    const shrinkOnce = () => {
         if (!input.value.trim()) return;
-        if (!hero.classList.contains('shrunk')) {
-            hero.classList.add('shrunk');
-        }
+        if (!hero.classList.contains('shrunk')) hero.classList.add('shrunk');
     };
-
     form.addEventListener('submit', shrinkOnce);
 
-    // Tap-to-expand: tapping the shrunk hero temporarily expands it
     hero.addEventListener('click', (e) => {
-        // Don't expand if user clicks the score chip or a button
         if (e.target.closest('.hero-score-chip')) return;
+        if (e.target.closest('#tenable-hint-btn')) return;
         if (hero.classList.contains('shrunk')) {
             hero.classList.remove('shrunk');
-            // Auto-re-shrink after 4s if user doesn't interact
             setTimeout(() => {
-                // Only re-shrink if they've already made a submit attempt
                 if (input.value === '' && form.dataset.everSubmitted === '1') {
                     hero.classList.add('shrunk');
                 }
@@ -504,7 +582,6 @@ function setupHeroShrink(gameKey) {
         }
     });
 
-    // Track first submit for re-shrink logic above
     form.addEventListener('submit', () => {
         if (input.value.trim()) form.dataset.everSubmitted = '1';
     });
@@ -526,6 +603,10 @@ function navigate(target) {
 document.addEventListener('DOMContentLoaded', bootstrap);
 document.addEventListener('visibilitychange', async () => {
     if (!document.hidden && currentScreen === 'menu') {
+        // Re-render in case day rolled over
+        if (isToday(currentDate) === false && todayKey() !== currentDate) {
+            // fine — stay where we are
+        }
         await renderMenu();
     }
 });

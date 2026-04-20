@@ -211,7 +211,18 @@
                         <div class="tile-chev"><svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg></div>
                         <div class="tile-played-chip" data-played-chip="guessClub"></div>
                     </button>
-                </div>
+               </div>
+
+                <section class="achievements-strip-section" id="achievements-strip-section" style="display:none;">
+                    <div class="achievements-strip-header">
+                        <h3 class="achievements-strip-title">Achievements</h3>
+                        <button class="achievements-strip-link" id="achievements-view-all">
+                            <span>View all</span>
+                            <svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg>
+                        </button>
+                    </div>
+                    <div class="achievements-strip" id="achievements-strip"></div>
+                </section>
 
                 <div class="lifetime-stats" id="lifetime-stats"></div>
             </div>
@@ -470,6 +481,19 @@
                 </div>
             </section>
         </div>
+</section>
+
+    <!-- ================================================================
+         ACHIEVEMENTS SCREEN
+         ================================================================ -->
+    <section id="achievements-screen" class="achievements-screen">
+        <header class="achievements-header">
+            <h2 class="achievements-title">Achievements</h2>
+            <button class="icon-btn" id="achievements-close" aria-label="Close">
+                <svg viewBox="0 0 24 24"><use href="#i-cross"/></svg>
+            </button>
+        </header>
+        <div class="achievements-body" id="achievements-body"></div>
     </section>
 
     <script type="module" src="js/app.js"></script>

@@ -453,30 +453,19 @@ async function renderWeekStrip() {
     const todayPlayed = countPlayed(todayState);
     const todayFillFrac = (todayPlayed / 4).toFixed(2);
 
-     strip.innerHTML = days.map(d => {
+    strip.innerHTML = days.map(d => {
         const weekday = shortWeekday(d.date);
         const isSelected = d.date === currentDate;
-        const classes = ['day-cell', 'shirt-cell'];
+        const classes = ['day-cell'];
         if (d.isToday) classes.push('today');
         if (isSelected) classes.push('selected');
         if (d.played && !d.isToday) classes.push('played');
-        // Classic football shirt silhouette: short sleeves, round neck
-        const shirtPath = 'M 14 6 Q 20 10 26 6 L 34 9 L 38 16 L 32 19 L 30 17 L 30 40 Q 30 42 28 42 L 12 42 Q 10 42 10 40 L 10 17 L 8 19 L 2 16 L 6 9 Z';
         return `
             <button class="${classes.join(' ')}" data-date="${d.date}">
-                <svg class="shirt-svg" viewBox="0 0 40 44" aria-hidden="true">
-                    <defs>
-                        <clipPath id="clip-shirt-${d.date}"><path d="${shirtPath}"/></clipPath>
-                    </defs>
-                    <path d="${shirtPath}" class="shirt-fill"/>
-                    ${d.isToday ? `<rect x="0" y="0" width="40" height="44" clip-path="url(#clip-shirt-${d.date})" class="shirt-today-fill" style="--fill: ${todayFillFrac};"/>` : ''}
-                    ${d.played && !d.isToday ? `<rect x="0" y="0" width="40" height="44" clip-path="url(#clip-shirt-${d.date})" class="shirt-played-fill"/>` : ''}
-                </svg>
-                <div class="day-cell-inner">
-                    <span class="day-cell-weekday">${weekday}</span>
-                    <span class="day-cell-num">${d.dayNum}</span>
-                    ${d.played && !d.isToday ? `<svg class="day-cell-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>` : ''}
-                </div>
+                ${d.isToday ? `<div class="day-cell-today-fill" style="--fill: ${todayFillFrac};"></div>` : ''}
+                <span class="day-cell-weekday">${weekday}</span>
+                <span class="day-cell-num">${d.dayNum}</span>
+                ${d.played && !d.isToday ? `<svg class="day-cell-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>` : ''}
             </button>`;
     }).join('');
     

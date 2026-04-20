@@ -70,13 +70,14 @@ async function bootstrap() {
     const achCloseBtn = document.getElementById('achievements-close');
     if (achCloseBtn) achCloseBtn.onclick = closeAchievementsScreen;
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', async (e) => {
         if (e.key !== 'Escape') return;
         const resultModal = document.getElementById('result-modal');
         const celeb = document.getElementById('celebration');
         const settings = document.getElementById('settings-screen');
         if (resultModal.classList.contains('active')) {
             closeResultModal();
+            await handleGameFinished();
         } else if (celeb.classList.contains('active')) {
             celeb.classList.remove('active');
         } else if (settings.classList.contains('active')) {
@@ -159,31 +160,26 @@ function closeResultModal() {
 function setupModalDismissal() {
     const resultModal = document.getElementById('result-modal');
 
-    // Backdrop tap
-    resultModal.addEventListener('click', (e) => {
+    // Backdrop tap = same as continue (save + return to menu)
+    resultModal.addEventListener('click', async (e) => {
         if (e.target === resultModal) {
             closeResultModal();
+            await handleGameFinished();
         }
     });
 
-    // Explicit close buttons
+    // X button = same as continue
     const closeBtn = document.getElementById('result-close');
-    if (closeBtn) closeBtn.onclick = () => closeResultModal();
+    if (closeBtn) closeBtn.onclick = async () => {
+        closeResultModal();
+        await handleGameFinished();
+    };
 
     const continueBtn = document.getElementById('result-continue');
     if (continueBtn) {
         continueBtn.onclick = async () => {
             closeResultModal();
-            // After closing, navigate back to menu + refresh + maybe show celebration
             await handleGameFinished();
-        };
-    }
-
-    const reviewBtn = document.getElementById('result-review');
-    if (reviewBtn) {
-        reviewBtn.onclick = () => {
-            // Just close, leave the game screen visible so user can review
-            closeResultModal();
         };
     }
 }

@@ -7,6 +7,7 @@ import { shareResult } from './utils/share.js';
 import { toast } from './utils/toast.js';
 import { todayKey, dateToKey, keyToDate, isToday } from './utils/date-key.js';
 import { getSettings, saveSettings, applyTheme, initThemeListener } from './utils/settings.js';
+import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, getIconForCategory } from './utils/achievements.js';
 
 import { initTenable }      from './games/tenable.js';
 import { initGuessPlayer }  from './games/guess-player.js';
@@ -66,6 +67,9 @@ async function bootstrap() {
     setupSettings();
     setupBackToToday();
 
+    const achCloseBtn = document.getElementById('achievements-close');
+    if (achCloseBtn) achCloseBtn.onclick = closeAchievementsScreen;
+
     document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
         const resultModal = document.getElementById('result-modal');
@@ -77,6 +81,8 @@ async function bootstrap() {
             celeb.classList.remove('active');
         } else if (settings.classList.contains('active')) {
             closeSettings();
+        } else if (document.getElementById('achievements-screen').classList.contains('active')) {
+            closeAchievementsScreen();
         } else if (currentScreen !== 'menu') {
             navigate('menu');
         }
@@ -186,6 +192,10 @@ async function handleGameFinished() {
     await renderMenu();
     navigate('menu');
     const newState = await getState(currentDate);
+    
+    // Check achievements before celebration (toasts will fire)
+    await checkAchievements(newState);
+    
     if (countPlayed(newState) === 4 && celebrationShownForDate !== currentDate) {
         celebrationShownForDate = currentDate;
         setTimeout(() => showCelebration(newState), 500);
@@ -314,6 +324,122 @@ async function renderMenu() {
 
     await renderWeekStrip();
     await renderLifetimeStats();
+    renderAchievementsStrip();
+}
+
+function renderAchievementsStrip() {
+    const section = document.getElementById('achievements-strip-section');
+    const strip = document.getElementById('achievements-strip');
+    if (!section || !strip) return;
+    
+    const recentIds = getRecentUnlocked(3);
+    const totalUnlocked = Object.keys(getUnlocked()).length;
+    
+    // Hide strip if zero unlocked
+    if (totalUnlocked === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = 'block';
+    
+    // Build 3 cells: unlocked ones first, empty slots for rest
+    const cells = [];
+    for (let i = 0; i < 3; i++) {
+        const id = recentIds[i];
+        if (id) {
+            const ach = getAchievement(id);
+            if (ach) {
+                cells.push(`
+                    <div class="ach-strip-item">
+                        <div class="ach-strip-icon">${getIconForCategory(ach.category)}</div>
+                        <span class="ach-strip-name">${escapeHtml(ach.name)}</span>
+                    </div>
+                `);
+            }
+        } else {
+            cells.push(`
+                <div class="ach-strip-item empty">
+                    <div class="ach-strip-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                    </div>
+                    <span class="ach-strip-name">Locked</span>
+                </div>
+            `);
+        }
+    }
+    strip.innerHTML = cells.join('');
+    
+    // Wire "View all"
+    const viewAllBtn = document.getElementById('achievements-view-all');
+    if (viewAllBtn) viewAllBtn.onclick = openAchievementsScreen;
+    // Also tap on cells opens the full screen
+    strip.querySelectorAll('.ach-strip-item:not(.empty)').forEach(el => {
+        el.onclick = openAchievementsScreen;
+    });
+}
+
+function openAchievementsScreen() {
+    hapticLight();
+    renderAchievementsScreen();
+    document.getElementById('achievements-screen').classList.add('active');
+}
+
+function closeAchievementsScreen() {
+    document.getElementById('achievements-screen').classList.remove('active');
+}
+
+function renderAchievementsScreen() {
+    const body = document.getElementById('achievements-body');
+    if (!body) return;
+    
+    const unlocked = getUnlocked();
+    const unlockedCount = Object.keys(unlocked).length;
+    const total = ACHIEVEMENTS.length;
+    
+    // Group by category
+    const groups = { streak: [], score: [], game: [], meta: [] };
+    ACHIEVEMENTS.forEach(a => { if (groups[a.category]) groups[a.category].push(a); });
+    
+    const groupTitles = {
+        streak: 'Streak',
+        score: 'Score',
+        game: 'Game mastery',
+        meta: 'Milestones'
+    };
+    
+    let html = `
+        <div class="achievements-progress">
+            <div>
+                <span class="achievements-progress-num">${unlockedCount}</span>
+                <span class="achievements-progress-max">/ ${total}</span>
+            </div>
+            <p class="achievements-progress-label">Unlocked</p>
+        </div>
+    `;
+    
+    for (const cat of ['streak', 'score', 'game', 'meta']) {
+        const items = groups[cat];
+        if (!items.length) continue;
+        html += `
+            <section class="achievements-section">
+                <h3 class="achievements-section-title">${groupTitles[cat]}</h3>
+                <div class="achievements-grid">
+                    ${items.map(ach => {
+                        const isUnlocked = !!unlocked[ach.id];
+                        return `
+                            <div class="ach-card ${isUnlocked ? '' : 'locked'}">
+                                <div class="ach-card-icon">${getIconForCategory(ach.category)}</div>
+                                <h4 class="ach-card-name">${escapeHtml(ach.name)}</h4>
+                                <p class="ach-card-desc">${escapeHtml(ach.description)}</p>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </section>
+        `;
+    }
+    
+    body.innerHTML = html;
 }
 
 async function renderLifetimeStats() {

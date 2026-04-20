@@ -332,48 +332,54 @@ function renderAchievementsStrip() {
     const strip = document.getElementById('achievements-strip');
     if (!section || !strip) return;
     
-    const recentIds = getRecentUnlocked(3);
-    const totalUnlocked = Object.keys(getUnlocked()).length;
-    
-    // Hide strip if zero unlocked
-    if (totalUnlocked === 0) {
-        section.style.display = 'none';
-        return;
-    }
     section.style.display = 'block';
     
-    // Build 3 cells: unlocked ones first, empty slots for rest
+    const unlocked = getUnlocked();
+    const recentIds = getRecentUnlocked(3);
+    
+    // Find "next to unlock" — first 3 achievements that aren't unlocked yet
+    const locked = ACHIEVEMENTS.filter(a => !unlocked[a.id]);
+    
+    // Build 3 cells: unlocked first (most recent), then next-to-unlock
     const cells = [];
+    let unlockedShown = 0;
+    let lockedShown = 0;
+    
     for (let i = 0; i < 3; i++) {
-        const id = recentIds[i];
-        if (id) {
-            const ach = getAchievement(id);
-            if (ach) {
-                cells.push(`
-                    <div class="ach-strip-item">
-                        <div class="ach-strip-icon">${getIconForCategory(ach.category)}</div>
-                        <span class="ach-strip-name">${escapeHtml(ach.name)}</span>
-                    </div>
-                `);
-            }
-        } else {
-            cells.push(`
-                <div class="ach-strip-item empty">
-                    <div class="ach-strip-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
-                    </div>
-                    <span class="ach-strip-name">Locked</span>
-                </div>
-            `);
+        let ach = null;
+        let isLocked = false;
+        
+        if (unlockedShown < recentIds.length) {
+            ach = getAchievement(recentIds[unlockedShown]);
+            unlockedShown++;
+        } else if (lockedShown < locked.length) {
+            ach = locked[lockedShown];
+            isLocked = true;
+            lockedShown++;
         }
+        
+        if (!ach) {
+            cells.push(`<div class="ach-strip-item locked ach-meta">
+                <div class="ach-strip-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                </div>
+                <span class="ach-strip-name">—</span>
+            </div>`);
+            continue;
+        }
+        
+        cells.push(`
+            <div class="ach-strip-item ach-${ach.category} ${isLocked ? 'locked' : ''}">
+                <div class="ach-strip-badge">${getIconForCategory(ach.category)}</div>
+                <span class="ach-strip-name">${escapeHtml(ach.name)}</span>
+            </div>
+        `);
     }
     strip.innerHTML = cells.join('');
     
-    // Wire "View all"
     const viewAllBtn = document.getElementById('achievements-view-all');
     if (viewAllBtn) viewAllBtn.onclick = openAchievementsScreen;
-    // Also tap on cells opens the full screen
-    strip.querySelectorAll('.ach-strip-item:not(.empty)').forEach(el => {
+    strip.querySelectorAll('.ach-strip-item').forEach(el => {
         el.onclick = openAchievementsScreen;
     });
 }
@@ -395,8 +401,8 @@ function renderAchievementsScreen() {
     const unlocked = getUnlocked();
     const unlockedCount = Object.keys(unlocked).length;
     const total = ACHIEVEMENTS.length;
+    const progressFrac = total > 0 ? (unlockedCount / total).toFixed(2) : 0;
     
-    // Group by category
     const groups = { streak: [], score: [], game: [], meta: [] };
     ACHIEVEMENTS.forEach(a => { if (groups[a.category]) groups[a.category].push(a); });
     
@@ -414,6 +420,9 @@ function renderAchievementsScreen() {
                 <span class="achievements-progress-max">/ ${total}</span>
             </div>
             <p class="achievements-progress-label">Unlocked</p>
+            <div class="achievements-progress-bar">
+                <div class="achievements-progress-bar-fill" style="--progress: ${progressFrac};"></div>
+            </div>
         </div>
     `;
     
@@ -427,8 +436,8 @@ function renderAchievementsScreen() {
                     ${items.map(ach => {
                         const isUnlocked = !!unlocked[ach.id];
                         return `
-                            <div class="ach-card ${isUnlocked ? '' : 'locked'}">
-                                <div class="ach-card-icon">${getIconForCategory(ach.category)}</div>
+                            <div class="ach-card ach-${ach.category} ${isUnlocked ? '' : 'locked'}">
+                                <div class="ach-card-badge">${getIconForCategory(ach.category)}</div>
                                 <h4 class="ach-card-name">${escapeHtml(ach.name)}</h4>
                                 <p class="ach-card-desc">${escapeHtml(ach.description)}</p>
                             </div>

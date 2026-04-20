@@ -1,10 +1,9 @@
 /* ============================================================
-   MATCHDAY — DAILY PAPER v3
-   Light + Dark themes via [data-theme] on <html>.
+   MATCHDAY — DAILY PAPER v4
+   Light mode only. Simple trapezoid shirt cells. Green for today.
    ============================================================ */
 
 :root {
-    /* LIGHT MODE (default) */
     --base:          #F5F1E8;
     --surface:       #FFFFFF;
     --sunken:        #EFEAE0;
@@ -59,18 +58,67 @@
     --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+*, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--base);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+    overflow: hidden;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+input {
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.screen {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: screen-in 0.28s var(--ease-ios);
+}
+.screen.active { display: flex; }
+@keyframes screen-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.logo-bg { fill: var(--logo-bg); }
+.logo-m  { stroke: var(--logo-m); }
+
 /* ════════════════════════════════════════ SKELETON ════════════════════════════════════════ */
 .skeleton-menu { display: none; padding: 0 24px; }
 body.loading .skeleton-menu { display: block; }
 body.loading .menu-real-content { display: none; }
 
 .skeleton-block {
-    background: linear-gradient(90deg, var(--sunken) 0%, rgba(255,255,255,0.04) 50%, var(--sunken) 100%);
+    background: linear-gradient(90deg, var(--sunken) 0%, rgba(255,255,255,0.6) 50%, var(--sunken) 100%);
     background-size: 200% 100%;
     border-radius: 8px;
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
-
 @keyframes skeleton-shimmer {
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
@@ -88,7 +136,8 @@ body.loading .menu-real-content { display: none; }
 .skeleton-tile {
     aspect-ratio: 1 / 1;
     border-radius: var(--radius-lg);
-    background: var(--sunken);
+    background: linear-gradient(90deg, var(--sunken) 0%, rgba(255,255,255,0.6) 50%, var(--sunken) 100%);
+    background-size: 200% 100%;
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
@@ -99,10 +148,10 @@ body.loading .menu-real-content { display: none; }
     left: 12px; right: 12px;
     z-index: 300;
     background: var(--ink);
-    color: var(--base);
+    color: var(--surface);
     border-radius: 14px;
     padding: 10px 12px;
-    box-shadow: 0 8px 24px var(--shadow-soft);
+    box-shadow: 0 8px 24px rgba(28,24,21,0.25);
     transform: translateY(-150%);
     transition: transform 0.32s var(--ease-ios);
     pointer-events: none;
@@ -115,7 +164,7 @@ body.loading .menu-real-content { display: none; }
 .data-error-text span { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.72); letter-spacing: -0.005em; }
 .data-error-retry {
     width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(255,255,255,0.14); color: var(--base);
+    background: rgba(255,255,255,0.14); color: var(--surface);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .data-error-retry:active { background: rgba(255,255,255,0.24); }
@@ -182,26 +231,28 @@ body.loading .menu-real-content { display: none; }
     gap: 6px;
     padding: 6px 12px 6px 10px;
     border-radius: 999px;
-    background: var(--accent);
+    background: var(--player);
     color: white;
     font-size: 12px;
     font-weight: 700;
     letter-spacing: -0.005em;
-    box-shadow: 0 2px 0 var(--accent-dark);
+    box-shadow: 0 2px 0 var(--player-dark);
     transition: transform 0.1s var(--ease-ios), box-shadow 0.1s var(--ease-ios);
     margin-left: auto;
 }
 .back-to-today-pill:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 0 var(--accent-dark);
+    box-shadow: 0 1px 0 var(--player-dark);
 }
 .back-to-today-pill svg { width: 14px; height: 14px; }
 
-/* ════════════════════════════════════════ WEEK STRIP — SHIRT CELLS ════════════════════════════════════════ */
+/* ════════════════════════════════════════ WEEK STRIP — SIMPLE SHIRT CELLS ════════════════════════════════════════
+   Flat shoulders, tiny V-notch, straight body. No curves.
+*/
 .week-strip-section { padding: 0 24px 18px; }
 .week-strip {
     display: flex;
-    gap: 4px;
+    gap: 6px;
 }
 .day-cell {
     flex: 1;
@@ -215,9 +266,8 @@ body.loading .menu-real-content { display: none; }
 }
 .day-cell:active { transform: scale(0.94); }
 
-/* Shirt cell — SVG sits behind text overlay */
 .shirt-cell {
-    aspect-ratio: 40 / 44;
+    aspect-ratio: 40 / 48;
     display: block;
 }
 .shirt-svg {
@@ -230,38 +280,34 @@ body.loading .menu-real-content { display: none; }
 .shirt-fill {
     fill: var(--surface);
     stroke: var(--divider-2);
-    stroke-width: 0.8;
-    transition: fill 0.3s ease, stroke 0.3s ease;
+    stroke-width: 1;
+    transition: fill 0.3s ease, stroke 0.3s ease, stroke-width 0.2s ease;
 }
-/* Today: subtle accent ring via stroke change */
+
 .day-cell.today .shirt-fill {
-    stroke: var(--accent);
+    stroke: var(--player);
     stroke-width: 1.6;
 }
-/* Selected: thicker ink stroke */
 .day-cell.selected .shirt-fill {
     stroke: var(--ink);
-    stroke-width: 1.8;
+    stroke-width: 1.6;
 }
 .day-cell.today.selected .shirt-fill {
-    stroke: var(--accent);
+    stroke: var(--player);
     stroke-width: 2;
 }
 
-/* Today progress fill — accent, opacity by --fill (0..1) */
 .shirt-today-fill {
-    fill: var(--accent);
-    opacity: calc(0.08 + var(--fill, 0) * 0.28);
+    fill: var(--player);
+    opacity: calc(0.08 + var(--fill, 0) * 0.24);
     transition: opacity 0.5s var(--ease-ios);
 }
 
-/* Played day — soft success fill + subtle checkmark */
 .shirt-played-fill {
-    fill: var(--success);
-    opacity: 0.22;
+    fill: var(--player);
+    opacity: 0.18;
 }
 
-/* Missed day (past, unplayed) — dimmer shirt */
 .day-cell:not(.today):not(.played) .shirt-fill {
     fill: var(--sunken);
 }
@@ -273,7 +319,7 @@ body.loading .menu-real-content { display: none; }
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
     pointer-events: none;
 }
 .day-cell-weekday {
@@ -283,32 +329,30 @@ body.loading .menu-real-content { display: none; }
     text-transform: uppercase;
     color: var(--ink-3);
     line-height: 1;
-    margin-top: 2px;
 }
 .day-cell-num {
     font-family: var(--font-serif);
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--ink);
     line-height: 1;
     letter-spacing: -0.01em;
 }
 .day-cell.played .day-cell-weekday,
-.day-cell.played .day-cell-num {
-    color: var(--success);
-}
-.day-cell.today .day-cell-weekday { color: var(--accent); }
+.day-cell.played .day-cell-num { color: var(--player-dark); }
+.day-cell.today .day-cell-weekday { color: var(--player); }
 
 .day-cell-check {
     position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 12px;
-    height: 12px;
-    color: var(--success);
-    background: var(--surface);
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    color: white;
+    background: var(--player);
     border-radius: 50%;
-    padding: 1px;
+    padding: 1.5px;
 }
 
 .day-cell:not(.today):not(.played):not(.selected) .day-cell-weekday,
@@ -405,7 +449,7 @@ body.loading .menu-real-content { display: none; }
     letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
 }
 .sc-done-share {
-    background: var(--ink); color: var(--base);
+    background: var(--ink); color: var(--surface);
     padding: 12px 16px; border-radius: 14px;
     font-size: 14px; font-weight: 700;
     display: inline-flex; align-items: center; gap: 8px;
@@ -533,7 +577,6 @@ body.loading .menu-real-content { display: none; }
     100% { transform: scale(1); }
 }
 
-/* Hero */
 .game-hero {
     margin: 8px 20px 18px;
     border-radius: var(--radius-xl);
@@ -583,7 +626,6 @@ body.loading .menu-real-content { display: none; }
     max-height: 80px; overflow: hidden;
 }
 
-/* Right-stack holds score chip + optional hint button */
 .hero-right-stack {
     display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
     flex-shrink: 0;
@@ -649,7 +691,6 @@ body.loading .menu-real-content { display: none; }
     -webkit-overflow-scrolling: touch;
 }
 
-/* Input strip */
 .input-strip {
     position: absolute; left: 0; right: 0; bottom: 0;
     padding: 12px 16px calc(var(--safe-bottom) + 12px);
@@ -692,7 +733,7 @@ body.loading .menu-real-content { display: none; }
 }
 .submit-btn {
     width: 48px; height: 48px; border-radius: 14px;
-    background: var(--ink); color: var(--base);
+    background: var(--ink); color: var(--surface);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
     box-shadow: 0 3px 0 var(--ink-shadow);
@@ -714,7 +755,7 @@ body.loading .menu-real-content { display: none; }
     align-items: stretch;
 }
 .toast {
-    background: var(--ink); color: var(--base);
+    background: var(--ink); color: var(--surface);
     border-radius: 20px;
     padding: 12px 18px 12px 10px;
     font-size: 14px; font-weight: 600;
@@ -830,12 +871,12 @@ body.loading .menu-real-content { display: none; }
 }
 .club-order {
     width: 28px; height: 28px; border-radius: 50%;
-    background: var(--ink); color: var(--base);
+    background: var(--ink); color: var(--surface);
     display: flex; align-items: center; justify-content: center;
     font-size: 12px; font-weight: 700;
     flex-shrink: 0; font-variant-numeric: tabular-nums;
 }
-.club-card.locked .club-order { background: var(--ink-3); color: var(--base); }
+.club-card.locked .club-order { background: var(--ink-3); color: var(--surface); }
 .club-logo {
     width: 46px; height: 46px; border-radius: 12px;
     background: var(--base);
@@ -1082,7 +1123,7 @@ body.loading .menu-real-content { display: none; }
 
 .primary-btn {
     width: 100%;
-    background: var(--ink); color: var(--base);
+    background: var(--ink); color: var(--surface);
     padding: 15px; border-radius: 14px;
     font-size: 16px; font-weight: 700;
     box-shadow: 0 3px 0 var(--ink-shadow);
@@ -1133,7 +1174,6 @@ body.loading .menu-real-content { display: none; }
 .celeb-close:active { background: var(--divider); transform: scale(0.94); }
 .celeb-close svg { width: 18px; height: 18px; }
 
-/* Shareable card — this is what gets rasterized */
 #celebration-share-card {
     flex: 1;
     display: flex; flex-direction: column; justify-content: center;
@@ -1142,7 +1182,6 @@ body.loading .menu-real-content { display: none; }
     background: var(--base);
 }
 
-/* Brand row on share card */
 .celeb-share-brand {
     display: flex; align-items: center; gap: 12px;
     margin: 0 0 28px;
@@ -1150,9 +1189,7 @@ body.loading .menu-real-content { display: none; }
     animation: celeb-fade-up 0.4s var(--ease-ios) 0.05s forwards;
 }
 .celeb-share-logo { width: 34px; height: 38px; flex-shrink: 0; }
-.celeb-share-brand-text {
-    display: flex; flex-direction: column;
-}
+.celeb-share-brand-text { display: flex; flex-direction: column; }
 .celeb-share-brand-name {
     font-family: var(--font-serif);
     font-size: 18px; font-weight: 600;
@@ -1241,7 +1278,7 @@ body.loading .menu-real-content { display: none; }
 }
 .celeb-share {
     width: 100%;
-    background: var(--ink); color: var(--base);
+    background: var(--ink); color: var(--surface);
     padding: 17px; border-radius: 16px;
     font-size: 16px; font-weight: 700;
     display: inline-flex; align-items: center; justify-content: center; gap: 10px;
@@ -1386,19 +1423,4 @@ body.loading .menu-real-content { display: none; }
 .settings-row-value {
     font-size: 13px; color: var(--ink-3);
     font-variant-numeric: tabular-nums;
-}
-.settings-row-check {
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    border: 1.5px solid var(--divider-2);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: transparent;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-    flex-shrink: 0;
-}
-.settings-row-check svg { width: 12px; height: 12px; }
-.settings-row.selected .settings-row-check {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
 }

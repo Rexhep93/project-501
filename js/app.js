@@ -7,7 +7,7 @@ import { shareResult } from './utils/share.js';
 import { toast } from './utils/toast.js';
 import { todayKey, dateToKey, keyToDate, isToday } from './utils/date-key.js';
 import { getSettings, saveSettings, applyTheme, initThemeListener } from './utils/settings.js';
-import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, getIconForCategory } from './utils/achievements.js';
+import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, getIcon, getColor } from './utils/achievements.js';
 
 import { initTenable }      from './games/tenable.js';
 import { initGuessPlayer }  from './games/guess-player.js';

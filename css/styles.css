@@ -246,9 +246,7 @@ body.loading .menu-real-content { display: none; }
 }
 .back-to-today-pill svg { width: 14px; height: 14px; }
 
-/* ════════════════════════════════════════ WEEK STRIP — SIMPLE SHIRT CELLS ════════════════════════════════════════
-   Flat shoulders, tiny V-notch, straight body. No curves.
-*/
+/* ════════════════════════════════════════ WEEK STRIP ════════════════════════════════════════ */
 .week-strip-section { padding: 0 24px 18px; }
 .week-strip {
     display: flex;
@@ -258,85 +256,73 @@ body.loading .menu-real-content { display: none; }
     flex: 1;
     min-width: 0;
     position: relative;
-    background: none;
+    aspect-ratio: 1 / 1.2;
+    background: var(--surface);
+    border: 1px solid var(--divider-2);
+    border-radius: 10px;
     padding: 0;
     cursor: pointer;
-    transition: transform 0.15s var(--ease-ios);
-    border-radius: 6px;
-}
-.day-cell:active { transform: scale(0.94); }
-
-.shirt-cell {
-    aspect-ratio: 40 / 48;
-    display: block;
-}
-.shirt-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-.shirt-fill {
-    fill: var(--surface);
-    stroke: var(--divider-2);
-    stroke-width: 1;
-    transition: fill 0.3s ease, stroke 0.3s ease, stroke-width 0.2s ease;
-}
-
-.day-cell.today .shirt-fill {
-    stroke: var(--player);
-    stroke-width: 1.6;
-}
-.day-cell.selected .shirt-fill {
-    stroke: var(--ink);
-    stroke-width: 1.6;
-}
-.day-cell.today.selected .shirt-fill {
-    stroke: var(--player);
-    stroke-width: 2;
-}
-
-.shirt-today-fill {
-    fill: var(--player);
-    opacity: calc(0.08 + var(--fill, 0) * 0.24);
-    transition: opacity 0.5s var(--ease-ios);
-}
-
-.shirt-played-fill {
-    fill: var(--player);
-    opacity: 0.18;
-}
-
-.day-cell:not(.today):not(.played) .shirt-fill {
-    fill: var(--sunken);
-}
-
-.day-cell-inner {
-    position: absolute;
-    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1px;
-    pointer-events: none;
+    gap: 2px;
+    overflow: hidden;
+    transition: transform 0.15s var(--ease-ios), border-color 0.2s ease;
 }
+.day-cell:active { transform: scale(0.94); }
+
+.day-cell.today {
+    border-color: var(--player);
+    border-width: 1.6px;
+}
+.day-cell.selected {
+    border-color: var(--ink);
+    border-width: 1.6px;
+}
+.day-cell.today.selected {
+    border-color: var(--player);
+    border-width: 2px;
+}
+
+.day-cell.played:not(.today) {
+    background: var(--player-soft);
+    border-color: var(--player-soft);
+}
+
+.day-cell:not(.today):not(.played) {
+    background: var(--sunken);
+    border-color: transparent;
+}
+
+.day-cell-today-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--player);
+    opacity: calc(0.08 + var(--fill, 0) * 0.24);
+    pointer-events: none;
+    transition: opacity 0.5s var(--ease-ios);
+}
+
 .day-cell-weekday {
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--ink-3);
     line-height: 1;
+    position: relative;
+    z-index: 2;
 }
 .day-cell-num {
     font-family: var(--font-serif);
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--ink);
     line-height: 1;
     letter-spacing: -0.01em;
+    position: relative;
+    z-index: 2;
 }
 .day-cell.played .day-cell-weekday,
 .day-cell.played .day-cell-num { color: var(--player-dark); }
@@ -344,15 +330,15 @@ body.loading .menu-real-content { display: none; }
 
 .day-cell-check {
     position: absolute;
-    bottom: 3px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 10px;
-    height: 10px;
+    bottom: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
     color: white;
     background: var(--player);
     border-radius: 50%;
     padding: 1.5px;
+    z-index: 2;
 }
 
 .day-cell:not(.today):not(.played):not(.selected) .day-cell-weekday,

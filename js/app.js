@@ -7,7 +7,7 @@ import { shareResult } from './utils/share.js';
 import { toast } from './utils/toast.js';
 import { todayKey, dateToKey, keyToDate, isToday } from './utils/date-key.js';
 import { getSettings, saveSettings, applyTheme, initThemeListener } from './utils/settings.js';
-import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, getIcon, getColor } from './utils/achievements.js';
+import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, formatNum } from './utils/achievements.js';
 
 import { initTenable }      from './games/tenable.js';
 import { initGuessPlayer }  from './games/guess-player.js';
@@ -330,31 +330,35 @@ function renderAchievementsStrip() {
     const locked = ACHIEVEMENTS.filter(a => !unlocked[a.id]);
 
     const cells = [];
-    let unlockedShown = 0;
-    let lockedShown = 0;
+    let u = 0, l = 0;
 
     for (let i = 0; i < 3; i++) {
         let ach = null;
         let isLocked = false;
 
-        if (unlockedShown < recentIds.length) {
-            ach = getAchievement(recentIds[unlockedShown]);
-            unlockedShown++;
-        } else if (lockedShown < locked.length) {
-            ach = locked[lockedShown];
+        if (u < recentIds.length) {
+            ach = getAchievement(recentIds[u]);
+            u++;
+        } else if (l < locked.length) {
+            ach = locked[l];
             isLocked = true;
-            lockedShown++;
+            l++;
         }
 
         if (!ach) {
-            cells.push(`<div class="ach-strip-item locked"><div class="ach-strip-badge"></div><span class="ach-strip-name">—</span></div>`);
+            cells.push(`<div class="ach-tile locked"></div>`);
             continue;
         }
 
+        const styleStr = isLocked
+            ? ''
+            : `style="--ach-color: ${ach.color}; --ach-shadow: ${ach.shadow};"`;
+
         cells.push(`
-            <div class="ach-strip-item ${isLocked ? 'locked' : ''}" style="--ach-color: ${getColor(ach)};">
-                <div class="ach-strip-badge">${getIcon(ach)}</div>
-                <span class="ach-strip-name">${escapeHtml(ach.name)}</span>
+            <div class="ach-tile ${isLocked ? 'locked' : ''}" ${styleStr}>
+                <div class="ach-tile-num">${formatNum(ach.num)}</div>
+                <div class="ach-tile-art">${ach.art}</div>
+                <h4 class="ach-tile-name">${escapeHtml(ach.name)}</h4>
             </div>
         `);
     }
@@ -362,7 +366,7 @@ function renderAchievementsStrip() {
 
     const viewAllBtn = document.getElementById('achievements-view-all');
     if (viewAllBtn) viewAllBtn.onclick = openAchievementsScreen;
-    strip.querySelectorAll('.ach-strip-item').forEach(el => {
+    strip.querySelectorAll('.ach-tile').forEach(el => {
         el.onclick = openAchievementsScreen;
     });
 }
@@ -384,7 +388,6 @@ function renderAchievementsScreen() {
     const unlocked = getUnlocked();
     const unlockedCount = Object.keys(unlocked).length;
     const total = ACHIEVEMENTS.length;
-    const progressFrac = total > 0 ? (unlockedCount / total).toFixed(2) : 0;
 
     const groups = { streak: [], score: [], game: [], meta: [] };
     ACHIEVEMENTS.forEach(a => { if (groups[a.category]) groups[a.category].push(a); });
@@ -398,14 +401,11 @@ function renderAchievementsScreen() {
 
     let html = `
         <div class="achievements-progress">
-            <div>
+            <div class="achievements-progress-value">
                 <span class="achievements-progress-num">${unlockedCount}</span>
                 <span class="achievements-progress-max">/ ${total}</span>
             </div>
             <p class="achievements-progress-label">Unlocked</p>
-            <div class="achievements-progress-bar">
-                <div class="achievements-progress-bar-fill" style="--progress: ${progressFrac};"></div>
-            </div>
         </div>
     `;
 
@@ -417,12 +417,18 @@ function renderAchievementsScreen() {
                 <h3 class="achievements-section-title">${groupTitles[cat]}</h3>
                 <div class="achievements-grid">
                     ${items.map(ach => {
-                        const isUnlocked = !!unlocked[ach.id];
+                        const isU = !!unlocked[ach.id];
+                        const styleStr = isU
+                            ? `style="--ach-color: ${ach.color}; --ach-shadow: ${ach.shadow};"`
+                            : '';
                         return `
-                            <div class="ach-card ${isUnlocked ? '' : 'locked'}" style="--ach-color: ${getColor(ach)};">
-                                <div class="ach-card-badge">${getIcon(ach)}</div>
-                                <h4 class="ach-card-name">${escapeHtml(ach.name)}</h4>
-                                <p class="ach-card-desc">${escapeHtml(ach.description)}</p>
+                            <div class="ach-card ${isU ? '' : 'locked'}" ${styleStr}>
+                                <div class="ach-card-num">${formatNum(ach.num)}</div>
+                                <div class="ach-card-art">${ach.art}</div>
+                                <div class="ach-card-text">
+                                    <h4 class="ach-card-name">${escapeHtml(ach.name)}</h4>
+                                    <p class="ach-card-desc">${escapeHtml(ach.description)}</p>
+                                </div>
                             </div>
                         `;
                     }).join('')}

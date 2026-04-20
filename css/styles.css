@@ -1449,8 +1449,9 @@ body.loading .menu-real-content { display: none; }
 }
 
 /* ════════════════════════════════════════ ACHIEVEMENTS ════════════════════════════════════════
-   Flat editorial style. No gradients, no glow, no 3D.
-   Each badge = solid-tint disc + white icon. Matches Daily Paper aesthetic.
+   Mini-tile stijl. Hergebruikt de design language van .game-tile:
+   donkere gekleurde achtergrond, № badge linksboven, serif naam, icon-art
+   rechtsonder. Locked tiles zijn dezelfde vorm in sunken-grijs.
    ============================================================================================ */
 
 /* ─── Home strip ─── */
@@ -1473,7 +1474,7 @@ body.loading .menu-real-content { display: none; }
 }
 .achievements-strip-link {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink-2);
     letter-spacing: -0.005em;
     display: inline-flex;
@@ -1489,63 +1490,99 @@ body.loading .menu-real-content { display: none; }
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
 }
-.ach-strip-item {
-    background: var(--surface);
-    border-radius: 14px;
-    padding: 14px 8px 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 1px 0 var(--divider);
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.12s var(--ease-ios);
-}
-.ach-strip-item:active { transform: scale(0.96); }
 
-.ach-strip-badge {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.ach-tile {
+    position: relative;
+    aspect-ratio: 1 / 1.05;
+    border-radius: 14px;
+    overflow: hidden;
     background: var(--ach-color, var(--ink));
     color: white;
-    flex-shrink: 0;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 3px 0 var(--ach-shadow, rgba(0,0,0,0.2));
+    transition: transform 0.12s var(--ease-ios), box-shadow 0.12s var(--ease-ios);
+    isolation: isolate;
 }
-.ach-strip-badge svg {
-    width: 22px;
-    height: 22px;
+.ach-tile:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 var(--ach-shadow, rgba(0,0,0,0.2));
+}
+
+.ach-tile-num {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 3;
+    min-width: 22px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 4px;
+    border: 1.2px solid rgba(255, 255, 255, 0.75);
     color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
 }
 
-.ach-strip-item.locked {
-    background: var(--surface);
-    box-shadow: 0 1px 0 var(--divider);
+.ach-tile-art {
+    position: absolute;
+    right: -10%;
+    bottom: -10%;
+    width: 65%;
+    height: 65%;
+    z-index: 1;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.22);
 }
-.ach-strip-item.locked .ach-strip-badge {
-    background: var(--sunken);
-}
-.ach-strip-item.locked .ach-strip-badge svg { color: var(--ink-3); }
-.ach-strip-item.locked .ach-strip-name { color: var(--ink-3); }
+.ach-tile-art svg { width: 100%; height: 100%; display: block; }
 
-.ach-strip-name {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: -0.005em;
-    line-height: 1.2;
+.ach-tile-name {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 8px;
+    z-index: 2;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    max-height: 2.4em;
 }
 
-/* ─── Full achievements screen ─── */
+/* Locked state: same shape, grey palette */
+.ach-tile.locked {
+    background: var(--sunken);
+    box-shadow: 0 1px 0 var(--divider);
+    color: var(--ink-3);
+}
+.ach-tile.locked:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 0 var(--divider);
+}
+.ach-tile.locked .ach-tile-num {
+    border-color: var(--ink-3);
+    color: var(--ink-3);
+}
+.ach-tile.locked .ach-tile-art {
+    color: rgba(107, 101, 96, 0.14);
+}
+.ach-tile.locked .ach-tile-name {
+    color: var(--ink-2);
+}
+
+/* ═══════ Full achievements screen ═══════ */
 .achievements-screen {
     position: fixed; inset: 0;
     background: var(--base);
@@ -1578,25 +1615,31 @@ body.loading .menu-real-content { display: none; }
 }
 
 .achievements-progress {
-    text-align: center;
-    margin-bottom: 28px;
-    padding: 22px 20px 20px;
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 0 var(--divider);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 4px 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--divider);
+}
+.achievements-progress-value {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    line-height: 1;
 }
 .achievements-progress-num {
     font-family: var(--font-serif);
-    font-size: 48px;
+    font-size: 42px;
     font-weight: 600;
     color: var(--ink);
     letter-spacing: -0.025em;
-    line-height: 1;
     font-variant-numeric: tabular-nums;
 }
 .achievements-progress-max {
     font-family: var(--font-serif);
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 500;
     color: var(--ink-3);
     letter-spacing: -0.01em;
@@ -1607,96 +1650,113 @@ body.loading .menu-real-content { display: none; }
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-3);
-    margin: 8px 0 0;
-}
-.achievements-progress-bar {
-    margin-top: 14px;
-    height: 4px;
-    background: var(--sunken);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-}
-.achievements-progress-bar-fill {
-    position: absolute;
-    inset: 0;
-    border-radius: 2px;
-    background: var(--ink);
-    transform: scaleX(var(--progress, 0));
-    transform-origin: left center;
-    transition: transform 0.8s var(--ease-ios);
+    text-align: right;
+    line-height: 1.3;
 }
 
 .achievements-section {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 .achievements-section-title {
     font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--ink-3);
-    margin: 0 0 12px 4px;
+    margin: 0 0 12px 2px;
 }
 .achievements-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
 }
-.ach-card {
-    background: var(--surface);
-    border-radius: 16px;
-    padding: 20px 14px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    box-shadow: 0 1px 0 var(--divider);
-    text-align: center;
-    min-height: 150px;
-    transition: transform 0.15s var(--ease-ios);
-}
-.ach-card:active { transform: scale(0.98); }
 
-.ach-card-badge {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+/* Larger version of .ach-tile for the full screen */
+.ach-card {
+    position: relative;
+    aspect-ratio: 1 / 0.9;
+    border-radius: 16px;
+    overflow: hidden;
     background: var(--ach-color, var(--ink));
     color: white;
-    display: flex;
+    text-align: left;
+    box-shadow: 0 4px 0 var(--ach-shadow, rgba(0,0,0,0.2));
+    isolation: isolate;
+}
+
+.ach-card-num {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 3;
+    min-width: 30px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 5px;
+    border: 1.4px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-}
-.ach-card-badge svg {
-    width: 28px;
-    height: 28px;
-    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
 }
 
-.ach-card.locked {
-    background: var(--surface);
-    box-shadow: 0 1px 0 var(--divider);
+.ach-card-art {
+    position: absolute;
+    right: -8%;
+    bottom: -8%;
+    width: 62%;
+    height: 62%;
+    z-index: 1;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.22);
 }
-.ach-card.locked .ach-card-badge {
-    background: var(--sunken);
-}
-.ach-card.locked .ach-card-badge svg { color: var(--ink-3); }
-.ach-card.locked .ach-card-name { color: var(--ink-2); }
-.ach-card.locked .ach-card-desc { color: var(--ink-3); }
+.ach-card-art svg { width: 100%; height: 100%; display: block; }
 
+.ach-card-text {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 12px;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
 .ach-card-name {
     font-family: var(--font-serif);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 600;
-    color: var(--ink);
+    color: white;
     letter-spacing: -0.01em;
-    line-height: 1.2;
+    line-height: 1.1;
     margin: 0;
 }
 .ach-card-desc {
     font-size: 11px;
     font-weight: 500;
-    color: var(--ink-2);
+    color: rgba(255, 255, 255, 0.78);
     letter-spacing: -0.003em;
-    line-height: 1.35;
+    line-height: 1.3;
     margin: 0;
+}
+
+/* Locked card — same shape, muted */
+.ach-card.locked {
+    background: var(--sunken);
+    box-shadow: 0 1px 0 var(--divider);
+    color: var(--ink-3);
+}
+.ach-card.locked .ach-card-num {
+    border-color: var(--ink-3);
+    color: var(--ink-3);
+}
+.ach-card.locked .ach-card-art {
+    color: rgba(107, 101, 96, 0.14);
+}
+.ach-card.locked .ach-card-name {
+    color: var(--ink);
+}
+.ach-card.locked .ach-card-desc {
+    color: var(--ink-3);
 }

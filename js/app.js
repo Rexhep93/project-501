@@ -460,8 +460,8 @@ async function renderWeekStrip() {
         if (d.isToday) classes.push('today');
         if (isSelected) classes.push('selected');
         if (d.played && !d.isToday) classes.push('played');
-        // Simple trapezoid shirt: flat shoulders, tiny V-notch, straight body
-        const shirtPath = 'M 6 8 L 14 5 L 16 9 L 20 11 L 24 9 L 26 5 L 34 8 L 34 40 L 6 40 Z';
+        // Classic football shirt silhouette: short sleeves, round neck
+        const shirtPath = 'M 14 6 Q 20 10 26 6 L 34 9 L 38 16 L 32 19 L 30 17 L 30 40 Q 30 42 28 42 L 12 42 Q 10 42 10 40 L 10 17 L 8 19 L 2 16 L 6 9 Z';
         return `
             <button class="${classes.join(' ')}" data-date="${d.date}">
                 <svg class="shirt-svg" viewBox="0 0 40 44" aria-hidden="true">

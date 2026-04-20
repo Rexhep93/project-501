@@ -453,25 +453,22 @@ async function renderWeekStrip() {
     const todayPlayed = countPlayed(todayState);
     const todayFillFrac = (todayPlayed / 4).toFixed(2);
 
-    strip.innerHTML = days.map(d => {
+     strip.innerHTML = days.map(d => {
         const weekday = shortWeekday(d.date);
         const isSelected = d.date === currentDate;
-        const classes = ['day-cell'];
-        classes.push('shirt-cell');
+        const classes = ['day-cell', 'shirt-cell'];
         if (d.isToday) classes.push('today');
         if (isSelected) classes.push('selected');
         if (d.played && !d.isToday) classes.push('played');
-
-        // Today shows progress indicator. Played days show a check.
-        // We render each cell as a shirt SVG with day number as the "kit number".
+        // Simple trapezoid shirt: flat shoulders, tiny V-notch, straight body
+        const shirtPath = 'M 6 8 L 14 5 L 16 9 L 20 11 L 24 9 L 26 5 L 34 8 L 34 40 L 6 40 Z';
         return `
             <button class="${classes.join(' ')}" data-date="${d.date}">
                 <svg class="shirt-svg" viewBox="0 0 40 44" aria-hidden="true">
                     <defs>
-                        <clipPath id="clip-shirt-${d.date}"><path d="M 8 4 L 14 2 Q 15 8 20 8 Q 25 8 26 2 L 32 4 L 38 10 L 34 16 L 32 13 L 32 40 Q 32 42 30 42 L 10 42 Q 8 42 8 40 L 8 13 L 6 16 L 2 10 Z"/></clipPath>
+                        <clipPath id="clip-shirt-${d.date}"><path d="${shirtPath}"/></clipPath>
                     </defs>
-                    <path d="M 8 4 L 14 2 Q 15 8 20 8 Q 25 8 26 2 L 32 4 L 38 10 L 34 16 L 32 13 L 32 40 Q 32 42 30 42 L 10 42 Q 8 42 8 40 L 8 13 L 6 16 L 2 10 Z"
-                          class="shirt-fill"/>
+                    <path d="${shirtPath}" class="shirt-fill"/>
                     ${d.isToday ? `<rect x="0" y="0" width="40" height="44" clip-path="url(#clip-shirt-${d.date})" class="shirt-today-fill" style="--fill: ${todayFillFrac};"/>` : ''}
                     ${d.played && !d.isToday ? `<rect x="0" y="0" width="40" height="44" clip-path="url(#clip-shirt-${d.date})" class="shirt-played-fill"/>` : ''}
                 </svg>
@@ -482,7 +479,7 @@ async function renderWeekStrip() {
                 </div>
             </button>`;
     }).join('');
-
+    
     // Bind clicks
     strip.querySelectorAll('.day-cell').forEach(el => {
         el.onclick = async () => {

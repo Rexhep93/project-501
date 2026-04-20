@@ -59,108 +59,6 @@
     --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* ============================================================
-   DARK MODE — ink becomes warm cream; surfaces stay dark but
-   warm (avoids "cold app" feel). Greens shift lighter and more
-   saturated so they sing against dark backgrounds.
-   ============================================================ */
-[data-theme="dark"] {
-    --base:          #14110E;
-    --surface:       #1F1A16;
-    --sunken:        #2A241F;
-
-    --ink:           #F0EAE0;
-    --ink-2:         #B5ADA3;
-    --ink-3:         #7A7369;
-
-    --divider:       rgba(240, 234, 224, 0.09);
-    --divider-2:     rgba(240, 234, 224, 0.16);
-    --shadow-soft:   rgba(0, 0, 0, 0.45);
-
-    --accent:        #E85D47;
-    --accent-soft:   rgba(232, 93, 71, 0.18);
-    --accent-dark:   #B83B27;
-
-    --tenable:       #2A9472;
-    --tenable-dark:  #146A4F;
-    --tenable-soft:  rgba(42, 148, 114, 0.20);
-
-    --player:        #4FB872;
-    --player-dark:   #2E8A4B;
-    --player-soft:   rgba(79, 184, 114, 0.18);
-
-    --whoami:        #7AA96A;
-    --whoami-dark:   #4E7B3F;
-    --whoami-soft:   rgba(122, 169, 106, 0.18);
-
-    --club:          #1FB5B5;
-    --club-dark:     #0F8A8A;
-    --club-soft:     rgba(31, 181, 181, 0.18);
-
-    --success:       #4BB86E;
-    --success-soft:  rgba(75, 184, 110, 0.18);
-    --destructive:   #E25C53;
-    --destructive-soft: rgba(226, 92, 83, 0.18);
-    --warn:          #E0A040;
-    --warn-soft:     rgba(224, 160, 64, 0.18);
-
-    --ink-shadow:    #000000;
-    --logo-bg:       #F0EAE0;
-    --logo-m:        #14110E;
-}
-
-*, *::before, *::after {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--base);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overscroll-behavior: none;
-    overflow: hidden;
-    transition: background 0.3s ease, color 0.3s ease;
-}
-
-button {
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-}
-
-input {
-    font-family: inherit;
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-.screen {
-    position: fixed;
-    inset: 0;
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    animation: screen-in 0.28s var(--ease-ios);
-}
-.screen.active { display: flex; }
-@keyframes screen-in {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* Logo vars — use through CSS vars so dark mode inverts them */
-.logo-bg { fill: var(--logo-bg); }
-.logo-m  { stroke: var(--logo-m); }
-
 /* ════════════════════════════════════════ SKELETON ════════════════════════════════════════ */
 .skeleton-menu { display: none; padding: 0 24px; }
 body.loading .skeleton-menu { display: block; }
@@ -172,11 +70,7 @@ body.loading .menu-real-content { display: none; }
     border-radius: 8px;
     animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
-[data-theme="light"] .skeleton-block,
-:root:not([data-theme="dark"]) .skeleton-block {
-    background: linear-gradient(90deg, var(--sunken) 0%, rgba(255,255,255,0.6) 50%, var(--sunken) 100%);
-    background-size: 200% 100%;
-}
+
 @keyframes skeleton-shimmer {
     0%   { background-position: 200% 0; }
     100% { background-position: -200% 0; }
@@ -602,12 +496,6 @@ body.loading .menu-real-content { display: none; }
 .game-tile[data-game="guessClub"]   .tile-played-chip { background: var(--club-soft);    color: var(--club-dark); }
 .game-tile.completed .tile-played-chip { display: block; }
 
-/* In dark mode, tile-played-chip needs a brighter text color since -dark is now lighter */
-[data-theme="dark"] .game-tile[data-game="tenable"]     .tile-played-chip { color: var(--tenable); background: rgba(255,255,255,0.92); }
-[data-theme="dark"] .game-tile[data-game="guessPlayer"] .tile-played-chip { color: var(--player);  background: rgba(255,255,255,0.92); }
-[data-theme="dark"] .game-tile[data-game="whoAmI"]      .tile-played-chip { color: var(--whoami);  background: rgba(255,255,255,0.92); }
-[data-theme="dark"] .game-tile[data-game="guessClub"]   .tile-played-chip { color: var(--club);    background: rgba(255,255,255,0.92); }
-
 /* ════════════════════════════════════════ GAME SCREENS ════════════════════════════════════════ */
 .game-screen { background: var(--base); }
 
@@ -990,7 +878,6 @@ body.loading .menu-real-content { display: none; }
 .hint-card.hint-locked { background: var(--sunken); box-shadow: none; opacity: 0.65; animation: none; }
 .hint-card.hint-locked::before { background: var(--ink-3); opacity: 0.3; }
 .hint-card.hint-locked .hint-number { background: rgba(0,0,0,0.06); color: var(--ink-3); }
-[data-theme="dark"] .hint-card.hint-locked .hint-number { background: rgba(255,255,255,0.06); }
 .hint-locked-label {
     font-family: var(--font-sans);
     font-size: 13px; font-weight: 500; color: var(--ink-3); font-style: italic;
@@ -1118,7 +1005,6 @@ body.loading .menu-real-content { display: none; }
     display: none; align-items: center; justify-content: center;
     z-index: 100; padding: 20px;
 }
-[data-theme="dark"] .modal { background: rgba(0, 0, 0, 0.72); }
 .modal.active { display: flex; animation: fade-in 0.2s ease; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 .modal-content {
@@ -1384,7 +1270,6 @@ body.loading .menu-real-content { display: none; }
     border-radius: 50%; opacity: 0.14;
     pointer-events: none; filter: blur(40px);
 }
-[data-theme="dark"] .celeb-accent { opacity: 0.22; }
 .celeb-accent.a1 { top: -40px; left: -40px; background: var(--tenable); }
 .celeb-accent.a2 { top: 20%; right: -60px; background: var(--player); }
 .celeb-accent.a3 { bottom: 30%; left: -60px; background: var(--whoami); }

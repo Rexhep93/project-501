@@ -268,17 +268,26 @@ body.loading .menu-real-content { display: none; }
     justify-content: center;
     gap: 2px;
     overflow: hidden;
-    transition: transform 0.15s var(--ease-ios), border-color 0.2s ease;
+    transition: transform 0.15s var(--ease-ios), border-color 0.2s ease, background 0.2s ease;
 }
 .day-cell:active { transform: scale(0.94); }
 
-/* Selected day = prominent green border (this is where you ARE) */
-.day-cell.selected {
-    border-color: var(--player);
-    border-width: 2px;
+.day-cell:not(.today):not(.played) {
+    background: var(--sunken);
+    border-color: transparent;
 }
 
-/* Today (not selected) = subtle dot indicator at top */
+.day-cell.played:not(.today) {
+    background: var(--player-soft);
+    border-color: var(--player-soft);
+}
+
+.day-cell.selected {
+    border-color: var(--player) !important;
+    border-width: 2px !important;
+    background: var(--surface) !important;
+}
+
 .day-cell.today:not(.selected)::after {
     content: '';
     position: absolute;
@@ -290,16 +299,6 @@ body.loading .menu-real-content { display: none; }
     border-radius: 50%;
     background: var(--player);
     z-index: 3;
-}
-
-.day-cell.played:not(.today) {
-    background: var(--player-soft);
-    border-color: var(--player-soft);
-}
-
-.day-cell:not(.today):not(.played) {
-    background: var(--sunken);
-    border-color: transparent;
 }
 
 .day-cell-today-fill {

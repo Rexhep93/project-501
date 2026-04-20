@@ -549,27 +549,26 @@ function setupHeroShrink(gameKey) {
     const input = document.getElementById(`${gameKey}-input`);
     if (!hero || !form || !input) return;
 
-    const shrinkOnce = () => {
-        if (!input.value.trim()) return;
-        if (!hero.classList.contains('shrunk')) hero.classList.add('shrunk');
-    };
-    form.addEventListener('submit', shrinkOnce);
+    // Auto-shrink after 4 seconds of viewing the game
+    const autoShrinkTimer = setTimeout(() => {
+        if (!hero.classList.contains('shrunk')) {
+            hero.classList.add('shrunk');
+        }
+    }, 4000);
 
+    // Also shrink on first submit
+    form.addEventListener('submit', () => {
+        if (!input.value.trim()) return;
+        clearTimeout(autoShrinkTimer);
+        if (!hero.classList.contains('shrunk')) hero.classList.add('shrunk');
+    });
+
+    // Tap hero to toggle (expand if shrunk, shrink if expanded)
     hero.addEventListener('click', (e) => {
         if (e.target.closest('.hero-score-chip')) return;
         if (e.target.closest('#tenable-hint-btn')) return;
-        if (hero.classList.contains('shrunk')) {
-            hero.classList.remove('shrunk');
-            setTimeout(() => {
-                if (input.value === '' && form.dataset.everSubmitted === '1') {
-                    hero.classList.add('shrunk');
-                }
-            }, 4000);
-        }
-    });
-
-    form.addEventListener('submit', () => {
-        if (input.value.trim()) form.dataset.everSubmitted = '1';
+        clearTimeout(autoShrinkTimer);
+        hero.classList.toggle('shrunk');
     });
 }
 

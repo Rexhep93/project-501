@@ -1448,13 +1448,10 @@ body.loading .menu-real-content { display: none; }
     font-variant-numeric: tabular-nums;
 }
 
-/* ════════════════════════════════════════ ACHIEVEMENTS ════════════════════════════════════════ */
-
-/* ─── Category gradients ─── */
-.ach-streak { --ach-grad-start: #FF8A3D; --ach-grad-end: #D64933; }
-.ach-score  { --ach-grad-start: #F7C948; --ach-grad-end: #E8893F; }
-.ach-game   { --ach-grad-start: #4DB874; --ach-grad-end: #0E4D3A; }
-.ach-meta   { --ach-grad-start: #5AA9D6; --ach-grad-end: #0A7F7F; }
+/* ════════════════════════════════════════ ACHIEVEMENTS ════════════════════════════════════════
+   Flat editorial style. No gradients, no glow, no 3D.
+   Each badge = solid-tint disc + white icon. Matches Daily Paper aesthetic.
+   ============================================================================================ */
 
 /* ─── Home strip ─── */
 .achievements-strip-section {
@@ -1494,7 +1491,7 @@ body.loading .menu-real-content { display: none; }
 }
 .ach-strip-item {
     background: var(--surface);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 14px 8px 12px;
     display: flex;
     flex-direction: column;
@@ -1504,79 +1501,50 @@ body.loading .menu-real-content { display: none; }
     text-align: center;
     cursor: pointer;
     transition: transform 0.12s var(--ease-ios);
-    position: relative;
 }
 .ach-strip-item:active { transform: scale(0.96); }
 
 .ach-strip-badge {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    background: var(--ach-color, var(--ink));
+    color: white;
     flex-shrink: 0;
 }
-.ach-strip-badge::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--ach-grad-start), var(--ach-grad-end));
-    box-shadow: 0 3px 10px rgba(0,0,0,0.12),
-                inset 0 1px 0 rgba(255,255,255,0.3);
-}
-.ach-strip-badge::after {
-    content: '';
-    position: absolute;
-    top: 6%; left: 10%; right: 10%;
-    height: 35%;
-    border-radius: 50%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.35), transparent);
-    pointer-events: none;
-}
 .ach-strip-badge svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     color: white;
-    position: relative;
-    z-index: 2;
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
 }
 
-.ach-strip-item.locked .ach-strip-badge::before {
-    background: var(--sunken);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
-}
-.ach-strip-item.locked .ach-strip-badge::after {
-    display: none;
-}
-.ach-strip-item.locked .ach-strip-badge svg {
-    color: var(--ink-3);
-    filter: none;
-    opacity: 0.7;
-}
 .ach-strip-item.locked {
     background: var(--sunken);
     box-shadow: none;
 }
-.ach-strip-item.locked .ach-strip-name {
+.ach-strip-item.locked .ach-strip-badge {
+    background: transparent;
+    border: 1.5px dashed var(--ink-3);
     color: var(--ink-3);
 }
+.ach-strip-item.locked .ach-strip-badge svg { color: var(--ink-3); }
+.ach-strip-item.locked .ach-strip-name { color: var(--ink-3); }
 
 .ach-strip-name {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--ink);
     letter-spacing: -0.005em;
-    line-height: 1.15;
+    line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    max-height: 2.3em;
+    max-height: 2.4em;
 }
 
 /* ─── Full achievements screen ─── */
@@ -1645,17 +1613,17 @@ body.loading .menu-real-content { display: none; }
 }
 .achievements-progress-bar {
     margin-top: 14px;
-    height: 6px;
+    height: 4px;
     background: var(--sunken);
-    border-radius: 3px;
+    border-radius: 2px;
     overflow: hidden;
     position: relative;
 }
 .achievements-progress-bar-fill {
     position: absolute;
     inset: 0;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #F7C948, #D64933);
+    border-radius: 2px;
+    background: var(--ink);
     transform: scaleX(var(--progress, 0));
     transform-origin: left center;
     transition: transform 0.8s var(--ease-ios);
@@ -1676,8 +1644,8 @@ body.loading .menu-real-content { display: none; }
 }
 .ach-card {
     background: var(--surface);
-    border-radius: 18px;
-    padding: 18px 14px 16px;
+    border-radius: 16px;
+    padding: 20px 14px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1686,7 +1654,6 @@ body.loading .menu-real-content { display: none; }
     text-align: center;
     min-height: 150px;
     transition: transform 0.15s var(--ease-ios);
-    position: relative;
 }
 .ach-card:active { transform: scale(0.98); }
 
@@ -1694,61 +1661,37 @@ body.loading .menu-real-content { display: none; }
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    position: relative;
-    flex-shrink: 0;
+    background: var(--ach-color, var(--ink));
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-.ach-card-badge::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--ach-grad-start), var(--ach-grad-end));
-    box-shadow: 0 4px 12px rgba(0,0,0,0.14),
-                inset 0 1px 0 rgba(255,255,255,0.35);
-}
-.ach-card-badge::after {
-    content: '';
-    position: absolute;
-    top: 6%; left: 10%; right: 10%;
-    height: 38%;
-    border-radius: 50%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
-    pointer-events: none;
+    flex-shrink: 0;
 }
 .ach-card-badge svg {
     width: 28px;
     height: 28px;
     color: white;
-    position: relative;
-    z-index: 2;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
 }
 
-.ach-card.locked .ach-card-badge::before {
-    background: var(--sunken);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.08);
-}
-.ach-card.locked .ach-card-badge::after { display: none; }
-.ach-card.locked .ach-card-badge svg {
-    color: var(--ink-3);
-    filter: none;
-    opacity: 0.65;
-}
 .ach-card.locked {
     background: var(--sunken);
     box-shadow: none;
 }
+.ach-card.locked .ach-card-badge {
+    background: transparent;
+    border: 1.5px dashed var(--ink-3);
+}
+.ach-card.locked .ach-card-badge svg { color: var(--ink-3); }
 .ach-card.locked .ach-card-name { color: var(--ink-2); }
 .ach-card.locked .ach-card-desc { color: var(--ink-3); }
 
 .ach-card-name {
-    font-size: 13px;
-    font-weight: 700;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 600;
     color: var(--ink);
-    letter-spacing: -0.005em;
+    letter-spacing: -0.01em;
     line-height: 1.2;
     margin: 0;
 }

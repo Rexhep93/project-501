@@ -1522,13 +1522,11 @@ body.loading .menu-real-content { display: none; }
 }
 
 .ach-strip-item.locked {
-    background: var(--sunken);
-    box-shadow: none;
+    background: var(--surface);
+    box-shadow: 0 1px 0 var(--divider);
 }
 .ach-strip-item.locked .ach-strip-badge {
-    background: transparent;
-    border: 1.5px dashed var(--ink-3);
-    color: var(--ink-3);
+    background: var(--sunken);
 }
 .ach-strip-item.locked .ach-strip-badge svg { color: var(--ink-3); }
 .ach-strip-item.locked .ach-strip-name { color: var(--ink-3); }
@@ -1675,12 +1673,11 @@ body.loading .menu-real-content { display: none; }
 }
 
 .ach-card.locked {
-    background: var(--sunken);
-    box-shadow: none;
+    background: var(--surface);
+    box-shadow: 0 1px 0 var(--divider);
 }
 .ach-card.locked .ach-card-badge {
-    background: transparent;
-    border: 1.5px dashed var(--ink-3);
+    background: var(--sunken);
 }
 .ach-card.locked .ach-card-badge svg { color: var(--ink-3); }
 .ach-card.locked .ach-card-name { color: var(--ink-2); }

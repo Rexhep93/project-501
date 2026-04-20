@@ -272,17 +272,24 @@ body.loading .menu-real-content { display: none; }
 }
 .day-cell:active { transform: scale(0.94); }
 
-.day-cell.today {
-    border-color: var(--player);
-    border-width: 1.6px;
-}
+/* Selected day = prominent green border (this is where you ARE) */
 .day-cell.selected {
-    border-color: var(--ink);
-    border-width: 1.6px;
-}
-.day-cell.today.selected {
     border-color: var(--player);
     border-width: 2px;
+}
+
+/* Today (not selected) = subtle dot indicator at top */
+.day-cell.today:not(.selected)::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--player);
+    z-index: 3;
 }
 
 .day-cell.played:not(.today) {
@@ -330,15 +337,15 @@ body.loading .menu-real-content { display: none; }
 
 .day-cell-check {
     position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 12px;
-    height: 12px;
-    color: white;
-    background: var(--player);
-    border-radius: 50%;
-    padding: 1.5px;
-    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
+    color: var(--player);
+    opacity: 0.22;
+    z-index: 1;
+    stroke-width: 3;
 }
 
 .day-cell:not(.today):not(.played):not(.selected) .day-cell-weekday,
@@ -545,21 +552,23 @@ body.loading .menu-real-content { display: none; }
 .back-btn:active { background: var(--divider); transform: scale(0.94); }
 .back-btn svg { width: 22px; height: 22px; }
 
-.header-attempts { display: flex; gap: 7px; align-items: center; }
-.attempt-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--ink);
-    transition: background 0.25s ease, transform 0.25s var(--ease-ios), opacity 0.25s ease;
+.header-attempts { display: flex; gap: 5px; align-items: center; }
+.heart {
+    width: 18px;
+    height: 18px;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s var(--ease-ios);
 }
-.attempt-dot.used {
-    background: transparent;
-    border: 1.5px solid var(--ink-3);
-    opacity: 0.55;
-}
-.attempt-dot.just-used { animation: dot-pulse 0.4s var(--ease-ios); }
-@keyframes dot-pulse {
+.heart svg { width: 100%; height: 100%; display: block; }
+.heart.lost { color: var(--ink-3); opacity: 0.5; }
+.heart.just-lost { animation: heart-break 0.5s var(--ease-ios); }
+@keyframes heart-break {
     0%   { transform: scale(1); }
-    40%  { transform: scale(1.35); }
+    30%  { transform: scale(1.4); }
+    60%  { transform: scale(0.8); }
     100% { transform: scale(1); }
 }
 

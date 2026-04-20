@@ -77,7 +77,6 @@ async function bootstrap() {
         const settings = document.getElementById('settings-screen');
         if (resultModal.classList.contains('active')) {
             closeResultModal();
-            await handleGameFinished();
         } else if (celeb.classList.contains('active')) {
             celeb.classList.remove('active');
         } else if (settings.classList.contains('active')) {
@@ -160,21 +159,18 @@ function closeResultModal() {
 function setupModalDismissal() {
     const resultModal = document.getElementById('result-modal');
 
-    // Backdrop tap = same as continue (save + return to menu)
-    resultModal.addEventListener('click', async (e) => {
+    // Backdrop tap = close modal, stay on game screen
+    resultModal.addEventListener('click', (e) => {
         if (e.target === resultModal) {
             closeResultModal();
-            await handleGameFinished();
         }
     });
 
-    // X button = same as continue
+    // X button = close modal, stay on game screen
     const closeBtn = document.getElementById('result-close');
-    if (closeBtn) closeBtn.onclick = async () => {
-        closeResultModal();
-        await handleGameFinished();
-    };
+    if (closeBtn) closeBtn.onclick = () => closeResultModal();
 
+    // Continue = save progress and go back to menu
     const continueBtn = document.getElementById('result-continue');
     if (continueBtn) {
         continueBtn.onclick = async () => {

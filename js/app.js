@@ -327,24 +327,20 @@ function renderAchievementsStrip() {
     const section = document.getElementById('achievements-strip-section');
     const strip = document.getElementById('achievements-strip');
     if (!section || !strip) return;
-    
     section.style.display = 'block';
-    
+
     const unlocked = getUnlocked();
     const recentIds = getRecentUnlocked(3);
-    
-    // Find "next to unlock" — first 3 achievements that aren't unlocked yet
     const locked = ACHIEVEMENTS.filter(a => !unlocked[a.id]);
-    
-    // Build 3 cells: unlocked first (most recent), then next-to-unlock
+
     const cells = [];
     let unlockedShown = 0;
     let lockedShown = 0;
-    
+
     for (let i = 0; i < 3; i++) {
         let ach = null;
         let isLocked = false;
-        
+
         if (unlockedShown < recentIds.length) {
             ach = getAchievement(recentIds[unlockedShown]);
             unlockedShown++;
@@ -353,26 +349,21 @@ function renderAchievementsStrip() {
             isLocked = true;
             lockedShown++;
         }
-        
+
         if (!ach) {
-            cells.push(`<div class="ach-strip-item locked ach-meta">
-                <div class="ach-strip-badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
-                </div>
-                <span class="ach-strip-name">—</span>
-            </div>`);
+            cells.push(`<div class="ach-strip-item locked"><div class="ach-strip-badge"></div><span class="ach-strip-name">—</span></div>`);
             continue;
         }
-        
+
         cells.push(`
-            <div class="ach-strip-item ach-${ach.category} ${isLocked ? 'locked' : ''}">
-                <div class="ach-strip-badge">${getIconForCategory(ach.category)}</div>
+            <div class="ach-strip-item ${isLocked ? 'locked' : ''}" style="--ach-color: ${getColor(ach)};">
+                <div class="ach-strip-badge">${getIcon(ach)}</div>
                 <span class="ach-strip-name">${escapeHtml(ach.name)}</span>
             </div>
         `);
     }
     strip.innerHTML = cells.join('');
-    
+
     const viewAllBtn = document.getElementById('achievements-view-all');
     if (viewAllBtn) viewAllBtn.onclick = openAchievementsScreen;
     strip.querySelectorAll('.ach-strip-item').forEach(el => {
@@ -393,22 +384,22 @@ function closeAchievementsScreen() {
 function renderAchievementsScreen() {
     const body = document.getElementById('achievements-body');
     if (!body) return;
-    
+
     const unlocked = getUnlocked();
     const unlockedCount = Object.keys(unlocked).length;
     const total = ACHIEVEMENTS.length;
     const progressFrac = total > 0 ? (unlockedCount / total).toFixed(2) : 0;
-    
+
     const groups = { streak: [], score: [], game: [], meta: [] };
     ACHIEVEMENTS.forEach(a => { if (groups[a.category]) groups[a.category].push(a); });
-    
+
     const groupTitles = {
         streak: 'Streak',
         score: 'Score',
         game: 'Game mastery',
         meta: 'Milestones'
     };
-    
+
     let html = `
         <div class="achievements-progress">
             <div>
@@ -421,7 +412,7 @@ function renderAchievementsScreen() {
             </div>
         </div>
     `;
-    
+
     for (const cat of ['streak', 'score', 'game', 'meta']) {
         const items = groups[cat];
         if (!items.length) continue;
@@ -432,8 +423,8 @@ function renderAchievementsScreen() {
                     ${items.map(ach => {
                         const isUnlocked = !!unlocked[ach.id];
                         return `
-                            <div class="ach-card ach-${ach.category} ${isUnlocked ? '' : 'locked'}">
-                                <div class="ach-card-badge">${getIconForCategory(ach.category)}</div>
+                            <div class="ach-card ${isUnlocked ? '' : 'locked'}" style="--ach-color: ${getColor(ach)};">
+                                <div class="ach-card-badge">${getIcon(ach)}</div>
                                 <h4 class="ach-card-name">${escapeHtml(ach.name)}</h4>
                                 <p class="ach-card-desc">${escapeHtml(ach.description)}</p>
                             </div>
@@ -443,7 +434,7 @@ function renderAchievementsScreen() {
             </section>
         `;
     }
-    
+
     body.innerHTML = html;
 }
 

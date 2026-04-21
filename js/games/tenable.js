@@ -1,4 +1,4 @@
-import { findMatchIndex } from '../utils/name-match.js';
+import { findAllMatchIndices } from '../utils/name-match.js';
 import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
@@ -151,25 +151,34 @@ async function handleSubmit(e) {
     }
 
     state.history.push(raw);
-    const matchIdx = findMatchIndex(raw, data.answers);
+    const allIndices = findAllMatchIndices(raw, data.answers);
 
-    if (matchIdx >= 0) {
-        const answer = data.answers[matchIdx];
-        if (state.revealedRanks.includes(answer.rank)) {
-            toast(`${answer.name} already on the board`, 'warn');
-            shakeInput(input);
-            input.value = '';
-            return;
+    // Filter out answers that are already revealed
+    const newMatches = allIndices
+        .map(i => data.answers[i])
+        .filter(a => !state.revealedRanks.includes(a.rank));
+
+    if (newMatches.length > 0) {
+        // Sort by rank so the toast/reveal order is predictable
+        newMatches.sort((a, b) => a.rank - b.rank);
+
+        for (const answer of newMatches) {
+            state.revealedRanks.push(answer.rank);
+            const slot = document.querySelector(`.pyramid-slot[data-rank="${answer.rank}"]`);
+            if (slot) {
+                slot.classList.remove('hint');
+                slot.classList.add('revealed');
+                slot.innerHTML = `<span class="slot-rank">${answer.rank}</span><span class="slot-name">${escapeHtml(answer.name)}</span>`;
+            }
         }
-        state.revealedRanks.push(answer.rank);
-        await hapticSuccess();
-        toast(`Nice — #${answer.rank} ${answer.name}`, 'success');
 
-        const slot = document.querySelector(`.pyramid-slot[data-rank="${answer.rank}"]`);
-        if (slot) {
-            slot.classList.remove('hint');
-            slot.classList.add('revealed');
-            slot.innerHTML = `<span class="slot-rank">${answer.rank}</span><span class="slot-name">${escapeHtml(answer.name)}</span>`;
+        await hapticSuccess();
+        if (newMatches.length === 1) {
+            const a = newMatches[0];
+            toast(`Nice — #${a.rank} ${a.name}`, 'success');
+        } else {
+            const names = newMatches.map(a => `#${a.rank} ${a.name}`).join(' + ');
+            toast(`Double hit — ${names}`, 'success');
         }
 
         input.value = '';
@@ -179,23 +188,34 @@ async function handleSubmit(e) {
         if (state.revealedRanks.length === 10) {
             await finishGame();
         }
-    } else {
-        state.wrongGuesses++;
-        await hapticError();
-        const remaining = livesRemaining();
-        const msg = remaining > 0
-            ? `Missed · ${remaining} ${remaining === 1 ? 'life' : 'lives'} left`
-            : 'Missed · no lives left';
-        toast(msg, 'error');
+        return;
+    }
+
+    // Input matched only already-revealed answers (all were duplicates)
+    if (allIndices.length > 0) {
+        const a = data.answers[allIndices[0]];
+        toast(`${a.name} already on the board`, 'warn');
         shakeInput(input);
         input.value = '';
-        renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses, true);
-        renderHintButton();
-        await saveState();
+        return;
+    }
 
-        if (remaining <= 0) {
-            await finishGame();
-        }
+    // No match at all — wrong guess
+    state.wrongGuesses++;
+    await hapticError();
+    const remaining = livesRemaining();
+    const msg = remaining > 0
+        ? `Missed · ${remaining} ${remaining === 1 ? 'life' : 'lives'} left`
+        : 'Missed · no lives left';
+    toast(msg, 'error');
+    shakeInput(input);
+    input.value = '';
+    renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses, true);
+    renderHintButton();
+    await saveState();
+
+    if (remaining <= 0) {
+        await finishGame();
     }
 }
 

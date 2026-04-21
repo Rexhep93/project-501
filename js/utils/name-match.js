@@ -125,3 +125,15 @@ export function findMatchIndex(input, answers) {
     }
     return -1;
 }
+
+/**
+ * Returns ALL matching answer indices (for Tenable when an input like
+ * "Müller" matches multiple answers).
+ */
+export function findAllMatchIndices(input, answers) {
+    const indices = [];
+    for (let i = 0; i < answers.length; i++) {
+        if (isMatch(input, answers[i].aliases)) indices.push(i);
+    }
+    return indices;
+}

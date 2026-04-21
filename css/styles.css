@@ -1769,3 +1769,48 @@ body.loading .menu-real-content { display: none; }
 .ach-card.locked .ach-card-desc {
     color: var(--ink-3);
 }
+
+/* ════════════════════════════════════════ VERDICT SHEET ════════════════════════════════════════ */
+.verdict-sheet {
+    margin: -6px 24px 18px;
+    padding: 16px 20px 18px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 0 var(--divider);
+}
+.verdict-sheet[data-tier="rough"] {
+    background: var(--destructive-soft);
+    color: var(--destructive);
+}
+.verdict-sheet[data-tier="below"] {
+    background: var(--warn-soft);
+    color: var(--warn);
+}
+.verdict-sheet[data-tier="good"] {
+    background: var(--player-soft);
+    color: var(--player-dark);
+}
+.verdict-sheet[data-tier="elite"] {
+    background: var(--tenable);
+    color: white;
+}
+.verdict-sheet[data-tier="perfect"] {
+    background: var(--accent);
+    color: white;
+}
+
+.verdict-eyebrow {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin: 0 0 8px;
+    opacity: 0.9;
+}
+.verdict-message {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    margin: 0;
+}

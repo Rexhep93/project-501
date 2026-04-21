@@ -50,8 +50,20 @@ async function bootstrap() {
 
     if (dataLoadFailed) showDataErrorBanner();
 
-    document.querySelectorAll('[data-back]').forEach(btn => {
-        btn.addEventListener('click', () => navigate('menu'));
+ document.querySelectorAll('[data-back]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            // If game is finished, refresh the menu (save progress visible)
+            const state = await getState(currentDate);
+            const gameKey = currentScreen.replace('-screen', '');
+            const gameState = state[gameKey];
+            
+            if (gameState?.played) {
+                closeResultModal();
+                await handleGameFinished();
+            } else {
+                navigate('menu');
+            }
+        });
     });
 
     document.querySelectorAll('.game-tile').forEach(tile => {
@@ -530,7 +542,10 @@ function renderScoreCard(state, total, played) {
         return;
     }
 
-    card.dataset.state = 'done';
+   card.dataset.state = 'done';
+    const returnMessage = isToday(currentDate)
+        ? 'Come back tomorrow for a new quiz.'
+        : 'Matchday complete.';
     card.innerHTML = `
         <div class="sc-done-left">
             <p class="sc-done-eyebrow">Matchday complete</p>
@@ -538,12 +553,14 @@ function renderScoreCard(state, total, played) {
                 <span class="sc-done-num">${total}</span>
                 <span class="sc-done-max">/25</span>
             </div>
+            <p class="sc-done-return">${returnMessage}</p>
         </div>
         <button class="sc-done-share" id="sc-done-share">
             <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
             <span>Share</span>
         </button>
     `;
+    
     document.getElementById('sc-done-share').onclick = async (e) => {
         e.stopPropagation();
         hapticLight();

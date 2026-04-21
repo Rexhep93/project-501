@@ -397,14 +397,23 @@ function renderAchievementsScreen() {
     const unlockedCount = Object.keys(unlocked).length;
     const total = ACHIEVEMENTS.length;
 
-    const groups = { streak: [], score: [], game: [], meta: [] };
-    ACHIEVEMENTS.forEach(a => { if (groups[a.category]) groups[a.category].push(a); });
+    const groups = { streak: [], score: [], mastery: [], meta: [], hidden: [] };
+    ACHIEVEMENTS.forEach(a => {
+        if (a.category === 'hidden' && !unlocked[a.id]) return; // hide locked hidden
+        if (groups[a.category]) groups[a.category].push(a);
+    });
+
+    // Count locked hidden achievements for the "X remaining" hint
+    const hiddenTotal = ACHIEVEMENTS.filter(a => a.category === 'hidden').length;
+    const hiddenUnlocked = groups.hidden.length;
+    const hiddenRemaining = hiddenTotal - hiddenUnlocked;
 
     const groupTitles = {
         streak: 'Streak',
         score: 'Score',
-        game: 'Game mastery',
-        meta: 'Milestones'
+        mastery: 'Game mastery',
+        meta: 'Milestones',
+        hidden: 'Hidden'
     };
 
     let html = `
@@ -417,12 +426,19 @@ function renderAchievementsScreen() {
         </div>
     `;
 
-    for (const cat of ['streak', 'score', 'game', 'meta']) {
+    for (const cat of ['streak', 'score', 'mastery', 'meta', 'hidden']) {
         const items = groups[cat];
-        if (!items.length) continue;
+        if (cat === 'hidden' && items.length === 0 && hiddenRemaining === 0) continue;
+        if (cat !== 'hidden' && items.length === 0) continue;
+
+        let titleSuffix = '';
+        if (cat === 'hidden' && hiddenRemaining > 0) {
+            titleSuffix = ` · ${hiddenRemaining} to discover`;
+        }
+
         html += `
             <section class="achievements-section">
-                <h3 class="achievements-section-title">${groupTitles[cat]}</h3>
+                <h3 class="achievements-section-title">${groupTitles[cat]}${titleSuffix}</h3>
                 <div class="achievements-grid">
                     ${items.map(ach => {
                         const isU = !!unlocked[ach.id];

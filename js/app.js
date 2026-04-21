@@ -18,13 +18,13 @@ const USE_SAMPLE_DATA = false;
 
 const GAME_MAX = { tenable: 10, guessPlayer: 5, whoAmI: 5, guessClub: 5 };
 
-let currentDate = todayKey();   // dateKey of the day currently loaded/shown
-let currentData = null;         // the data for currentDate
+let currentDate = todayKey();
+let currentData = null;
 let dataLoadFailed = false;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
 let isFirstRender = true;
-let celebrationShownForDate = null;  // which date's celebration we've already shown this session
+let celebrationShownForDate = null;
 
 // ═══════════════════════════════════════
 // BOOTSTRAP
@@ -50,13 +50,13 @@ async function bootstrap() {
 
     if (dataLoadFailed) showDataErrorBanner();
 
- document.querySelectorAll('[data-back]').forEach(btn => {
+    // Back button — if game is finished, save state to home before navigating
+    document.querySelectorAll('[data-back]').forEach(btn => {
         btn.addEventListener('click', async () => {
-            // If game is finished, refresh the menu (save progress visible)
             const state = await getState(currentDate);
             const gameKey = currentScreen.replace('-screen', '');
             const gameState = state[gameKey];
-            
+
             if (gameState?.played) {
                 closeResultModal();
                 await handleGameFinished();
@@ -171,14 +171,14 @@ function closeResultModal() {
 function setupModalDismissal() {
     const resultModal = document.getElementById('result-modal');
 
-    // Backdrop tap = close modal, stay on game screen
+    // Backdrop tap = close modal, stay on game screen for review
     resultModal.addEventListener('click', (e) => {
         if (e.target === resultModal) {
             closeResultModal();
         }
     });
 
-    // X button = close modal, stay on game screen
+    // X button = close modal, stay on game screen for review
     const closeBtn = document.getElementById('result-close');
     if (closeBtn) closeBtn.onclick = () => closeResultModal();
 
@@ -196,10 +196,9 @@ async function handleGameFinished() {
     await renderMenu();
     navigate('menu');
     const newState = await getState(currentDate);
-    
-    // Check achievements before celebration (toasts will fire)
+
     await checkAchievements(newState);
-    
+
     if (countPlayed(newState) === 4 && celebrationShownForDate !== currentDate) {
         celebrationShownForDate = currentDate;
         setTimeout(() => showCelebration(newState), 500);
@@ -242,7 +241,6 @@ function showCelebration(state) {
     const numEl = document.getElementById('celeb-score-num');
     numEl.textContent = '0';
 
-    // Set date on the share-ready card
     const celebDate = document.getElementById('celeb-date');
     if (celebDate) {
         const d = keyToDate(currentDate);
@@ -278,7 +276,6 @@ function setupSettings() {
     const closeBtn = document.getElementById('settings-close');
     if (closeBtn) closeBtn.onclick = closeSettings;
 
-    // Theme radio group
     document.querySelectorAll('[data-theme-option]').forEach(el => {
         el.onclick = () => {
             const theme = el.dataset.themeOption;
@@ -320,10 +317,9 @@ async function renderMenu() {
     renderMasthead();
     updateBackToTodayVisibility();
     renderScoreCard(state, total, played);
+    renderVerdictSheet(state, total, played);
     renderTiles(state);
 
-    // Only record to history if we played on today — oude dagen inhalen slaat
-    // wel de beste score op, maar niet als vandaag.
     if (played > 0) await recordScore(total, currentDate);
 
     await renderWeekStrip();
@@ -542,10 +538,7 @@ function renderScoreCard(state, total, played) {
         return;
     }
 
-   card.dataset.state = 'done';
-    const returnMessage = isToday(currentDate)
-        ? 'Come back tomorrow for a new quiz.'
-        : 'Matchday complete.';
+    card.dataset.state = 'done';
     card.innerHTML = `
         <div class="sc-done-left">
             <p class="sc-done-eyebrow">Matchday complete</p>
@@ -553,25 +546,63 @@ function renderScoreCard(state, total, played) {
                 <span class="sc-done-num">${total}</span>
                 <span class="sc-done-max">/25</span>
             </div>
-            <p class="sc-done-return">${returnMessage}</p>
         </div>
         <button class="sc-done-share" id="sc-done-share">
             <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
             <span>Share</span>
         </button>
     `;
-    
     document.getElementById('sc-done-share').onclick = async (e) => {
         e.stopPropagation();
         hapticLight();
-        // Show celebration screen invisibly to render the share-card, then share
         const celebState = await getState(currentDate);
         showCelebration(celebState);
-        await new Promise(r => setTimeout(r, 400));  // wait for bars to animate
+        await new Promise(r => setTimeout(r, 400));
         await shareResult(celebState);
     };
     lastRenderedScore = total;
     isFirstRender = false;
+}
+
+function renderVerdictSheet(state, total, played) {
+    const container = document.getElementById('verdict-sheet');
+    if (!container) return;
+
+    if (played < 4) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+    }
+
+    let tier, eyebrow, message;
+    if (total === 25) {
+        tier = 'perfect';
+        eyebrow = 'Perfect score';
+        message = `PERFECT SCORE! Be honest.. Did you really get everything right, or did you cheat? If you did it on your own, that's insanely good. Amazing job.`;
+    } else if (total >= 16) {
+        tier = 'elite';
+        eyebrow = 'Elite ball knowledge';
+        message = `Elite ball knowledge. You outscored a lot of people today, great job. Let's see if you can do it again tomorrow, we'll have 4 new quizzes waiting for you.`;
+    } else if (total >= 10) {
+        tier = 'good';
+        eyebrow = 'Nicely done';
+        message = `Nice, you did well! Come back tomorrow, we'll have 4 new quizzes ready for you.`;
+    } else if (total >= 5) {
+        tier = 'below';
+        eyebrow = 'Below average';
+        message = `That was below average. You can do better. Come back tomorrow, we'll have new quizzes waiting for you.`;
+    } else {
+        tier = 'rough';
+        eyebrow = 'Yikes';
+        message = `Yikes, that was rough. No ball knowledge, you're done for today. Come back tomorrow; we'll have 4 new quizzes ready for you.`;
+    }
+
+    container.style.display = 'block';
+    container.dataset.tier = tier;
+    container.innerHTML = `
+        <p class="verdict-eyebrow">${eyebrow}</p>
+        <p class="verdict-message">${escapeHtml(message)}</p>
+    `;
 }
 
 function renderTiles(state) {
@@ -609,8 +640,7 @@ async function renderWeekStrip() {
                 ${d.played && !d.isToday ? `<svg class="day-cell-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>` : ''}
             </button>`;
     }).join('');
-    
-    // Bind clicks
+
     strip.querySelectorAll('.day-cell').forEach(el => {
         el.onclick = async () => {
             const target = el.dataset.date;
@@ -623,7 +653,7 @@ async function renderWeekStrip() {
 
 async function loadDay(dateKey) {
     currentDate = dateKey;
-    isFirstRender = true;  // reset so score doesn't animate from wrong value
+    isFirstRender = true;
     showSkeleton();
     try {
         currentData = await loadDataForDate(currentDate);
@@ -690,21 +720,18 @@ function setupHeroShrink(gameKey) {
     const input = document.getElementById(`${gameKey}-input`);
     if (!hero || !form || !input) return;
 
-    // Auto-shrink after 4 seconds of viewing the game
     const autoShrinkTimer = setTimeout(() => {
         if (!hero.classList.contains('shrunk')) {
             hero.classList.add('shrunk');
         }
     }, 4000);
 
-    // Also shrink on first submit
     form.addEventListener('submit', () => {
         if (!input.value.trim()) return;
         clearTimeout(autoShrinkTimer);
         if (!hero.classList.contains('shrunk')) hero.classList.add('shrunk');
     });
 
-    // Tap hero to toggle (expand if shrunk, shrink if expanded)
     hero.addEventListener('click', (e) => {
         if (e.target.closest('.hero-score-chip')) return;
         if (e.target.closest('#tenable-hint-btn')) return;
@@ -729,7 +756,6 @@ function navigate(target) {
 document.addEventListener('DOMContentLoaded', bootstrap);
 document.addEventListener('visibilitychange', async () => {
     if (!document.hidden && currentScreen === 'menu') {
-        // Re-render in case day rolled over
         if (isToday(currentDate) === false && todayKey() !== currentDate) {
             // fine — stay where we are
         }

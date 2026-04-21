@@ -1,9 +1,10 @@
-// Per-day score history for streak strip + lifetime stats
+// Per-day score history for streak strip + lifetime stats + achievements
 
 import { todayKey } from './date-key.js';
 
 const HISTORY_KEY = 'voetbalquiz_history_v1';
 const MAX_DAYS = 365;
+const STATE_PREFIX = 'voetbalquiz_daily_state_';
 
 let prefs = null;
 try {
@@ -44,11 +45,6 @@ async function saveHistory(history) {
     await rawSet(HISTORY_KEY, JSON.stringify(trimmed));
 }
 
-/**
- * Record a score for a specific date (defaults to today).
- * Keeps the HIGHER of existing and new — so time-travel can't overwrite a
- * better earlier score.
- */
 export async function recordScore(totalScore, dateKey = null) {
     const d = dateKey || todayKey();
     const history = await loadHistory();
@@ -59,7 +55,6 @@ export async function recordScore(totalScore, dateKey = null) {
     }
 }
 
-// Back-compat alias
 export async function recordToday(totalScore) {
     return recordScore(totalScore, todayKey());
 }
@@ -88,10 +83,6 @@ export async function getLast7Days() {
     return out;
 }
 
-/**
- * Lifetime stats. Streak = consecutive days (ending today or yesterday) with
- * a recorded score. Oude dagen inhalen herstelt geen gebroken streak.
- */
 export async function getLifetimeStats() {
     const history = await loadHistory();
     const entries = Object.entries(history)
@@ -136,4 +127,142 @@ export async function getLifetimeStats() {
     }
 
     return { streak, total, best, days };
+}
+
+/**
+ * Load all daily-state keys from storage and aggregate cross-day statistics.
+ * Used for tiered and hidden achievements.
+ * 
+ * Returns:
+ * {
+ *   perfectMatchdays,      // count of 25/25 days
+ *   tenableAllTen,         // count of Tenable 10/10
+ *   tenablePerfectNoHints, // count of 10/10 with zero hints
+ *   guessPlayerFirstTry,   // count of 5pt guessPlayer
+ *   whoAmIFirstTry,        // count of 5pt whoAmI
+ *   guessClubFirstTry,     // count of 5pt guessClub
+ *   weekendStreak,         // consecutive Sat+Sun pairs played
+ *   longestStreakEver      // all-time longest streak
+ * }
+ */
+export async function getAggregateStats() {
+    const stats = {
+        perfectMatchdays: 0,
+        tenableAllTen: 0,
+        tenablePerfectNoHints: 0,
+        guessPlayerFirstTry: 0,
+        whoAmIFirstTry: 0,
+        guessClubFirstTry: 0,
+        weekendStreak: 0,
+        longestStreakEver: 0
+    };
+
+    let stateKeys = [];
+    if (prefs) {
+        // Capacitor Preferences: use keys() if available
+        try {
+            const { keys } = await prefs.keys();
+            stateKeys = keys.filter(k => k.startsWith(STATE_PREFIX));
+        } catch (e) { /* fall through */ }
+    } else {
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith(STATE_PREFIX)) stateKeys.push(k);
+        }
+    }
+
+    // Also track which dates were played for streak analysis
+    const playedDates = new Set();
+
+    for (const key of stateKeys) {
+        const raw = await rawGet(key);
+        if (!raw) continue;
+        let s;
+        try { s = JSON.parse(raw); } catch (e) { continue; }
+
+        const dateStr = key.replace(STATE_PREFIX, '');
+        const played =
+            (s.tenable?.played ? 1 : 0) +
+            (s.guessPlayer?.played ? 1 : 0) +
+            (s.whoAmI?.played ? 1 : 0) +
+            (s.guessClub?.played ? 1 : 0);
+
+        if (played > 0) playedDates.add(dateStr);
+
+        const totalScore = (s.tenable?.score || 0)
+                         + (s.guessPlayer?.score || 0)
+                         + (s.whoAmI?.score || 0)
+                         + (s.guessClub?.score || 0);
+
+        if (played === 4 && totalScore === 25) stats.perfectMatchdays++;
+
+        if (s.tenable?.played && s.tenable?.score === 10) {
+            stats.tenableAllTen++;
+            if (!s.tenable.hintsUsed || s.tenable.hintsUsed.length === 0) {
+                stats.tenablePerfectNoHints++;
+            }
+        }
+        if (s.guessPlayer?.played && s.guessPlayer?.score === 5) stats.guessPlayerFirstTry++;
+        if (s.whoAmI?.played && s.whoAmI?.score === 5) stats.whoAmIFirstTry++;
+        if (s.guessClub?.played && s.guessClub?.score === 5) stats.guessClubFirstTry++;
+    }
+
+    // Longest streak ever: walk through sorted played dates
+    if (playedDates.size > 0) {
+        const sorted = [...playedDates].sort();
+        let longest = 1;
+        let current = 1;
+        for (let i = 1; i < sorted.length; i++) {
+            const prev = new Date(sorted[i - 1]);
+            const curr = new Date(sorted[i]);
+            const diffDays = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+            if (diffDays === 1) {
+                current++;
+                longest = Math.max(longest, current);
+            } else {
+                current = 1;
+            }
+        }
+        stats.longestStreakEver = longest;
+    }
+
+    // Weekend streak: count consecutive Sat+Sun pairs
+    if (playedDates.size > 0) {
+        const sorted = [...playedDates].sort();
+        let weekendPairs = 0;
+        let currentRun = 0;
+        const seenWeekends = new Set();
+        for (const dateStr of sorted) {
+            const d = new Date(dateStr);
+            const dow = d.getDay(); // 0=Sun, 6=Sat
+            if (dow !== 0 && dow !== 6) continue;
+
+            // Determine weekend key (Saturday date)
+            const satDate = new Date(d);
+            if (dow === 0) satDate.setDate(satDate.getDate() - 1);
+            const sy = satDate.getFullYear();
+            const sm = String(satDate.getMonth() + 1).padStart(2, '0');
+            const sd = String(satDate.getDate()).padStart(2, '0');
+            const weekendKey = `${sy}-${sm}-${sd}`;
+
+            if (seenWeekends.has(weekendKey)) continue;
+
+            // Check if both Sat AND Sun of this weekend were played
+            const satKey = weekendKey;
+            const sunDate = new Date(satDate);
+            sunDate.setDate(sunDate.getDate() + 1);
+            const sunKey = `${sunDate.getFullYear()}-${String(sunDate.getMonth() + 1).padStart(2, '0')}-${String(sunDate.getDate()).padStart(2, '0')}`;
+
+            if (playedDates.has(satKey) && playedDates.has(sunKey)) {
+                seenWeekends.add(weekendKey);
+                currentRun++;
+                weekendPairs = Math.max(weekendPairs, currentRun);
+            } else {
+                currentRun = 0;
+            }
+        }
+        stats.weekendStreak = weekendPairs;
+    }
+
+    return stats;
 }

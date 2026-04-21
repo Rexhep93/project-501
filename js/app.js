@@ -577,23 +577,23 @@ function renderVerdictSheet(state, total, played) {
     let tier, eyebrow, message;
     if (total === 25) {
         tier = 'perfect';
-        eyebrow = 'Perfect score';
+        eyebrow = 'That was special. Quiz day completed';
         message = `PERFECT SCORE! Be honest.. Did you really get everything right, or did you cheat? If you did it on your own, that's insanely good. Amazing job.`;
     } else if (total >= 16) {
         tier = 'elite';
-        eyebrow = 'Elite ball knowledge';
+        eyebrow = 'You did it! Quiz day completed';
         message = `Elite ball knowledge. You outscored a lot of people today, great job. Let's see if you can do it again tomorrow, we'll have 4 new quizzes waiting for you.`;
     } else if (total >= 10) {
         tier = 'good';
-        eyebrow = 'Nicely done';
+        eyebrow = 'Nicely done. Quiz day completed';
         message = `Nice, you did well! Come back tomorrow, we'll have 4 new quizzes ready for you.`;
     } else if (total >= 5) {
         tier = 'below';
-        eyebrow = 'Below average';
+        eyebrow = 'You can do better. Quiz day completed';
         message = `That was below average. You can do better. Come back tomorrow, we'll have new quizzes waiting for you.`;
     } else {
         tier = 'rough';
-        eyebrow = 'Yikes';
+        eyebrow = 'Not good. Quiz day completed';
         message = `Yikes, that was rough. No ball knowledge, you're done for today. Come back tomorrow; we'll have 4 new quizzes ready for you.`;
     }
 

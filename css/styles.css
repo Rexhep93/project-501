@@ -1794,7 +1794,7 @@ body.loading .menu-real-content { display: none; }
     color: white;
 }
 .verdict-sheet[data-tier="perfect"] {
-    background: var(--accent);
+    background: #b37a00;
     color: white;
 }
 

@@ -594,7 +594,7 @@ function renderVerdictSheet(state, total, played) {
     if (total === 25) {
         tier = 'perfect';
         eyebrow = 'That was special. Quiz day completed';
-        message = `PERFECT SCORE! Be honest.. Did you really get everything right, or did you cheat? If you did it on your own, that's insanely good. Amazing job.`;
+        message = `PERFECT SCORE! This doesn't happen often. Amazing job. Come back tomorrow, let's see if you can do it again.`;
     } else if (total >= 16) {
         tier = 'elite';
         eyebrow = 'You did it! Quiz day completed';

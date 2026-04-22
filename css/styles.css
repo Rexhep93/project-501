@@ -230,7 +230,7 @@ body.loading .menu-real-content { display: none; }
     align-items: center;
     gap: 6px;
     padding: 6px 12px 6px 10px;
-    border-radius: 999px;
+    border-radius: 9px;
     background: var(--player);
     color: white;
     font-size: 12px;

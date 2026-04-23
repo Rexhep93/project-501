@@ -24,7 +24,7 @@ let dataLoadFailed = false;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
 let isFirstRender = true;
-let celebrationShownForDate = null;
+let celebrationShownForDate = localStorage.getItem('voetbalquiz_celeb_shown') || null;
 
 // ═══════════════════════════════════════
 // BOOTSTRAP
@@ -201,6 +201,7 @@ async function handleGameFinished() {
 
     if (countPlayed(newState) === 4 && celebrationShownForDate !== currentDate) {
         celebrationShownForDate = currentDate;
+localStorage.setItem('voetbalquiz_celeb_shown', currentDate);
         setTimeout(() => showCelebration(newState), 500);
     }
 }
@@ -730,11 +731,20 @@ async function openGame(gameKey) {
     setupHeroShrink(gameKey);
 }
 
+const heroShrinkControllers = {};
+
 function setupHeroShrink(gameKey) {
     const hero = document.getElementById(`${gameKey}-hero`);
     const form = document.getElementById(`${gameKey}-form`);
     const input = document.getElementById(`${gameKey}-input`);
     if (!hero || !form || !input) return;
+
+    if (heroShrinkControllers[gameKey]) {
+        heroShrinkControllers[gameKey].abort();
+    }
+    const controller = new AbortController();
+    heroShrinkControllers[gameKey] = controller;
+    const signal = controller.signal;
 
     const autoShrinkTimer = setTimeout(() => {
         if (!hero.classList.contains('shrunk')) {
@@ -746,14 +756,18 @@ function setupHeroShrink(gameKey) {
         if (!input.value.trim()) return;
         clearTimeout(autoShrinkTimer);
         if (!hero.classList.contains('shrunk')) hero.classList.add('shrunk');
-    });
+    }, { signal });
 
     hero.addEventListener('click', (e) => {
         if (e.target.closest('.hero-score-chip')) return;
         if (e.target.closest('#tenable-hint-btn')) return;
         clearTimeout(autoShrinkTimer);
+        // iOS fix: sluit toetsenbord zodat hero altijd klikbaar is
+        if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
+        }
         hero.classList.toggle('shrunk');
-    });
+    }, { signal });
 }
 
 function navigate(target) {

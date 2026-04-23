@@ -12,7 +12,7 @@ let dateKey = null;
 const MAX_LIVES = 3;
 const MAX_HINTS = 3;
 
-export function initTenable(gameData, gameState, finishCb, forDate) {
+export function initFootball10(gameData, gameState, finishCb, forDate) {
     data = gameData;
     state = { ...gameState };
     onFinish = finishCb;
@@ -24,16 +24,16 @@ export function initTenable(gameData, gameState, finishCb, forDate) {
     if (!state.revealedFirstLetters) state.revealedFirstLetters = {};
     if (!Array.isArray(state.hintsUsed)) state.hintsUsed = [];
 
-    document.getElementById('tenable-question').textContent = data.question;
-    document.getElementById('tenable-subtitle').textContent = data.subtitle || '';
+    document.getElementById('football10-question').textContent = data.question;
+    document.getElementById('football10-subtitle').textContent = data.subtitle || '';
 
-    renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses);
+    renderHearts(document.getElementById('football10-attempts'), MAX_LIVES, state.wrongGuesses);
     renderPyramid();
     renderScoreChip();
     renderHintButton();
 
-    const form = document.getElementById('tenable-form');
-    const input = document.getElementById('tenable-input');
+    const form = document.getElementById('football10-form');
+    const input = document.getElementById('football10-input');
     input.value = '';
     input.disabled = state.played;
     form.onsubmit = handleSubmit;
@@ -47,7 +47,7 @@ function livesRemaining() {
 }
 
 function renderScoreChip() {
-    document.getElementById('tenable-score').textContent = `${state.revealedRanks.length} / 10`;
+    document.getElementById('football10-score').textContent = `${state.revealedRanks.length} / 10`;
 }
 
 /**
@@ -56,7 +56,7 @@ function renderScoreChip() {
  * rank itself if >= MAX_HINTS already used (no further hints).
  */
 function renderHintButton() {
-    const btn = document.getElementById('tenable-hint-btn');
+    const btn = document.getElementById('football10-hint-btn');
     if (!btn) return;
     const canHint = state.wrongGuesses > 0 && state.hintsUsed.length < MAX_HINTS && !state.played;
     btn.style.display = canHint ? 'inline-flex' : 'none';
@@ -102,7 +102,7 @@ async function handleHint() {
 }
 
 function renderPyramid() {
-    const pyramid = document.getElementById('tenable-pyramid');
+    const pyramid = document.getElementById('football10-pyramid');
     pyramid.innerHTML = '';
     for (let rank = 1; rank <= 10; rank++) {
         const slot = document.createElement('div');
@@ -128,18 +128,18 @@ function renderPyramid() {
 }
 
 function renderNoData() {
-    document.getElementById('tenable-question').textContent = 'No quiz this day';
-    document.getElementById('tenable-subtitle').textContent = 'No data available';
-    document.getElementById('tenable-pyramid').innerHTML = '';
-    document.getElementById('tenable-form').onsubmit = (e) => e.preventDefault();
-    document.getElementById('tenable-input').disabled = true;
-    const btn = document.getElementById('tenable-hint-btn');
+    document.getElementById('football10-question').textContent = 'No quiz this day';
+    document.getElementById('football10-subtitle').textContent = 'No data available';
+    document.getElementById('football10-pyramid').innerHTML = '';
+    document.getElementById('football10-form').onsubmit = (e) => e.preventDefault();
+    document.getElementById('football10-input').disabled = true;
+    const btn = document.getElementById('football10-hint-btn');
     if (btn) btn.style.display = 'none';
 }
 
 async function handleSubmit(e) {
     e.preventDefault();
-    const input = document.getElementById('tenable-input');
+    const input = document.getElementById('football10-input');
     const raw = input.value.trim();
     if (!raw) return;
 
@@ -210,7 +210,7 @@ async function handleSubmit(e) {
     toast(msg, 'error');
     shakeInput(input);
     input.value = '';
-    renderHearts(document.getElementById('tenable-attempts'), MAX_LIVES, state.wrongGuesses, true);
+    renderHearts(document.getElementById('football10-attempts'), MAX_LIVES, state.wrongGuesses, true);
     renderHintButton();
     await saveState();
 
@@ -228,14 +228,14 @@ function shakeInput(input) {
 
 async function saveState() {
     state.score = state.revealedRanks.length;
-    await updateGameState('tenable', state, dateKey);
+    await updateGameState('football10', state, dateKey);
 }
 
 async function finishGame() {
     state.played = true;
     state.score = state.revealedRanks.length;
-    await updateGameState('tenable', state, dateKey);
-    document.getElementById('tenable-input').disabled = true;
+    await updateGameState('football10', state, dateKey);
+    document.getElementById('football10-input').disabled = true;
     renderHintButton();
 
     const missed = data.answers.filter(a => !state.revealedRanks.includes(a.rank));

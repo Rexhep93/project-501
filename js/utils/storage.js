@@ -1,48 +1,20 @@
-// Storage abstractie: Capacitor Preferences indien beschikbaar, anders localStorage.
-// NEW: state is keyed PER DAY. Key format: voetbalquiz_daily_state_YYYY-MM-DD
+// Per-day game state. Key format: voetbalquiz_daily_state_YYYY-MM-DD
 // Migration: old key 'voetbalquiz_daily_state' (single-day) is read once, moved
 // to its date-suffixed equivalent, then removed.
+//
+// Uses the shared kv-store abstraction so the same code runs on web
+// (localStorage) and in a Capacitor iOS build (Preferences plugin).
 
 import { todayKey } from './date-key.js';
+import { kvGet as rawGet, kvSet as rawSet, kvRemove as rawRemove } from './kv-store.js';
 
 const STORAGE_PREFIX = 'voetbalquiz_daily_state_';
 const LEGACY_KEY = 'voetbalquiz_daily_state';
 
-let prefs = null;
-try {
-    if (window.Capacitor?.Plugins?.Preferences) {
-        prefs = window.Capacitor.Plugins.Preferences;
-    }
-} catch (e) { /* ignore */ }
-
-async function rawGet(key) {
-    if (prefs) {
-        const { value } = await prefs.get({ key });
-        return value;
-    }
-    return localStorage.getItem(key);
-}
-
-async function rawSet(key, value) {
-    if (prefs) {
-        await prefs.set({ key, value });
-    } else {
-        localStorage.setItem(key, value);
-    }
-}
-
-async function rawRemove(key) {
-    if (prefs) {
-        await prefs.remove({ key });
-    } else {
-        localStorage.removeItem(key);
-    }
-}
-
 function defaultState(dateKey) {
     return {
         date: dateKey,
-        tenable:     { played: false, score: 0, revealedRanks: [], history: [], wrongGuesses: 0, hintsUsed: [], revealedFirstLetters: {} },
+        football10:  { played: false, score: 0, revealedRanks: [], history: [], wrongGuesses: 0, hintsUsed: [], revealedFirstLetters: {} },
         guessPlayer: { played: false, score: 0, attempts: 0, revealedClubs: 1, solved: false },
         whoAmI:      { played: false, score: 0, attempts: 0, revealedHints: 1, solved: false },
         guessClub:   { played: false, score: 0, attempts: 0, solved: false, shirtsRevealed: false }
@@ -93,15 +65,15 @@ export async function getState(dateKey = null) {
                 ...base,
                 ...parsed,
                 date: d,
-                tenable:     { ...base.tenable,     ...(parsed.tenable     || {}) },
+                football10:  { ...base.football10,  ...(parsed.football10  || {}) },
                 guessPlayer: { ...base.guessPlayer, ...(parsed.guessPlayer || {}) },
                 whoAmI:      { ...base.whoAmI,      ...(parsed.whoAmI      || {}) },
                 guessClub:   { ...base.guessClub,   ...(parsed.guessClub   || {}) }
             };
             // Legacy migration: old 'lives' → wrongGuesses
-            if (typeof parsed.tenable?.lives === 'number' &&
-                typeof merged.tenable.wrongGuesses !== 'number') {
-                merged.tenable.wrongGuesses = 3 - parsed.tenable.lives;
+            if (typeof parsed.football10?.lives === 'number' &&
+                typeof merged.football10.wrongGuesses !== 'number') {
+                merged.football10.wrongGuesses = 3 - parsed.football10.lives;
             }
             return merged;
         }
@@ -132,12 +104,12 @@ export async function updateGameState(gameKey, patch, dateKey = null) {
 }
 
 export function countPlayed(state) {
-    return ['tenable', 'guessPlayer', 'whoAmI', 'guessClub']
+    return ['football10', 'guessPlayer', 'whoAmI', 'guessClub']
         .filter(k => state[k]?.played).length;
 }
 
 export function totalScore(state) {
-    return (state.tenable?.score     || 0)
+    return (state.football10?.score  || 0)
          + (state.guessPlayer?.score || 0)
          + (state.whoAmI?.score      || 0)
          + (state.guessClub?.score   || 0);

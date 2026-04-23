@@ -60,7 +60,7 @@
             </symbol>
 
             <!-- TILE HERO ART -->
-            <symbol id="art-tenable" viewBox="0 0 100 100">
+            <symbol id="art-football10" viewBox="0 0 100 100">
                 <g fill="currentColor">
                     <rect x="44" y="10" width="12" height="6" rx="1.5"/>
                     <rect x="40" y="19" width="20" height="6" rx="1.5"/>
@@ -174,15 +174,15 @@
                 <div class="verdict-sheet" id="verdict-sheet" style="display:none;"></div>
 
                 <div class="games-grid">
-                    <button class="game-tile" data-game="tenable">
+                    <button class="game-tile" data-game="football10">
                         <div class="tile-number">№ 01</div>
-                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-tenable"/></svg></div>
+                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-football10"/></svg></div>
                         <div class="tile-text">
-                            <h2 class="tile-title">Tenable</h2>
+                            <h2 class="tile-title">Football 10</h2>
                             <p class="tile-meta">Top 10 list</p>
                         </div>
                         <div class="tile-chev"><svg viewBox="0 0 24 24"><use href="#i-chev-right"/></svg></div>
-                        <div class="tile-played-chip" data-played-chip="tenable"></div>
+                        <div class="tile-played-chip" data-played-chip="football10"></div>
                     </button>
 
                     <button class="game-tile" data-game="guessPlayer">
@@ -236,24 +236,24 @@
     </section>
 
     <!-- ================================================================
-         TENABLE
+         FOOTBALL 10
          ================================================================ -->
-    <section id="tenable-screen" class="screen game-screen">
+    <section id="football10-screen" class="screen game-screen">
         <header class="game-header">
             <button class="back-btn" data-back><svg viewBox="0 0 24 24"><use href="#i-back"/></svg></button>
-            <div class="header-attempts" id="tenable-attempts"></div>
+            <div class="header-attempts" id="football10-attempts"></div>
         </header>
 
-        <div class="game-hero" id="tenable-hero">
+        <div class="game-hero" id="football10-hero">
             <div class="game-hero-top">
                 <div class="game-hero-eyebrow-wrap">
-                    <p class="game-hero-eyebrow">№ 01 · Tenable</p>
-                    <p class="game-hero-question" id="tenable-question"></p>
-                    <p class="game-hero-meta" id="tenable-subtitle"></p>
+                    <p class="game-hero-eyebrow">№ 01 · Football 10</p>
+                    <p class="game-hero-question" id="football10-question"></p>
+                    <p class="game-hero-meta" id="football10-subtitle"></p>
                 </div>
                 <div class="hero-right-stack">
-                    <div class="hero-score-chip" id="tenable-score">0 / 10</div>
-                    <button id="tenable-hint-btn" class="hint-btn" style="display:none;" aria-label="Get a hint">
+                    <div class="hero-score-chip" id="football10-score">0 / 10</div>
+                    <button id="football10-hint-btn" class="hint-btn" style="display:none;" aria-label="Get a hint">
                         <svg viewBox="0 0 24 24"><use href="#i-bulb"/></svg>
                         <span class="hint-count">3</span>
                     </button>
@@ -262,12 +262,12 @@
         </div>
 
         <div class="game-content">
-            <div class="tenable-pyramid" id="tenable-pyramid"></div>
+            <div class="football10-pyramid" id="football10-pyramid"></div>
         </div>
 
         <div class="input-strip">
-            <form id="tenable-form" autocomplete="off">
-                <input type="text" id="tenable-input" placeholder="Name a player…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
+            <form id="football10-form" autocomplete="off">
+                <input type="text" id="football10-input" placeholder="Name a player…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
                 <button type="submit" class="submit-btn">
                     <svg viewBox="0 0 24 24"><use href="#i-arrow-right"/></svg>
                 </button>
@@ -423,8 +423,8 @@
             <h1 class="celeb-headline" id="celeb-headline">Well played.</h1>
 
             <div class="celeb-recap" id="celeb-recap">
-                <div class="celeb-recap-row" data-game="tenable">
-                    <span class="celeb-recap-label">Tenable</span>
+                <div class="celeb-recap-row" data-game="football10">
+                    <span class="celeb-recap-label">Football 10</span>
                     <div class="celeb-recap-bar"><div class="celeb-recap-fill"></div></div>
                     <span class="celeb-recap-score">0/10</span>
                 </div>
@@ -456,6 +456,24 @@
                 <svg viewBox="0 0 24 24"><use href="#i-share"/></svg>
                 <span>Share your matchday</span>
             </button>
+            <div class="celeb-share-options" id="celeb-share-options">
+                <button class="celeb-share-opt" data-share-mode="image">
+                    <span class="celeb-share-opt-title">Share image</span>
+                    <span class="celeb-share-opt-sub">PNG for Stories &amp; posts</span>
+                </button>
+                <button class="celeb-share-opt" data-share-mode="text">
+                    <span class="celeb-share-opt-title">Share as text</span>
+                    <span class="celeb-share-opt-sub">Emoji grid · any chat app</span>
+                </button>
+                <button class="celeb-share-opt" data-share-mode="copy">
+                    <span class="celeb-share-opt-title">Copy result</span>
+                    <span class="celeb-share-opt-sub">Paste anywhere</span>
+                </button>
+                <button class="celeb-share-opt" data-share-mode="link">
+                    <span class="celeb-share-opt-title">Share app link</span>
+                    <span class="celeb-share-opt-sub">Invite a friend</span>
+                </button>
+            </div>
             <button class="celeb-see-review" id="celeb-see-review">Close</button>
         </div>
     </section>
@@ -483,8 +501,67 @@
                     </div>
                 </div>
             </section>
+
+            <section class="settings-section">
+                <h3 class="settings-section-title">Legal</h3>
+                <div class="settings-row-group" id="legal-rows">
+                    <button class="settings-row" data-legal-doc="terms">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">Terms of Service</span>
+                            <span class="settings-row-sub">Rules for using Matchday</span>
+                        </span>
+                        <svg class="settings-row-chev" viewBox="0 0 24 24"><use href="#i-chev-right"/></svg>
+                    </button>
+                    <button class="settings-row" data-legal-doc="privacy">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">Privacy Policy</span>
+                            <span class="settings-row-sub">What we collect and why</span>
+                        </span>
+                        <svg class="settings-row-chev" viewBox="0 0 24 24"><use href="#i-chev-right"/></svg>
+                    </button>
+                    <button class="settings-row" data-legal-doc="eula">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">End User License Agreement</span>
+                            <span class="settings-row-sub">Apple standard EULA</span>
+                        </span>
+                        <svg class="settings-row-chev" viewBox="0 0 24 24"><use href="#i-chev-right"/></svg>
+                    </button>
+                    <button class="settings-row" data-legal-doc="acknowledgments">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">Acknowledgments</span>
+                            <span class="settings-row-sub">Third-party licenses &amp; data</span>
+                        </span>
+                        <svg class="settings-row-chev" viewBox="0 0 24 24"><use href="#i-chev-right"/></svg>
+                    </button>
+                </div>
+            </section>
+
+            <section class="settings-section">
+                <h3 class="settings-section-title">Support</h3>
+                <div class="settings-row-group">
+                    <button class="settings-row" data-legal-doc="contact">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">Contact &amp; Support</span>
+                            <span class="settings-row-sub">Report a bug or ask a question</span>
+                        </span>
+                        <svg class="settings-row-chev" viewBox="0 0 24 24"><use href="#i-chev-right"/></svg>
+                    </button>
+                </div>
+            </section>
         </div>
 </section>
+
+    <!-- Legal document reader -->
+    <section id="legal-screen" class="legal-screen">
+        <header class="legal-header">
+            <button class="icon-btn" id="legal-back" aria-label="Back">
+                <svg viewBox="0 0 24 24"><use href="#i-back"/></svg>
+            </button>
+            <h2 class="legal-title" id="legal-title"></h2>
+            <span class="legal-header-spacer"></span>
+        </header>
+        <div class="legal-body" id="legal-body"></div>
+    </section>
 
     <!-- ================================================================
          ACHIEVEMENTS SCREEN

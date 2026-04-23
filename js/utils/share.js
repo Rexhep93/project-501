@@ -1,7 +1,12 @@
 // Share feature — renders a shareable card using native Canvas API.
 // No html2canvas dependency. Works offline. Designed for iOS/Capacitor.
 //
-// Share flow priority:
+// Public API:
+//   shareResult(state)            — auto (image → native share → clipboard)
+//   shareResultAs(mode, state)    — explicit: 'image' | 'text' | 'copy' | 'link'
+//   buildShareText(state)         — text-only representation (emoji grid)
+//
+// Share flow priority (for image & auto modes):
 //   1. Capacitor Share plugin with file (best on iOS — native share sheet)
 //   2. Web Share API with file (iOS Safari 15+)
 //   3. Download image (fallback)
@@ -9,6 +14,8 @@
 
 import { toast } from './toast.js';
 import { todayKey } from './date-key.js';
+
+const APP_URL = 'https://matchday.app';
 
 // ═══════════════════════════════════════════════════════════════
 // DESIGN TOKENS — match the app's Daily Paper aesthetic
@@ -25,7 +32,7 @@ const TOKENS = {
     divider: 'rgba(28, 24, 21, 0.10)',
 
     accent: '#D64933',
-    tenable: '#0E4D3A',
+    football10: '#0E4D3A',
     player: '#2E7D4B',
     whoami: '#4A6B3E',
     club: '#0A7F7F',
@@ -37,14 +44,14 @@ const TOKENS = {
 };
 
 const GAME_LABELS = {
-    tenable: 'Tenable',
+    football10: 'Football 10',
     guessPlayer: 'Guess the Player',
     whoAmI: 'Who Am I',
     guessClub: 'Guess the Club'
 };
-const GAME_MAX = { tenable: 10, guessPlayer: 5, whoAmI: 5, guessClub: 5 };
+const GAME_MAX = { football10: 10, guessPlayer: 5, whoAmI: 5, guessClub: 5 };
 const GAME_COLORS = {
-    tenable: TOKENS.tenable,
+    football10: TOKENS.football10,
     guessPlayer: TOKENS.player,
     whoAmI: TOKENS.whoami,
     guessClub: TOKENS.club
@@ -189,7 +196,7 @@ function drawShareCard(state) {
     ctx.fillStyle = TOKENS.base;
     ctx.fillRect(0, 0, W, H);
 
-    const total = (state.tenable?.score || 0)
+    const total = (state.football10?.score || 0)
                 + (state.guessPlayer?.score || 0)
                 + (state.whoAmI?.score || 0)
                 + (state.guessClub?.score || 0);
@@ -234,7 +241,7 @@ function drawShareCard(state) {
     const barX = pad + labelW;
     const barW = W - pad * 2 - labelW - scoreW - 20;
 
-    const games = ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'];
+    const games = ['football10', 'guessPlayer', 'whoAmI', 'guessClub'];
     games.forEach((g, i) => {
         const y = recapY + i * (rowH + rowGap);
 
@@ -268,25 +275,37 @@ function drawShareCard(state) {
     });
 
     // ─── Big total score ───
-    const bigY = 960;
+    // Recap ends at recapY + 4*(rowH+rowGap) = 560 + 304 = 864.
+    // Use the 260–1200 band for the total. We shrink the big number slightly
+    // (240px vs 280px) and move its baseline to 1160 so the glyph top sits
+    // safely below the recap (~960) and leaves a clean gap above the footer.
+    const bigSize = 240;
+    const maxSize = 72;
+    const bigY = 1160;
     const totalStr = String(total);
     const maxStr = '/ 25';
 
     ctx.save();
-    ctx.font = `600 280px ${TOKENS.fontSerif}`;
+    ctx.font = `600 ${bigSize}px ${TOKENS.fontSerif}`;
     const totalW = ctx.measureText(totalStr).width;
-    ctx.font = `500 96px ${TOKENS.fontSerif}`;
+    ctx.font = `500 ${maxSize}px ${TOKENS.fontSerif}`;
     const maxW = ctx.measureText(maxStr).width;
     ctx.restore();
 
-    const blockW = totalW + 20 + maxW;
+    const gap = 24;
+    const blockW = totalW + gap + maxW;
     const blockX = W / 2 - blockW / 2;
 
     drawText(ctx, totalStr, blockX, bigY, {
-        font: TOKENS.fontSerif, size: 280, weight: '600', color: TOKENS.ink
+        font: TOKENS.fontSerif, size: bigSize, weight: '600', color: TOKENS.ink,
+        baseline: 'alphabetic'
     });
-    drawText(ctx, maxStr, blockX + totalW + 20, bigY, {
-        font: TOKENS.fontSerif, size: 96, weight: '500', color: TOKENS.ink3
+    // "/ 25" centered vertically against the midline of the big number so the
+    // two reads as a single unit instead of two baselines.
+    const bigMidY = bigY - bigSize * 0.34;
+    drawText(ctx, maxStr, blockX + totalW + gap, bigMidY, {
+        font: TOKENS.fontSerif, size: maxSize, weight: '500', color: TOKENS.ink3,
+        baseline: 'middle'
     });
 
     // ─── Footer ───
@@ -313,13 +332,14 @@ function canvasToBlob(canvas, type = 'image/png', quality = 0.95) {
 
 export function buildShareText(state) {
     const dateStr = formatDateForShare(todayKey());
+    const f10 = state.football10;
     const lines = [`Matchday · ${dateStr}`];
-    const total = (state.tenable?.score || 0) + (state.guessPlayer?.score || 0)
+    const total = (f10?.score || 0) + (state.guessPlayer?.score || 0)
                 + (state.whoAmI?.score || 0) + (state.guessClub?.score || 0);
     lines.push(`${total}/25`);
     lines.push('');
-    if (state.tenable?.played) {
-        const revealed = new Set(state.tenable.revealedRanks || []);
+    if (f10?.played) {
+        const revealed = new Set(f10.revealedRanks || []);
         let row = '1⃣ ';
         for (let r = 1; r <= 10; r++) row += revealed.has(r) ? '🟩' : '⬜';
         lines.push(row);
@@ -330,7 +350,7 @@ export function buildShareText(state) {
     lines.push(formatGameRow('3⃣', state.whoAmI));
     lines.push(formatGameRow('4⃣', state.guessClub));
     lines.push('');
-    lines.push('matchday.app');
+    lines.push(APP_URL);
     return lines.join('\n');
 }
 
@@ -482,6 +502,119 @@ export async function shareResult(state) {
         return true;
     } catch (e) {
         toast('Could not share', 'error');
+        return false;
+    }
+}
+
+/**
+ * Explicit share modes for the share options sheet. Lets the user pick how
+ * their result leaves the app instead of forcing a single strategy.
+ *
+ *   'image' — PNG via native share sheet / Web Share / download
+ *   'text'  — emoji grid via native share sheet / clipboard
+ *   'copy'  — emoji grid copied silently to clipboard
+ *   'link'  — just the app URL copied / shared
+ */
+export async function shareResultAs(mode, state) {
+    switch (mode) {
+        case 'image': return shareAsImage(state);
+        case 'text':  return shareAsText(state);
+        case 'copy':  return shareAsCopy(state);
+        case 'link':  return shareAsLink();
+        default:      return shareResult(state);
+    }
+}
+
+async function shareAsImage(state) {
+    const title = 'My Matchday';
+    const text = `Matchday · ${formatDateForShare(todayKey())}`;
+    let blob = null;
+    try {
+        const canvas = drawShareCard(state);
+        blob = await canvasToBlob(canvas);
+    } catch (e) {
+        console.error('[Share] Canvas render failed:', e);
+        toast('Could not build image', 'error');
+        return false;
+    }
+    if (await tryCapacitorShare(blob, title, text)) return true;
+    if (await tryWebShareFile(blob, title, text)) return true;
+    try {
+        triggerDownload(blob);
+        toast('Image saved', 'success');
+        return true;
+    } catch (e) {
+        toast('Could not share image', 'error');
+        return false;
+    }
+}
+
+async function shareAsText(state) {
+    const title = 'My Matchday';
+    const body = buildShareText(state);
+
+    const Capacitor = window.Capacitor;
+    if (Capacitor?.Plugins?.Share) {
+        try {
+            await Capacitor.Plugins.Share.share({
+                title, text: body, url: APP_URL, dialogTitle: 'Share your matchday'
+            });
+            return true;
+        } catch (e) {
+            if (!e?.message?.includes('cancel')) console.warn('[Share] Capacitor text share failed:', e);
+        }
+    }
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title, text: body, url: APP_URL });
+            return true;
+        } catch (e) {
+            if (e.name === 'AbortError') return false;
+        }
+    }
+    return shareAsCopy(state);
+}
+
+async function shareAsCopy(state) {
+    const body = buildShareText(state);
+    try {
+        await navigator.clipboard.writeText(body);
+        toast('Copied to clipboard', 'success');
+        return true;
+    } catch (e) {
+        toast('Copy failed', 'error');
+        return false;
+    }
+}
+
+async function shareAsLink() {
+    const Capacitor = window.Capacitor;
+    if (Capacitor?.Plugins?.Share) {
+        try {
+            await Capacitor.Plugins.Share.share({
+                title: 'Matchday', text: 'Play today’s matchday', url: APP_URL,
+                dialogTitle: 'Share Matchday'
+            });
+            return true;
+        } catch (e) {
+            if (!e?.message?.includes('cancel')) console.warn('[Share] Capacitor link share failed:', e);
+        }
+    }
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'Matchday', text: 'Play today’s matchday', url: APP_URL });
+            return true;
+        } catch (e) {
+            if (e.name === 'AbortError') return false;
+        }
+    }
+    try {
+        await navigator.clipboard.writeText(APP_URL);
+        toast('Link copied', 'success');
+        return true;
+    } catch (e) {
+        toast('Could not share link', 'error');
         return false;
     }
 }

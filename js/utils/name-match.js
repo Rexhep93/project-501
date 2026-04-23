@@ -127,7 +127,7 @@ export function findMatchIndex(input, answers) {
 }
 
 /**
- * Returns ALL matching answer indices (for Tenable when an input like
+ * Returns ALL matching answer indices (for Football 10 when an input like
  * "Müller" matches multiple answers).
  */
 export function findAllMatchIndices(input, answers) {

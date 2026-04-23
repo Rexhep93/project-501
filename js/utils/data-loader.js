@@ -4,7 +4,7 @@
 import { todayKey, last7DateKeys } from './date-key.js';
 
 const SHEET_URLS = {
-    tenable:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=0&single=true&output=csv',
+    football10:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=0&single=true&output=csv',
     guessPlayer: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1712109612&single=true&output=csv',
     whoAmI:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1874756698&single=true&output=csv',
     guessClub:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQvl7s2DII14-BJY0x5XSXsgGT847CH2BPkXAx3qGpBFdRN6hFzp2Yu--ra8S8CQXwKreUyCA7yzH6p/pub?gid=1260064264&single=true&output=csv',
@@ -70,7 +70,7 @@ function findRow(rows, dateKey) {
     return rows.find(r => r.date === dateKey) || null;
 }
 
-function parseTenableRow(row) {
+function parseFootball10Row(row) {
     if (!row) return null;
     const answers = [];
     for (let rank = 1; rank <= 10; rank++) {
@@ -154,9 +154,9 @@ async function loadAllRows() {
         const onThisDayPromise = fetchSheet(SHEET_URLS.onThisDay)
             .catch(err => { console.warn('[DataLoader] onThisDay fetch skipped:', err.message); return null; });
 
-        const [tenableRows, guessPlayerRows, whoAmIRows, guessClubRows, onThisDayRows] =
+        const [football10Rows, guessPlayerRows, whoAmIRows, guessClubRows, onThisDayRows] =
             await Promise.all([
-                fetchSheet(SHEET_URLS.tenable),
+                fetchSheet(SHEET_URLS.football10),
                 fetchSheet(SHEET_URLS.guessPlayer),
                 fetchSheet(SHEET_URLS.whoAmI),
                 fetchSheet(SHEET_URLS.guessClub),
@@ -164,7 +164,7 @@ async function loadAllRows() {
             ]);
 
         allRowsCache = {
-            tenable: tenableRows,
+            football10: football10Rows,
             guessPlayer: guessPlayerRows,
             whoAmI: whoAmIRows,
             guessClub: guessClubRows,
@@ -203,7 +203,7 @@ export async function loadDataForDate(dateKey) {
     const rows = await loadAllRows();
     return {
         date: dateKey,
-        tenable:     parseTenableRow(findRow(rows.tenable, dateKey)),
+        football10:     parseFootball10Row(findRow(rows.football10, dateKey)),
         guessPlayer: parseGuessPlayerRow(findRow(rows.guessPlayer, dateKey)),
         whoAmI:      parseWhoAmIRow(findRow(rows.whoAmI, dateKey)),
         guessClub:   parseGuessClubRow(findRow(rows.guessClub, dateKey)),
@@ -223,7 +223,7 @@ export async function availableDatesInLast7() {
     const rows = await loadAllRows();
     const keys = last7DateKeys();
     return keys.filter(k => {
-        return findRow(rows.tenable, k) || findRow(rows.guessPlayer, k)
+        return findRow(rows.football10, k) || findRow(rows.guessPlayer, k)
             || findRow(rows.whoAmI, k) || findRow(rows.guessClub, k);
     });
 }
@@ -248,7 +248,7 @@ function getPlaceholderOnThisDay(dateKey) {
 export function loadSampleData() {
     return {
         date: todayKey(),
-        tenable: {
+        football10: {
             date: todayKey(),
             question: 'Most expensive signings by Premier League clubs',
             subtitle: 'From highest to lowest.',

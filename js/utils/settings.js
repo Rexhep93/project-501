@@ -1,21 +1,34 @@
+import { kvGet, kvSet } from './kv-store.js';
+
 const SETTINGS_KEY = 'voetbalquiz_settings_v1';
 const DEFAULT_SETTINGS = { theme: 'light' };
 let cached = null;
 
-export function getSettings() {
+/**
+ * Must be awaited once at app boot. Sync `getSettings()` is safe after.
+ */
+export async function initSettings() {
     if (cached) return cached;
     try {
-        const raw = localStorage.getItem(SETTINGS_KEY);
-        if (raw) { cached = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) }; return cached; }
-    } catch (e) {}
-    cached = { ...DEFAULT_SETTINGS };
+        const raw = await kvGet(SETTINGS_KEY);
+        cached = raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : { ...DEFAULT_SETTINGS };
+    } catch (e) {
+        cached = { ...DEFAULT_SETTINGS };
+    }
     return cached;
 }
+
+export function getSettings() {
+    return cached || { ...DEFAULT_SETTINGS };
+}
+
 export function saveSettings(patch) {
     cached = { ...getSettings(), ...patch };
-    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(cached)); } catch (e) {}
+    // Fire-and-forget persist — UI doesn't need to await.
+    kvSet(SETTINGS_KEY, JSON.stringify(cached)).catch(() => {});
     return cached;
 }
+
 export function applyTheme() {
     document.documentElement.dataset.theme = 'light';
 }

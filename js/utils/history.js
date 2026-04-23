@@ -1,33 +1,11 @@
 // Per-day score history for streak strip + lifetime stats + achievements
 
 import { todayKey } from './date-key.js';
+import { kvGet as rawGet, kvSet as rawSet, kvKeys } from './kv-store.js';
 
 const HISTORY_KEY = 'voetbalquiz_history_v1';
 const MAX_DAYS = 365;
 const STATE_PREFIX = 'voetbalquiz_daily_state_';
-
-let prefs = null;
-try {
-    if (window.Capacitor?.Plugins?.Preferences) {
-        prefs = window.Capacitor.Plugins.Preferences;
-    }
-} catch (e) { /* ignore */ }
-
-async function rawGet(key) {
-    if (prefs) {
-        const { value } = await prefs.get({ key });
-        return value;
-    }
-    return localStorage.getItem(key);
-}
-
-async function rawSet(key, value) {
-    if (prefs) {
-        await prefs.set({ key, value });
-    } else {
-        localStorage.setItem(key, value);
-    }
-}
 
 async function loadHistory() {
     try {
@@ -132,24 +110,12 @@ export async function getLifetimeStats() {
 /**
  * Load all daily-state keys from storage and aggregate cross-day statistics.
  * Used for tiered and hidden achievements.
- * 
- * Returns:
- * {
- *   perfectMatchdays,      // count of 25/25 days
- *   tenableAllTen,         // count of Tenable 10/10
- *   tenablePerfectNoHints, // count of 10/10 with zero hints
- *   guessPlayerFirstTry,   // count of 5pt guessPlayer
- *   whoAmIFirstTry,        // count of 5pt whoAmI
- *   guessClubFirstTry,     // count of 5pt guessClub
- *   weekendStreak,         // consecutive Sat+Sun pairs played
- *   longestStreakEver      // all-time longest streak
- * }
  */
 export async function getAggregateStats() {
     const stats = {
         perfectMatchdays: 0,
-        tenableAllTen: 0,
-        tenablePerfectNoHints: 0,
+        football10AllTen: 0,
+        football10PerfectNoHints: 0,
         guessPlayerFirstTry: 0,
         whoAmIFirstTry: 0,
         guessClubFirstTry: 0,
@@ -157,19 +123,8 @@ export async function getAggregateStats() {
         longestStreakEver: 0
     };
 
-    let stateKeys = [];
-    if (prefs) {
-        // Capacitor Preferences: use keys() if available
-        try {
-            const { keys } = await prefs.keys();
-            stateKeys = keys.filter(k => k.startsWith(STATE_PREFIX));
-        } catch (e) { /* fall through */ }
-    } else {
-        for (let i = 0; i < localStorage.length; i++) {
-            const k = localStorage.key(i);
-            if (k && k.startsWith(STATE_PREFIX)) stateKeys.push(k);
-        }
-    }
+    const allKeys = await kvKeys();
+    const stateKeys = allKeys.filter(k => k.startsWith(STATE_PREFIX));
 
     // Also track which dates were played for streak analysis
     const playedDates = new Set();
@@ -181,25 +136,26 @@ export async function getAggregateStats() {
         try { s = JSON.parse(raw); } catch (e) { continue; }
 
         const dateStr = key.replace(STATE_PREFIX, '');
+        const f10 = s.football10;
         const played =
-            (s.tenable?.played ? 1 : 0) +
+            (f10?.played ? 1 : 0) +
             (s.guessPlayer?.played ? 1 : 0) +
             (s.whoAmI?.played ? 1 : 0) +
             (s.guessClub?.played ? 1 : 0);
 
         if (played > 0) playedDates.add(dateStr);
 
-        const totalScore = (s.tenable?.score || 0)
+        const totalScore = (f10?.score || 0)
                          + (s.guessPlayer?.score || 0)
                          + (s.whoAmI?.score || 0)
                          + (s.guessClub?.score || 0);
 
         if (played === 4 && totalScore === 25) stats.perfectMatchdays++;
 
-        if (s.tenable?.played && s.tenable?.score === 10) {
-            stats.tenableAllTen++;
-            if (!s.tenable.hintsUsed || s.tenable.hintsUsed.length === 0) {
-                stats.tenablePerfectNoHints++;
+        if (f10?.played && f10?.score === 10) {
+            stats.football10AllTen++;
+            if (!f10.hintsUsed || f10.hintsUsed.length === 0) {
+                stats.football10PerfectNoHints++;
             }
         }
         if (s.guessPlayer?.played && s.guessPlayer?.score === 5) stats.guessPlayerFirstTry++;
@@ -226,11 +182,14 @@ export async function getAggregateStats() {
         stats.longestStreakEver = longest;
     }
 
-    // Weekend streak: count consecutive Sat+Sun pairs
+    // Weekend streak: count consecutive Sat+Sun pairs. "Consecutive" means
+    // the Saturdays themselves are exactly 7 days apart — playing one weekend
+    // and then one three weeks later must reset the run.
     if (playedDates.size > 0) {
         const sorted = [...playedDates].sort();
         let weekendPairs = 0;
         let currentRun = 0;
+        let previousSat = null;
         const seenWeekends = new Set();
         for (const dateStr of sorted) {
             const d = new Date(dateStr);
@@ -247,7 +206,6 @@ export async function getAggregateStats() {
 
             if (seenWeekends.has(weekendKey)) continue;
 
-            // Check if both Sat AND Sun of this weekend were played
             const satKey = weekendKey;
             const sunDate = new Date(satDate);
             sunDate.setDate(sunDate.getDate() + 1);
@@ -255,10 +213,15 @@ export async function getAggregateStats() {
 
             if (playedDates.has(satKey) && playedDates.has(sunKey)) {
                 seenWeekends.add(weekendKey);
-                currentRun++;
+                if (previousSat) {
+                    const gap = Math.round((satDate - previousSat) / (1000 * 60 * 60 * 24));
+                    if (gap === 7) currentRun++;
+                    else currentRun = 1;
+                } else {
+                    currentRun = 1;
+                }
+                previousSat = satDate;
                 weekendPairs = Math.max(weekendPairs, currentRun);
-            } else {
-                currentRun = 0;
             }
         }
         stats.weekendStreak = weekendPairs;

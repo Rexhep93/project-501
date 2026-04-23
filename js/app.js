@@ -3,20 +3,24 @@ import { getState, countPlayed, totalScore } from './utils/storage.js';
 import { hapticLight } from './utils/haptics.js';
 import { recordScore, getLast7Days, getLifetimeStats } from './utils/history.js';
 import { initViewportHandling } from './utils/viewport.js';
-import { shareResult } from './utils/share.js';
+import { shareResult, shareResultAs } from './utils/share.js';
 import { toast } from './utils/toast.js';
 import { todayKey, dateToKey, keyToDate, isToday } from './utils/date-key.js';
-import { getSettings, saveSettings, applyTheme, initThemeListener } from './utils/settings.js';
-import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, formatNum } from './utils/achievements.js';
+import { getSettings, saveSettings, applyTheme, initThemeListener, initSettings } from './utils/settings.js';
+import { checkAchievements, getRecentUnlocked, getAchievement, ACHIEVEMENTS, getUnlocked, formatNum, initAchievements } from './utils/achievements.js';
+import { openLegalDoc, closeLegalDoc } from './utils/legal.js';
+import { kvGet, kvSet } from './utils/kv-store.js';
 
-import { initTenable }      from './games/tenable.js';
+const CELEB_SHOWN_KEY = 'voetbalquiz_celeb_shown';
+
+import { initFootball10 }   from './games/football10.js';
 import { initGuessPlayer }  from './games/guess-player.js';
 import { initWhoAmI }       from './games/who-am-i.js';
 import { initGuessClub }    from './games/guess-club.js';
 
 const USE_SAMPLE_DATA = false;
 
-const GAME_MAX = { tenable: 10, guessPlayer: 5, whoAmI: 5, guessClub: 5 };
+const GAME_MAX = { football10: 10, guessPlayer: 5, whoAmI: 5, guessClub: 5 };
 
 let currentDate = todayKey();
 let currentData = null;
@@ -24,7 +28,7 @@ let dataLoadFailed = false;
 let currentScreen = 'menu';
 let lastRenderedScore = 0;
 let isFirstRender = true;
-let celebrationShownForDate = localStorage.getItem('voetbalquiz_celeb_shown') || null;
+let celebrationShownForDate = null;
 
 // ═══════════════════════════════════════
 // BOOTSTRAP
@@ -33,6 +37,13 @@ let celebrationShownForDate = localStorage.getItem('voetbalquiz_celeb_shown') ||
 async function bootstrap() {
     initThemeListener();
     initViewportHandling();
+    // Warm async KV caches so sync readers (settings, achievements) work from
+    // the first render. Also load the persisted "celebration shown" date.
+    await Promise.all([
+        initSettings(),
+        initAchievements(),
+        (async () => { celebrationShownForDate = (await kvGet(CELEB_SHOWN_KEY)) || null; })()
+    ]);
     renderMasthead();
     showSkeleton();
 
@@ -87,7 +98,10 @@ async function bootstrap() {
         const resultModal = document.getElementById('result-modal');
         const celeb = document.getElementById('celebration');
         const settings = document.getElementById('settings-screen');
-        if (resultModal.classList.contains('active')) {
+        const legal = document.getElementById('legal-screen');
+        if (legal?.classList.contains('active')) {
+            closeLegalDoc();
+        } else if (resultModal.classList.contains('active')) {
             closeResultModal();
         } else if (celeb.classList.contains('active')) {
             celeb.classList.remove('active');
@@ -201,7 +215,7 @@ async function handleGameFinished() {
 
     if (countPlayed(newState) === 4 && celebrationShownForDate !== currentDate) {
         celebrationShownForDate = currentDate;
-localStorage.setItem('voetbalquiz_celeb_shown', currentDate);
+        kvSet(CELEB_SHOWN_KEY, currentDate).catch(() => {});
         setTimeout(() => showCelebration(newState), 500);
     }
 }
@@ -212,13 +226,38 @@ localStorage.setItem('voetbalquiz_celeb_shown', currentDate);
 
 function setupCelebration() {
     const celeb = document.getElementById('celebration');
-    document.getElementById('celeb-close').onclick = () => celeb.classList.remove('active');
-    document.getElementById('celeb-see-review').onclick = () => celeb.classList.remove('active');
-    document.getElementById('celeb-share').onclick = async () => {
-        hapticLight();
-        const state = await getState(currentDate);
-        await shareResult(state);
+    const optsEl = document.getElementById('celeb-share-options');
+    const shareBtn = document.getElementById('celeb-share');
+
+    const closeOptions = () => optsEl?.classList.remove('open');
+
+    document.getElementById('celeb-close').onclick = () => {
+        closeOptions();
+        celeb.classList.remove('active');
     };
+    document.getElementById('celeb-see-review').onclick = () => {
+        closeOptions();
+        celeb.classList.remove('active');
+    };
+
+    // Tapping the main share button toggles the options sheet so the user can
+    // pick how they want to share. Tapping again (or picking an option) closes.
+    shareBtn.onclick = () => {
+        hapticLight();
+        optsEl?.classList.toggle('open');
+    };
+
+    if (optsEl) {
+        optsEl.querySelectorAll('[data-share-mode]').forEach(btn => {
+            btn.onclick = async () => {
+                const mode = btn.dataset.shareMode;
+                hapticLight();
+                closeOptions();
+                const state = await getState(currentDate);
+                await shareResultAs(mode, state);
+            };
+        });
+    }
 }
 
 function showCelebration(state) {
@@ -229,7 +268,7 @@ function showCelebration(state) {
         f.style.transform = 'scaleX(0)';
     });
 
-    const games = ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'];
+    const games = ['football10', 'guessPlayer', 'whoAmI', 'guessClub'];
     games.forEach(g => {
         const row = document.querySelector(`.celeb-recap-row[data-game="${g}"]`);
         if (!row) return;
@@ -285,6 +324,18 @@ function setupSettings() {
             hapticLight();
         };
     });
+
+    document.querySelectorAll('[data-legal-doc]').forEach(el => {
+        el.onclick = () => {
+            hapticLight();
+            openLegalDoc(el.dataset.legalDoc);
+        };
+    });
+    const legalBack = document.getElementById('legal-back');
+    if (legalBack) legalBack.onclick = () => {
+        hapticLight();
+        closeLegalDoc();
+    };
 
     updateSettingsUI();
 }
@@ -530,7 +581,7 @@ function renderScoreCard(state, total, played) {
                 <p class="sc-sub">${played} of 4 played</p>
             </div>
             <div class="sc-segments">
-                ${['tenable','guessPlayer','whoAmI','guessClub'].map(g => `
+                ${['football10','guessPlayer','whoAmI','guessClub'].map(g => `
                     <div class="sc-segment" data-segment="${g}"><div class="sc-segment-fill"></div></div>
                 `).join('')}
             </div>
@@ -541,7 +592,7 @@ function renderScoreCard(state, total, played) {
         }
         lastRenderedScore = total;
         isFirstRender = false;
-        ['tenable','guessPlayer','whoAmI','guessClub'].forEach(g => {
+        ['football10','guessPlayer','whoAmI','guessClub'].forEach(g => {
             const seg = card.querySelector(`.sc-segment[data-segment="${g}"] .sc-segment-fill`);
             if (!seg) return;
             const s = state[g];
@@ -623,7 +674,7 @@ function renderVerdictSheet(state, total, played) {
 }
 
 function renderTiles(state) {
-    ['tenable', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
+    ['football10', 'guessPlayer', 'whoAmI', 'guessClub'].forEach(game => {
         const tile = document.querySelector(`.game-tile[data-game="${game}"]`);
         if (!tile) return;
         const done = state[game]?.played;
@@ -723,7 +774,7 @@ async function openGame(gameKey) {
     navigate(`${gameKey}-screen`);
 
     switch (gameKey) {
-        case 'tenable':     initTenable(gameData, gameState, finishCb, currentDate); break;
+        case 'football10':  initFootball10(gameData, gameState, finishCb, currentDate); break;
         case 'guessPlayer': initGuessPlayer(gameData, gameState, finishCb, currentDate); break;
         case 'whoAmI':      initWhoAmI(gameData, gameState, finishCb, currentDate); break;
         case 'guessClub':   initGuessClub(gameData, gameState, finishCb, currentDate); break;
@@ -760,7 +811,7 @@ function setupHeroShrink(gameKey) {
 
     hero.addEventListener('click', (e) => {
         if (e.target.closest('.hero-score-chip')) return;
-        if (e.target.closest('#tenable-hint-btn')) return;
+        if (e.target.closest('#football10-hint-btn')) return;
         clearTimeout(autoShrinkTimer);
         // iOS fix: sluit toetsenbord zodat hero altijd klikbaar is
         if (document.activeElement && document.activeElement !== document.body) {

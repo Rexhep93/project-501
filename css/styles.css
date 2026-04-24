@@ -662,8 +662,8 @@ body.loading .menu-real-content { display: none; }
 /* Icon is now the hero — centered, 56px, replaces the old .tile-art corner decoration */
 .tile-art {
     position: relative;
-    width: 56px;
-    height: 56px;
+    width: 72px;
+    height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -674,7 +674,6 @@ body.loading .menu-real-content { display: none; }
 .tile-art svg { width: 100%; height: 100%; display: block; }
 
 .tile-text {
-    margin-top: auto;
     display: flex;
     flex-direction: column;
     align-items: center;

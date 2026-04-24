@@ -629,10 +629,19 @@ body.loading .menu-real-content { display: none; }
     transform: translateY(2px);
     box-shadow: 0 1px 0 var(--tile-shadow, rgba(0,0,0,0.2));
 }
-.game-tile.completed {
-    background: var(--sunken);
-    box-shadow: 0 1px 0 var(--divider);
-    color: var(--ink);
+
+.game-tile.completed .tile-number {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(255, 255, 255, 0.95);
+    color: var(--tile-shadow);
+}
+.game-tile.completed .tile-number::before {
+    content: "✓";
+    font-size: 13px;
+    font-weight: 900;
+}
+.game-tile.completed .tile-number {
+    font-size: 0;
 }
 .game-tile.completed .tile-art { color: var(--ink-2); }
 .game-tile.completed .tile-title { color: var(--ink); }

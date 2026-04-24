@@ -1949,7 +1949,9 @@ body.loading .menu-real-content { display: none; }
     border-color: var(--ink-3);
     color: var(--ink-3);
 }
-.ach-tile.locked .ach-tile-art { color: var(--ink-3); opacity: 0.55; }
+.ach-tile.locked .ach-tile-art {  filter: grayscale(1) brightness(0.85);
+    opacity: 0.55;
+}
 .ach-tile.locked .ach-tile-name { color: var(--ink-2); }
 
 /* ═══════ Full achievements screen ═══════ */
@@ -2130,7 +2132,8 @@ body.loading .menu-real-content { display: none; }
     border-color: var(--ink-3);
     color: var(--ink-3);
 }
-.ach-card.locked .ach-card-art { color: var(--ink-3); opacity: 0.5; }
+.ach-card.locked .ach-card-art { filter: grayscale(1) brightness(0.85);
+    opacity: 0.55; }
 .ach-card.locked .ach-card-name { color: var(--ink); }
 .ach-card.locked .ach-card-desc { color: var(--ink-3); }
 

@@ -6,9 +6,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Matchday">
-    <meta name="theme-color" content="#F5F1E8">
+    <meta name="theme-color" content="#F5F5F2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
     <meta name="color-scheme" content="light dark">
     <title>Matchday</title>
+
+    <!-- Piazzolla (display) + Inter (body). Preconnect speeds up first paint. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Piazzolla:opsz,wght@8..30,500;8..30,600;8..30,700;8..30,800;8..30,900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -59,7 +66,7 @@
                 <line x1="16" y1="3" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </symbol>
 
-            <!-- TILE HERO ART -->
+            <!-- TILE HERO ART (unchanged from previous version — your icons) -->
             <symbol id="art-football10" viewBox="0 0 100 100">
                 <g fill="currentColor">
                     <rect x="44" y="10" width="12" height="6" rx="1.5"/>
@@ -74,22 +81,20 @@
                     <rect x="8"  y="91" width="84" height="6" rx="1.5"/>
                 </g>
             </symbol>
-       <symbol id="art-player" viewBox="0 0 434 434">
-    <g fill="currentColor">
-        <path d="M245.384,248.172c8.234-7.633,13.4-18.531,13.4-30.617c0-23.028-18.734-41.762-41.762-41.762c-23.028,0-41.762,18.734-41.762,41.762c0,12.086,5.166,22.984,13.4,30.617c-16.1,9.669-26.9,27.297-26.9,47.406v41.971c0,9.296,5.544,17.322,13.5,20.945v56.76c0,10.361,8.43,18.791,18.791,18.791h45.942c10.361,0,18.791-8.43,18.791-18.791v-56.76c7.956-3.623,13.5-11.648,13.5-20.945v-41.971C272.283,275.469,261.484,257.84,245.384,248.172z M217.022,194.792c12.551,0,22.762,10.211,22.762,22.762s-10.211,22.762-22.762,22.762c-12.551,0-22.762-10.211-22.762-22.762S204.471,194.792,217.022,194.792z M253.283,337.548c0,2.205-1.794,3.999-4,3.999c-5.247,0-9.5,4.253-9.5,9.5v63.996h-13.262v-54.932c0-5.247-4.253-9.5-9.5-9.5s-9.5,4.253-9.5,9.5v54.932H194.26v-63.996c0-5.247-4.253-9.5-9.5-9.5c-2.206,0-4-1.794-4-3.999v-41.971c0-19.994,16.267-36.261,36.262-36.261s36.261,16.267,36.261,36.261V337.548z"/>
-        <path d="M178.445,85.818h14.67v48.23c0,5.247,4.253,9.5,9.5,9.5h28.815c5.247,0,9.5-4.253,9.5-9.5v-48.23h14.67c3.394,0,6.53-1.811,8.227-4.75c1.697-2.939,1.697-6.561,0-9.5L225.249,4.75C223.552,1.811,220.416,0,217.022,0s-6.53,1.811-8.227,4.75l-38.577,66.818c-1.697,2.939-1.697,6.561,0,9.5C171.914,84.008,175.051,85.818,178.445,85.818z M217.022,28.5l22.123,38.318h-7.715c-5.247,0-9.5,4.253-9.5,9.5v48.23h-9.815v-48.23c0-5.247-4.253-9.5-9.5-9.5h-7.715L217.022,28.5z"/>
-        <path d="M389.031,71.248c-2.399-2.4-5.896-3.337-9.176-2.459l-74.526,19.969c-3.278,0.878-5.839,3.439-6.717,6.718s0.059,6.776,2.459,9.176l10.373,10.373l-34.104,34.104c-1.782,1.781-2.783,4.198-2.783,6.718s1.001,4.936,2.783,6.718l20.375,20.375c1.855,1.855,4.286,2.782,6.717,2.782s4.862-0.927,6.717-2.782l34.104-34.104l10.374,10.373c2.399,2.399,5.894,3.337,9.176,2.459c3.278-0.878,5.839-3.439,6.717-6.718l19.969-74.526C392.368,77.146,391.431,73.648,389.031,71.248z M357.427,134.139l-5.456-5.456c-3.71-3.71-9.725-3.71-13.435,0l-34.104,34.104l-6.94-6.94l34.104-34.104c3.71-3.71,3.71-9.725,0-13.435l-5.456-5.456l42.739-11.452L357.427,134.139z"/>
-        <path d="M122.601,115.026l10.373-10.373c2.4-2.4,3.337-5.898,2.459-9.176s-3.439-5.839-6.717-6.718L54.189,68.79c-3.276-0.878-6.776,0.059-9.176,2.459c-2.4,2.4-3.337,5.898-2.458,9.176l19.969,74.526c0.878,3.278,3.439,5.839,6.717,6.718c3.279,0.878,6.776-0.059,9.176-2.459l10.374-10.373l34.104,34.104c1.855,1.855,4.286,2.783,6.718,2.782c2.431,0,4.863-0.928,6.717-2.782l20.375-20.375c1.782-1.781,2.783-4.198,2.783-6.718s-1.001-4.936-2.782-6.718L122.601,115.026z M129.612,162.788l-34.104-34.104c-1.782-1.781-4.198-2.782-6.718-2.782s-4.936,1.001-6.717,2.782l-5.456,5.456L65.166,91.401l42.739,11.451l-5.456,5.456c-3.71,3.71-3.71,9.725,0,13.435l34.104,34.104L129.612,162.788z"/>
-    </g>
-       </symbol>
-
-         </symbol>
+            <symbol id="art-player" viewBox="0 0 434 434">
+                <g fill="currentColor">
+                    <path d="M245.384,248.172c8.234-7.633,13.4-18.531,13.4-30.617c0-23.028-18.734-41.762-41.762-41.762c-23.028,0-41.762,18.734-41.762,41.762c0,12.086,5.166,22.984,13.4,30.617c-16.1,9.669-26.9,27.297-26.9,47.406v41.971c0,9.296,5.544,17.322,13.5,20.945v56.76c0,10.361,8.43,18.791,18.791,18.791h45.942c10.361,0,18.791-8.43,18.791-18.791v-56.76c7.956-3.623,13.5-11.648,13.5-20.945v-41.971C272.283,275.469,261.484,257.84,245.384,248.172z M217.022,194.792c12.551,0,22.762,10.211,22.762,22.762s-10.211,22.762-22.762,22.762c-12.551,0-22.762-10.211-22.762-22.762S204.471,194.792,217.022,194.792z M253.283,337.548c0,2.205-1.794,3.999-4,3.999c-5.247,0-9.5,4.253-9.5,9.5v63.996h-13.262v-54.932c0-5.247-4.253-9.5-9.5-9.5s-9.5,4.253-9.5,9.5v54.932H194.26v-63.996c0-5.247-4.253-9.5-9.5-9.5c-2.206,0-4-1.794-4-3.999v-41.971c0-19.994,16.267-36.261,36.262-36.261s36.261,16.267,36.261,36.261V337.548z"/>
+                    <path d="M178.445,85.818h14.67v48.23c0,5.247,4.253,9.5,9.5,9.5h28.815c5.247,0,9.5-4.253,9.5-9.5v-48.23h14.67c3.394,0,6.53-1.811,8.227-4.75c1.697-2.939,1.697-6.561,0-9.5L225.249,4.75C223.552,1.811,220.416,0,217.022,0s-6.53,1.811-8.227,4.75l-38.577,66.818c-1.697,2.939-1.697,6.561,0,9.5C171.914,84.008,175.051,85.818,178.445,85.818z M217.022,28.5l22.123,38.318h-7.715c-5.247,0-9.5,4.253-9.5,9.5v48.23h-9.815v-48.23c0-5.247-4.253-9.5-9.5-9.5h-7.715L217.022,28.5z"/>
+                    <path d="M389.031,71.248c-2.399-2.4-5.896-3.337-9.176-2.459l-74.526,19.969c-3.278,0.878-5.839,3.439-6.717,6.718s0.059,6.776,2.459,9.176l10.373,10.373l-34.104,34.104c-1.782,1.781-2.783,4.198-2.783,6.718s1.001,4.936,2.783,6.718l20.375,20.375c1.855,1.855,4.286,2.782,6.717,2.782s4.862-0.927,6.717-2.782l34.104-34.104l10.374,10.373c2.399,2.399,5.894,3.337,9.176,2.459c3.278-0.878,5.839-3.439,6.717-6.718l19.969-74.526C392.368,77.146,391.431,73.648,389.031,71.248z M357.427,134.139l-5.456-5.456c-3.71-3.71-9.725-3.71-13.435,0l-34.104,34.104l-6.94-6.94l34.104-34.104c3.71-3.71,3.71-9.725,0-13.435l-5.456-5.456l42.739-11.452L357.427,134.139z"/>
+                    <path d="M122.601,115.026l10.373-10.373c2.4-2.4,3.337-5.898,2.459-9.176s-3.439-5.839-6.717-6.718L54.189,68.79c-3.276-0.878-6.776,0.059-9.176,2.459c-2.4,2.4-3.337,5.898-2.458,9.176l19.969,74.526c0.878,3.278,3.439,5.839,6.717,6.718c3.279,0.878,6.776-0.059,9.176-2.459l10.374-10.373l34.104,34.104c1.855,1.855,4.286,2.783,6.718,2.782c2.431,0,4.863-0.928,6.717-2.782l20.375-20.375c1.782-1.781,2.783-4.198,2.783-6.718s-1.001-4.936-2.782-6.718L122.601,115.026z M129.612,162.788l-34.104-34.104c-1.782-1.781-4.198-2.782-6.718-2.782s-4.936,1.001-6.717,2.782l-5.456,5.456L65.166,91.401l42.739,11.451l-5.456,5.456c-3.71,3.71-3.71,9.725,0,13.435l34.104,34.104L129.612,162.788z"/>
+                </g>
+            </symbol>
             <symbol id="art-whoami" viewBox="0 0 100 100">
                 <g fill="currentColor">
                     <circle cx="50" cy="32" r="18"/>
                     <path d="M 18 96 Q 18 62 50 62 Q 82 62 82 96 Z"/>
                 </g>
-                <text x="50" y="44" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="28" fill="#324B2A">?</text>
+                <text x="50" y="44" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="28" fill="rgba(255,255,255,0.22)">?</text>
             </symbol>
             <symbol id="art-club" viewBox="0 0 100 100">
                 <rect x="10" y="6" width="80" height="88" rx="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
@@ -140,7 +145,7 @@
                     <svg class="masthead-logo" viewBox="0 0 36 40" aria-hidden="true">
                         <rect x="3" y="6" width="30" height="28" rx="3" class="logo-bg"/>
                         <path d="M 9 28 L 9 13 L 18 22 L 27 13 L 27 28" fill="none" class="logo-m" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-                        <circle cx="18" cy="28" r="1.8" fill="#D64933"/>
+                        <circle cx="18" cy="28" r="1.8" fill="var(--accent)"/>
                     </svg>
                     <h1 class="masthead-title">Matchday</h1>
                     <button id="back-to-today" class="back-to-today-pill" style="display:none;">
@@ -187,7 +192,7 @@
 
                     <button class="game-tile" data-game="guessPlayer">
                         <div class="tile-number">№ 02</div>
-                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-player"/></svg></div>
+                        <div class="tile-art"><svg viewBox="0 0 434 434"><use href="#art-player"/></svg></div>
                         <div class="tile-text">
                             <h2 class="tile-title">Guess the Player</h2>
                             <p class="tile-meta">Career path</p>
@@ -377,7 +382,7 @@
         </div>
     </section>
 
-    <!-- Result modal (per-game) — now dismissible -->
+    <!-- Result modal (per-game) — dismissible -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <button id="result-close" class="modal-close" aria-label="Close">
@@ -404,14 +409,12 @@
             </button>
         </header>
 
-        <!-- Share card: this DOM is what gets rasterized to PNG. Everything
-             inside here appears in the shared image. -->
         <div id="celebration-share-card" class="celeb-body">
             <div class="celeb-share-brand">
                 <svg class="celeb-share-logo" viewBox="0 0 36 40" aria-hidden="true">
                     <rect x="3" y="6" width="30" height="28" rx="3" class="logo-bg"/>
                     <path d="M 9 28 L 9 13 L 18 22 L 27 13 L 27 28" fill="none" class="logo-m" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-                    <circle cx="18" cy="28" r="1.8" fill="#D64933"/>
+                    <circle cx="18" cy="28" r="1.8" fill="var(--accent)"/>
                 </svg>
                 <div class="celeb-share-brand-text">
                     <span class="celeb-share-brand-name">Matchday</span>
@@ -479,7 +482,7 @@
     </section>
 
     <!-- ================================================================
-         SETTINGS SCREEN
+         SETTINGS SCREEN — now with working theme picker
          ================================================================ -->
     <section id="settings-screen" class="settings-screen">
         <header class="settings-header">
@@ -490,6 +493,33 @@
         </header>
 
         <div class="settings-body">
+            <section class="settings-section">
+                <h3 class="settings-section-title">Appearance</h3>
+                <div class="settings-row-group">
+                    <button class="theme-picker-row" data-theme-option="system">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">System</span>
+                            <span class="settings-row-sub">Match your device</span>
+                        </span>
+                        <svg class="theme-picker-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+                    </button>
+                    <button class="theme-picker-row" data-theme-option="light">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">Light</span>
+                            <span class="settings-row-sub">Always light mode</span>
+                        </span>
+                        <svg class="theme-picker-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+                    </button>
+                    <button class="theme-picker-row" data-theme-option="dark">
+                        <span class="settings-row-label">
+                            <span class="settings-row-title">Dark</span>
+                            <span class="settings-row-sub">Always dark mode</span>
+                        </span>
+                        <svg class="theme-picker-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+                    </button>
+                </div>
+            </section>
+
             <section class="settings-section">
                 <h3 class="settings-section-title">About</h3>
                 <div class="settings-row-group">
@@ -549,7 +579,7 @@
                 </div>
             </section>
         </div>
-</section>
+    </section>
 
     <!-- Legal document reader -->
     <section id="legal-screen" class="legal-screen">

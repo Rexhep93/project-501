@@ -631,22 +631,10 @@ body.loading .menu-real-content { display: none; }
 }
 
 .game-tile.completed .tile-number {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(255, 255, 255, 0.95);
+    background: white;
+    border-color: white;
     color: var(--tile-shadow);
 }
-.game-tile.completed .tile-number::before {
-    content: "✓";
-    font-size: 13px;
-    font-weight: 900;
-}
-.game-tile.completed .tile-number {
-    font-size: 0;
-}
-.game-tile.completed .tile-art { color: var(--ink-2); }
-.game-tile.completed .tile-title { color: var(--ink); }
-.game-tile.completed .tile-meta { color: var(--ink-2); }
-.game-tile.completed .tile-number { display: none; }
 
 .game-tile[data-game="football10"]  { background: var(--football10); --tile-shadow: var(--football10-dark); }
 .game-tile[data-game="guessPlayer"] { background: var(--player);     --tile-shadow: var(--player-dark); }

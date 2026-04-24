@@ -289,23 +289,6 @@ body.loading .menu-real-content { display: none; }
     text-transform: uppercase;
     color: var(--ink-3);
     margin: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-.masthead-date::before {
-    content: '';
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background:
-        radial-gradient(circle at 30% 30%, rgba(0,0,0,0.35) 11%, transparent 12%) no-repeat,
-        radial-gradient(circle at 70% 30%, rgba(0,0,0,0.35) 11%, transparent 12%) no-repeat,
-        radial-gradient(circle at 30% 70%, rgba(0,0,0,0.35) 11%, transparent 12%) no-repeat,
-        radial-gradient(circle at 70% 70%, rgba(0,0,0,0.35) 11%, transparent 12%) no-repeat,
-        radial-gradient(circle at 50% 50%, rgba(0,0,0,0.35) 13%, transparent 14%) no-repeat,
-        var(--accent);
-    flex-shrink: 0;
 }
 
 .icon-btn {

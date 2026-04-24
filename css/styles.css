@@ -612,7 +612,7 @@ body.loading .menu-real-content { display: none; }
     border-radius: var(--radius-lg);
     overflow: hidden;
     text-align: center;
-    padding: 34px 14px 18px;
+    padding: 46px 14px 18px;
     cursor: pointer;
     box-shadow: 0 3px 0 var(--tile-shadow, rgba(0,0,0,0.2));
     transition: transform 0.12s var(--ease-ios), box-shadow 0.12s var(--ease-ios), opacity 0.2s ease;

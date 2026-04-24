@@ -1870,12 +1870,11 @@ body.loading .menu-real-content { display: none; }
     color: white;
     cursor: pointer;
     text-align: center;
-    padding: 22px 8px 12px; 
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;    
-    gap: 6px;                   
+    justify-content: center;
     box-shadow: 0 2px 0 var(--ach-shadow, rgba(0,0,0,0.2));
     transition: transform 0.12s var(--ease-ios), box-shadow 0.12s var(--ease-ios);
     isolation: isolate;
@@ -1916,6 +1915,7 @@ body.loading .menu-real-content { display: none; }
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: -6px;
 }
 .ach-tile-art svg { width: 100%; height: 100%; display: block; }
 

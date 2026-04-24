@@ -1908,8 +1908,8 @@ body.loading .menu-real-content { display: none; }
 
 .ach-tile-art {
     position: relative;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     z-index: 1;
     pointer-events: none;
     color: rgba(255, 255, 255, 0.92);

@@ -3,6 +3,7 @@ import { updateGameState } from '../utils/storage.js';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptics.js';
 import { renderHearts } from '../utils/hearts.js';
 import { toast } from '../utils/toast.js';
+import { showAnswerBurst } from '../utils/answer-burst.js';
 
 let data = null;
 let state = null;
@@ -175,10 +176,18 @@ async function handleSubmit(e) {
         await hapticSuccess();
         if (newMatches.length === 1) {
             const a = newMatches[0];
-            toast(`Nice — #${a.rank} ${a.name}`, 'success');
+            showAnswerBurst({
+                correct: true,
+                title: 'Correct!',
+                sub: `#${a.rank} ${a.name}`
+            });
         } else {
-            const names = newMatches.map(a => `#${a.rank} ${a.name}`).join(' + ');
-            toast(`Double hit — ${names}`, 'success');
+            const names = newMatches.map(a => `#${a.rank} ${a.name}`).join(' · ');
+            showAnswerBurst({
+                correct: true,
+                title: 'Double hit!',
+                sub: names
+            });
         }
 
         input.value = '';
@@ -204,10 +213,14 @@ async function handleSubmit(e) {
     state.wrongGuesses++;
     await hapticError();
     const remaining = livesRemaining();
-    const msg = remaining > 0
-        ? `Missed · ${remaining} ${remaining === 1 ? 'life' : 'lives'} left`
-        : 'Missed · no lives left';
-    toast(msg, 'error');
+    const sub = remaining > 0
+        ? `${remaining} ${remaining === 1 ? 'life' : 'lives'} left`
+        : 'No lives left';
+    showAnswerBurst({
+        correct: false,
+        title: 'Wrong',
+        sub
+    });
     shakeInput(input);
     input.value = '';
     renderHearts(document.getElementById('football10-attempts'), MAX_LIVES, state.wrongGuesses, true);
@@ -247,7 +260,7 @@ async function finishGame() {
             slot.innerHTML = `<span class="slot-rank">${m.rank}</span><span class="slot-name">${escapeHtml(m.name)}</span>`;
         }
     }
-    setTimeout(() => showResult(), 800);
+    setTimeout(() => showResult(), 1700);
 }
 
 function showResult() {

@@ -66,47 +66,151 @@
                 <line x1="16" y1="3" x2="16" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </symbol>
 
-            <!-- TILE HERO ART (unchanged from previous version — your icons) -->
+            <!-- TILE HERO ART — premium two-tone, depth via opacity layers -->
             <symbol id="art-football10" viewBox="0 0 100 100">
-                <g fill="currentColor">
-                    <rect x="44" y="10" width="12" height="6" rx="1.5"/>
-                    <rect x="40" y="19" width="20" height="6" rx="1.5"/>
-                    <rect x="36" y="28" width="28" height="6" rx="1.5"/>
-                    <rect x="32" y="37" width="36" height="6" rx="1.5"/>
-                    <rect x="28" y="46" width="44" height="6" rx="1.5"/>
-                    <rect x="24" y="55" width="52" height="6" rx="1.5"/>
-                    <rect x="20" y="64" width="60" height="6" rx="1.5"/>
-                    <rect x="16" y="73" width="68" height="6" rx="1.5"/>
-                    <rect x="12" y="82" width="76" height="6" rx="1.5"/>
-                    <rect x="8"  y="91" width="84" height="6" rx="1.5"/>
+                <defs>
+                    <linearGradient id="ft10-shine" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <g>
+                    <!-- subtle drop shadow under the stack -->
+                    <ellipse cx="50" cy="96" rx="40" ry="2.4" fill="black" opacity="0.18"/>
+                    <!-- rungs of the pyramid: the lower ones are heavier (more weight) -->
+                    <g fill="currentColor">
+                        <rect x="44" y="10" width="12" height="6" rx="2" opacity="0.55"/>
+                        <rect x="40" y="19" width="20" height="6" rx="2" opacity="0.62"/>
+                        <rect x="36" y="28" width="28" height="6" rx="2" opacity="0.70"/>
+                        <rect x="32" y="37" width="36" height="6" rx="2" opacity="0.78"/>
+                        <rect x="28" y="46" width="44" height="6" rx="2" opacity="0.85"/>
+                        <rect x="24" y="55" width="52" height="6" rx="2" opacity="0.92"/>
+                        <rect x="20" y="64" width="60" height="6" rx="2"/>
+                        <rect x="16" y="73" width="68" height="6" rx="2"/>
+                        <rect x="12" y="82" width="76" height="6" rx="2"/>
+                        <rect x="8"  y="91" width="84" height="6" rx="2"/>
+                    </g>
+                    <!-- gloss highlight across the top of each rung -->
+                    <g fill="url(#ft10-shine)">
+                        <rect x="44" y="10" width="12" height="2.4" rx="1.2"/>
+                        <rect x="40" y="19" width="20" height="2.4" rx="1.2"/>
+                        <rect x="36" y="28" width="28" height="2.4" rx="1.2"/>
+                        <rect x="32" y="37" width="36" height="2.4" rx="1.2"/>
+                        <rect x="28" y="46" width="44" height="2.4" rx="1.2"/>
+                        <rect x="24" y="55" width="52" height="2.4" rx="1.2"/>
+                        <rect x="20" y="64" width="60" height="2.4" rx="1.2"/>
+                        <rect x="16" y="73" width="68" height="2.4" rx="1.2"/>
+                        <rect x="12" y="82" width="76" height="2.4" rx="1.2"/>
+                        <rect x="8"  y="91" width="84" height="2.4" rx="1.2"/>
+                    </g>
+                    <!-- crown at the apex -->
+                    <circle cx="50" cy="6" r="2.4" fill="currentColor" opacity="0.5"/>
                 </g>
             </symbol>
-            <symbol id="art-player" viewBox="0 0 434 434">
+            <symbol id="art-player" viewBox="0 0 100 100">
+                <defs>
+                    <radialGradient id="player-halo" cx="50%" cy="40%" r="55%">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.22"/>
+                        <stop offset="65%" stop-color="white" stop-opacity="0.05"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="player-shine" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <!-- soft halo behind player -->
+                <circle cx="50" cy="44" r="40" fill="url(#player-halo)"/>
+                <!-- outer ring (premium frame) -->
+                <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.28"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.45"/>
                 <g fill="currentColor">
-                    <path d="M245.384,248.172c8.234-7.633,13.4-18.531,13.4-30.617c0-23.028-18.734-41.762-41.762-41.762c-23.028,0-41.762,18.734-41.762,41.762c0,12.086,5.166,22.984,13.4,30.617c-16.1,9.669-26.9,27.297-26.9,47.406v41.971c0,9.296,5.544,17.322,13.5,20.945v56.76c0,10.361,8.43,18.791,18.791,18.791h45.942c10.361,0,18.791-8.43,18.791-18.791v-56.76c7.956-3.623,13.5-11.648,13.5-20.945v-41.971C272.283,275.469,261.484,257.84,245.384,248.172z M217.022,194.792c12.551,0,22.762,10.211,22.762,22.762s-10.211,22.762-22.762,22.762c-12.551,0-22.762-10.211-22.762-22.762S204.471,194.792,217.022,194.792z M253.283,337.548c0,2.205-1.794,3.999-4,3.999c-5.247,0-9.5,4.253-9.5,9.5v63.996h-13.262v-54.932c0-5.247-4.253-9.5-9.5-9.5s-9.5,4.253-9.5,9.5v54.932H194.26v-63.996c0-5.247-4.253-9.5-9.5-9.5c-2.206,0-4-1.794-4-3.999v-41.971c0-19.994,16.267-36.261,36.262-36.261s36.261,16.267,36.261,36.261V337.548z"/>
-                    <path d="M178.445,85.818h14.67v48.23c0,5.247,4.253,9.5,9.5,9.5h28.815c5.247,0,9.5-4.253,9.5-9.5v-48.23h14.67c3.394,0,6.53-1.811,8.227-4.75c1.697-2.939,1.697-6.561,0-9.5L225.249,4.75C223.552,1.811,220.416,0,217.022,0s-6.53,1.811-8.227,4.75l-38.577,66.818c-1.697,2.939-1.697,6.561,0,9.5C171.914,84.008,175.051,85.818,178.445,85.818z M217.022,28.5l22.123,38.318h-7.715c-5.247,0-9.5,4.253-9.5,9.5v48.23h-9.815v-48.23c0-5.247-4.253-9.5-9.5-9.5h-7.715L217.022,28.5z"/>
-                    <path d="M389.031,71.248c-2.399-2.4-5.896-3.337-9.176-2.459l-74.526,19.969c-3.278,0.878-5.839,3.439-6.717,6.718s0.059,6.776,2.459,9.176l10.373,10.373l-34.104,34.104c-1.782,1.781-2.783,4.198-2.783,6.718s1.001,4.936,2.783,6.718l20.375,20.375c1.855,1.855,4.286,2.782,6.717,2.782s4.862-0.927,6.717-2.782l34.104-34.104l10.374,10.373c2.399,2.399,5.894,3.337,9.176,2.459c3.278-0.878,5.839-3.439,6.717-6.718l19.969-74.526C392.368,77.146,391.431,73.648,389.031,71.248z M357.427,134.139l-5.456-5.456c-3.71-3.71-9.725-3.71-13.435,0l-34.104,34.104l-6.94-6.94l34.104-34.104c3.71-3.71,3.71-9.725,0-13.435l-5.456-5.456l42.739-11.452L357.427,134.139z"/>
-                    <path d="M122.601,115.026l10.373-10.373c2.4-2.4,3.337-5.898,2.459-9.176s-3.439-5.839-6.717-6.718L54.189,68.79c-3.276-0.878-6.776,0.059-9.176,2.459c-2.4,2.4-3.337,5.898-2.458,9.176l19.969,74.526c0.878,3.278,3.439,5.839,6.717,6.718c3.279,0.878,6.776-0.059,9.176-2.459l10.374-10.373l34.104,34.104c1.855,1.855,4.286,2.783,6.718,2.782c2.431,0,4.863-0.928,6.717-2.782l20.375-20.375c1.782-1.781,2.783-4.198,2.783-6.718s-1.001-4.936-2.782-6.718L122.601,115.026z M129.612,162.788l-34.104-34.104c-1.782-1.781-4.198-2.782-6.718-2.782s-4.936,1.001-6.717,2.782l-5.456,5.456L65.166,91.401l42.739,11.451l-5.456,5.456c-3.71,3.71-3.71,9.725,0,13.435l34.104,34.104L129.612,162.788z"/>
+                    <!-- head -->
+                    <circle cx="50" cy="40" r="11"/>
+                    <!-- shoulders / torso silhouette -->
+                    <path d="M 28 78 Q 28 56 50 56 Q 72 56 72 78 L 72 84 L 28 84 Z"/>
                 </g>
+                <!-- gloss on head -->
+                <ellipse cx="46" cy="34" rx="4.5" ry="2.2" fill="url(#player-shine)"/>
+                <!-- jersey collar v-cut -->
+                <path d="M 44 60 L 50 67 L 56 60" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
             </symbol>
             <symbol id="art-whoami" viewBox="0 0 100 100">
+                <defs>
+                    <radialGradient id="whoami-halo" cx="50%" cy="36%" r="60%">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.22"/>
+                        <stop offset="60%" stop-color="white" stop-opacity="0.04"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="whoami-shine" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.32"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <!-- soft halo -->
+                <circle cx="50" cy="40" r="42" fill="url(#whoami-halo)"/>
+                <!-- silhouette with question mark cut-out -->
                 <g fill="currentColor">
                     <circle cx="50" cy="32" r="18"/>
                     <path d="M 18 96 Q 18 62 50 62 Q 82 62 82 96 Z"/>
                 </g>
-                <text x="50" y="44" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="28" fill="rgba(255,255,255,0.22)">?</text>
+                <!-- bold question mark on the head -->
+                <text x="50" y="40"
+                    text-anchor="middle"
+                    font-family="'Piazzolla', 'New York', ui-serif, Georgia, serif"
+                    font-weight="800"
+                    font-size="22"
+                    letter-spacing="-0.02em"
+                    fill="rgba(255,255,255,0.85)"
+                    style="font-variation-settings:'opsz' 30">?</text>
+                <!-- gloss on top of head -->
+                <ellipse cx="46" cy="22" rx="6" ry="2.6" fill="url(#whoami-shine)"/>
+                <!-- subtle dotted aura accents (mystery) -->
+                <g fill="currentColor" opacity="0.55">
+                    <circle cx="14" cy="28" r="1.5"/>
+                    <circle cx="86" cy="28" r="1.5"/>
+                    <circle cx="10" cy="50" r="1.2"/>
+                    <circle cx="90" cy="50" r="1.2"/>
+                </g>
             </symbol>
             <symbol id="art-club" viewBox="0 0 100 100">
-                <rect x="10" y="6" width="80" height="88" rx="3" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <rect x="30" y="6" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <rect x="30" y="82" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.55"/>
-                <g fill="currentColor">
-                    <circle cx="26" cy="22" r="3"/><circle cx="50" cy="18" r="3"/><circle cx="74" cy="22" r="3"/>
-                    <circle cx="30" cy="40" r="3"/><circle cx="50" cy="38" r="3"/><circle cx="70" cy="40" r="3"/>
-                    <circle cx="22" cy="64" r="3"/><circle cx="42" cy="66" r="3"/><circle cx="58" cy="66" r="3"/><circle cx="78" cy="64" r="3"/>
-                    <circle cx="50" cy="86" r="3"/>
+                <defs>
+                    <linearGradient id="club-pitch-fill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.16"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0.04"/>
+                    </linearGradient>
+                    <linearGradient id="club-shine" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.30"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <!-- pitch fill -->
+                <rect x="10" y="6" width="80" height="88" rx="6" fill="url(#club-pitch-fill)"/>
+                <!-- pitch lines -->
+                <rect x="10" y="6" width="80" height="88" rx="6" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.55"/>
+                <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+                <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+                <circle cx="50" cy="50" r="1.4" fill="currentColor" opacity="0.7"/>
+                <!-- penalty boxes -->
+                <rect x="30" y="6"  width="40" height="12" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+                <rect x="30" y="82" width="40" height="12" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+                <!-- six-yard boxes -->
+                <rect x="38" y="6"  width="24" height="5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                <rect x="38" y="89" width="24" height="5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                <!-- 11 player tokens with subtle highlights -->
+                <g>
+                    <g fill="currentColor">
+                        <circle cx="26" cy="22" r="3.4"/><circle cx="50" cy="18" r="3.4"/><circle cx="74" cy="22" r="3.4"/>
+                        <circle cx="30" cy="40" r="3.4"/><circle cx="50" cy="38" r="3.4"/><circle cx="70" cy="40" r="3.4"/>
+                        <circle cx="22" cy="64" r="3.4"/><circle cx="42" cy="66" r="3.4"/><circle cx="58" cy="66" r="3.4"/><circle cx="78" cy="64" r="3.4"/>
+                        <circle cx="50" cy="86" r="3.4"/>
+                    </g>
+                    <g fill="url(#club-shine)">
+                        <circle cx="26" cy="20.6" r="2"/><circle cx="50" cy="16.6" r="2"/><circle cx="74" cy="20.6" r="2"/>
+                        <circle cx="30" cy="38.6" r="2"/><circle cx="50" cy="36.6" r="2"/><circle cx="70" cy="38.6" r="2"/>
+                        <circle cx="22" cy="62.6" r="2"/><circle cx="42" cy="64.6" r="2"/><circle cx="58" cy="64.6" r="2"/><circle cx="78" cy="62.6" r="2"/>
+                        <circle cx="50" cy="84.6" r="2"/>
+                    </g>
                 </g>
             </symbol>
             <symbol id="matchday-logo" viewBox="0 0 36 40">
@@ -204,7 +308,7 @@
 
                     <button class="game-tile" data-game="guessPlayer">
                         <div class="tile-number">№ 02</div>
-                        <div class="tile-art"><svg viewBox="0 0 434 434"><use href="#art-player"/></svg></div>
+                        <div class="tile-art"><svg viewBox="0 0 100 100"><use href="#art-player"/></svg></div>
                         <div class="tile-text">
                             <h2 class="tile-title">Guess the Player</h2>
                             <p class="tile-meta">Career path</p>
@@ -394,6 +498,17 @@
         </div>
     </section>
 
+    <!-- Center-screen Correct / Wrong burst (Football 10 + others) -->
+    <div id="answer-burst" class="answer-burst" aria-live="polite" aria-hidden="true">
+        <div class="answer-burst-card">
+            <div class="answer-burst-mark">
+                <svg class="answer-burst-icon" viewBox="0 0 24 24" aria-hidden="true"></svg>
+            </div>
+            <p class="answer-burst-title"></p>
+            <p class="answer-burst-sub"></p>
+        </div>
+    </div>
+
     <!-- Result modal (per-game) — dismissible -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
@@ -503,27 +618,26 @@
         <div class="settings-body">
             <section class="settings-section">
                 <h3 class="settings-section-title">Appearance</h3>
-                <div class="settings-row-group">
-                    <button class="theme-picker-row" data-theme-option="system">
-                        <span class="settings-row-label">
-                            <span class="settings-row-title">System</span>
-                            <span class="settings-row-sub">Match your device</span>
-                        </span>
-                        <svg class="theme-picker-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+                <div class="theme-segmented" role="tablist" aria-label="Theme">
+                    <button class="theme-seg" data-theme-option="system" role="tab">
+                        <svg class="theme-seg-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M9 21h6M12 17v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="theme-seg-label">System</span>
                     </button>
-                    <button class="theme-picker-row" data-theme-option="light">
-                        <span class="settings-row-label">
-                            <span class="settings-row-title">Light</span>
-                            <span class="settings-row-sub">Always light mode</span>
-                        </span>
-                        <svg class="theme-picker-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+                    <button class="theme-seg" data-theme-option="light" role="tab">
+                        <svg class="theme-seg-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="theme-seg-label">Light</span>
                     </button>
-                    <button class="theme-picker-row" data-theme-option="dark">
-                        <span class="settings-row-label">
-                            <span class="settings-row-title">Dark</span>
-                            <span class="settings-row-sub">Always dark mode</span>
-                        </span>
-                        <svg class="theme-picker-check" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+                    <button class="theme-seg" data-theme-option="dark" role="tab">
+                        <svg class="theme-seg-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="theme-seg-label">Dark</span>
                     </button>
                 </div>
             </section>

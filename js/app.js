@@ -343,11 +343,28 @@ function setupSettings() {
 function openSettings() {
     hapticLight();
     updateSettingsUI();
-    document.getElementById('settings-screen').classList.add('active');
+    const el = document.getElementById('settings-screen');
+    el.classList.remove('closing');
+    el.classList.add('active');
 }
 
 function closeSettings() {
-    document.getElementById('settings-screen').classList.remove('active');
+    closeWithSheetAnimation(document.getElementById('settings-screen'));
+}
+
+function closeWithSheetAnimation(el) {
+    if (!el || !el.classList.contains('active')) return;
+    el.classList.add('closing');
+    const onEnd = () => {
+        el.removeEventListener('animationend', onEnd);
+        el.classList.remove('active', 'closing');
+    };
+    el.addEventListener('animationend', onEnd);
+    setTimeout(() => {
+        if (el.classList.contains('closing')) {
+            el.classList.remove('active', 'closing');
+        }
+    }, 360);
 }
 
 function updateSettingsUI() {
@@ -434,11 +451,13 @@ function renderAchievementsStrip() {
 function openAchievementsScreen() {
     hapticLight();
     renderAchievementsScreen();
-    document.getElementById('achievements-screen').classList.add('active');
+    const el = document.getElementById('achievements-screen');
+    el.classList.remove('closing');
+    el.classList.add('active');
 }
 
 function closeAchievementsScreen() {
-    document.getElementById('achievements-screen').classList.remove('active');
+    closeWithSheetAnimation(document.getElementById('achievements-screen'));
 }
 
 function renderAchievementsScreen() {
@@ -821,17 +840,54 @@ function setupHeroShrink(gameKey) {
     }, { signal });
 }
 
+const TRANSIT_CLASSES = ['transit-push-in', 'transit-push-out', 'transit-pop-in', 'transit-pop-out'];
+
 function navigate(target) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const targetId = target === 'menu' ? 'menu-screen' : target;
-    const screen = document.getElementById(targetId);
-    if (screen) {
-        screen.classList.add('active');
-        currentScreen = target;
-        screen.scrollTop = 0;
-        const content = screen.querySelector('.game-content, .menu-container');
-        if (content) content.scrollTop = 0;
+    const incoming = document.getElementById(targetId);
+    if (!incoming) return;
+
+    const fromId = currentScreen === 'menu' ? 'menu-screen' : currentScreen;
+    const outgoing = fromId !== targetId ? document.getElementById(fromId) : null;
+
+    // Push when leaving menu for a game; pop when returning to menu.
+    const isPush = target !== 'menu' && currentScreen === 'menu';
+    const isPop  = target === 'menu' && currentScreen !== 'menu';
+
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove(...TRANSIT_CLASSES);
+    });
+
+    if (!outgoing) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        incoming.classList.add('active');
+    } else if (isPush || isPop) {
+        incoming.classList.add('active');
+        const inClass  = isPush ? 'transit-push-in'  : 'transit-pop-in';
+        const outClass = isPush ? 'transit-push-out' : 'transit-pop-out';
+        incoming.classList.add(inClass);
+        outgoing.classList.add(outClass);
+        const cleanup = () => {
+            outgoing.classList.remove('active', outClass);
+            incoming.classList.remove(inClass);
+        };
+        const onEnd = (e) => {
+            if (e.target !== outgoing) return;
+            outgoing.removeEventListener('animationend', onEnd);
+            cleanup();
+        };
+        outgoing.addEventListener('animationend', onEnd);
+        // Safety net in case animationend doesn't fire
+        setTimeout(cleanup, 600);
+    } else {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        incoming.classList.add('active');
     }
+
+    currentScreen = target;
+    incoming.scrollTop = 0;
+    const content = incoming.querySelector('.game-content, .menu-container');
+    if (content) content.scrollTop = 0;
 }
 
 document.addEventListener('DOMContentLoaded', bootstrap);

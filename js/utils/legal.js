@@ -124,11 +124,23 @@ export function openLegalDoc(id) {
         ${doc.body.map(renderBlock).join('')}
     `;
     bodyEl.scrollTop = 0;
+    screen.classList.remove('closing');
     screen.classList.add('active');
     return true;
 }
 
 export function closeLegalDoc() {
     const screen = document.getElementById('legal-screen');
-    if (screen) screen.classList.remove('active');
+    if (!screen || !screen.classList.contains('active')) return;
+    screen.classList.add('closing');
+    const onEnd = () => {
+        screen.removeEventListener('animationend', onEnd);
+        screen.classList.remove('active', 'closing');
+    };
+    screen.addEventListener('animationend', onEnd);
+    setTimeout(() => {
+        if (screen.classList.contains('closing')) {
+            screen.classList.remove('active', 'closing');
+        }
+    }, 360);
 }

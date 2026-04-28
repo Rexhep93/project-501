@@ -109,69 +109,58 @@
             </symbol>
             <symbol id="art-player" viewBox="0 0 100 100">
                 <defs>
-                    <radialGradient id="player-halo" cx="50%" cy="40%" r="55%">
-                        <stop offset="0%" stop-color="white" stop-opacity="0.22"/>
-                        <stop offset="65%" stop-color="white" stop-opacity="0.05"/>
-                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-                    </radialGradient>
                     <linearGradient id="player-shine" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="white" stop-opacity="0.35"/>
+                        <stop offset="0%" stop-color="white" stop-opacity="0.4"/>
                         <stop offset="100%" stop-color="white" stop-opacity="0"/>
                     </linearGradient>
                 </defs>
-                <!-- soft halo behind player -->
-                <circle cx="50" cy="44" r="40" fill="url(#player-halo)"/>
-                <!-- outer ring (premium frame) -->
-                <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.28"/>
-                <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.45"/>
-                <g fill="currentColor">
-                    <!-- head -->
-                    <circle cx="50" cy="40" r="11"/>
-                    <!-- shoulders / torso silhouette -->
-                    <path d="M 28 78 Q 28 56 50 56 Q 72 56 72 78 L 72 84 L 28 84 Z"/>
+                <!-- four-point sparkles around the player (career-path signal) -->
+                <g fill="currentColor" opacity="0.85">
+                    <path d="M 16 22 L 18 26 L 22 28 L 18 30 L 16 34 L 14 30 L 10 28 L 14 26 Z"/>
+                    <path d="M 84 22 L 86 26 L 90 28 L 86 30 L 84 34 L 82 30 L 78 28 L 82 26 Z"/>
+                    <path d="M 18 70 L 20 74 L 24 76 L 20 78 L 18 82 L 16 78 L 12 76 L 16 74 Z" opacity="0.7"/>
+                    <path d="M 82 70 L 84 74 L 88 76 L 84 78 L 82 82 L 80 78 L 76 76 L 80 74 Z" opacity="0.7"/>
                 </g>
-                <!-- gloss on head -->
-                <ellipse cx="46" cy="34" rx="4.5" ry="2.2" fill="url(#player-shine)"/>
-                <!-- jersey collar v-cut -->
-                <path d="M 44 60 L 50 67 L 56 60" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
+                <!-- player silhouette with shoulders and head, jersey number panel -->
+                <g fill="currentColor">
+                    <circle cx="50" cy="34" r="11"/>
+                    <path d="M 30 86 L 30 64 Q 30 52 50 52 Q 70 52 70 64 L 70 86 Z"/>
+                </g>
+                <!-- jersey number "10" carved into chest -->
+                <text x="50" y="76"
+                    text-anchor="middle"
+                    font-family="'Piazzolla', 'New York', ui-serif, Georgia, serif"
+                    font-weight="800"
+                    font-size="14"
+                    letter-spacing="-0.04em"
+                    fill="rgba(0,0,0,0.32)"
+                    style="font-variation-settings:'opsz' 30">10</text>
+                <!-- gloss highlight on top of head -->
+                <ellipse cx="46" cy="28" rx="4.5" ry="2" fill="url(#player-shine)"/>
             </symbol>
             <symbol id="art-whoami" viewBox="0 0 100 100">
                 <defs>
-                    <radialGradient id="whoami-halo" cx="50%" cy="36%" r="60%">
-                        <stop offset="0%" stop-color="white" stop-opacity="0.22"/>
-                        <stop offset="60%" stop-color="white" stop-opacity="0.04"/>
-                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-                    </radialGradient>
                     <linearGradient id="whoami-shine" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stop-color="white" stop-opacity="0.32"/>
                         <stop offset="100%" stop-color="white" stop-opacity="0"/>
                     </linearGradient>
                 </defs>
-                <!-- soft halo -->
-                <circle cx="50" cy="40" r="42" fill="url(#whoami-halo)"/>
-                <!-- silhouette with question mark cut-out -->
+                <!-- bust silhouette: head + shoulders -->
                 <g fill="currentColor">
                     <circle cx="50" cy="32" r="18"/>
                     <path d="M 18 96 Q 18 62 50 62 Q 82 62 82 96 Z"/>
                 </g>
-                <!-- bold question mark on the head -->
-                <text x="50" y="40"
+                <!-- BIG question mark on the head — the defining mark -->
+                <text x="50" y="42"
                     text-anchor="middle"
                     font-family="'Piazzolla', 'New York', ui-serif, Georgia, serif"
-                    font-weight="800"
-                    font-size="22"
-                    letter-spacing="-0.02em"
-                    fill="rgba(255,255,255,0.85)"
+                    font-weight="900"
+                    font-size="30"
+                    letter-spacing="-0.03em"
+                    fill="rgba(0,0,0,0.42)"
                     style="font-variation-settings:'opsz' 30">?</text>
-                <!-- gloss on top of head -->
-                <ellipse cx="46" cy="22" rx="6" ry="2.6" fill="url(#whoami-shine)"/>
-                <!-- subtle dotted aura accents (mystery) -->
-                <g fill="currentColor" opacity="0.55">
-                    <circle cx="14" cy="28" r="1.5"/>
-                    <circle cx="86" cy="28" r="1.5"/>
-                    <circle cx="10" cy="50" r="1.2"/>
-                    <circle cx="90" cy="50" r="1.2"/>
-                </g>
+                <!-- subtle gloss highlight on top of head -->
+                <ellipse cx="46" cy="20" rx="6" ry="2.6" fill="url(#whoami-shine)"/>
             </symbol>
             <symbol id="art-club" viewBox="0 0 100 100">
                 <defs>

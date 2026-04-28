@@ -68,15 +68,18 @@ const ART = {
     whistle: `<svg viewBox="0 0 100 100"><defs><linearGradient id="g-whistle-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8B9DC3"/><stop offset="1" stop-color="#2A4FAF"/></linearGradient></defs><path d="M20 44 Q20 30 34 30 L66 30 L82 46 Q82 70 60 70 L34 70 Q20 70 20 56 Z" fill="url(#g-whistle-fill)"/><path d="M24 36 Q28 32 36 32 L62 32" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/><circle cx="40" cy="50" r="9" fill="#F5F1E8"/><circle cx="40" cy="50" r="9" fill="none" stroke="#122560" stroke-opacity="0.4" stroke-width="1"/><circle cx="37" cy="47" r="2.5" fill="#ffffff" opacity="0.7"/><rect x="48" y="12" width="6" height="20" rx="3" fill="#C8102E"/><circle cx="51" cy="10" r="4" fill="none" stroke="#C8102E" stroke-width="2.4"/></svg>`,
 };
 
-// Palette
-const C_PLAYER = 'var(--player)', C_PLAYER_D = 'var(--player-dark)';
-const C_F10 = 'var(--football10)', C_F10_D = 'var(--football10-dark)';
-const C_CLUB = 'var(--club)', C_CLUB_D = 'var(--club-dark)';
-const C_WHOAMI = 'var(--whoami)', C_WHOAMI_D = 'var(--whoami-dark)';
-const C_ACCENT = 'var(--accent)', C_ACCENT_D = 'var(--accent-dark)';
-const C_WARN = 'var(--warn)', C_WARN_D = '#9E681F';
-const C_INK = 'var(--ink)', C_INK_D = 'var(--ink-shadow)';
-const C_GOLD = '#C89D3D', C_GOLD_D = '#8E6E22';  // for ultra-rare tiers
+// Palette — fixed deep tones that always meet WCAG AA against the
+// achievements' white text, in both light and dark mode. We deliberately
+// don't use theme tokens here because the lightened dark-mode variants
+// (e.g. cream var(--ink) = #F5F5F2) make white text invisible.
+const C_PLAYER = '#C8102E', C_PLAYER_D = '#8B0B1F';
+const C_F10    = '#0A6B3A', C_F10_D    = '#054524';
+const C_CLUB   = '#9A7610', C_CLUB_D   = '#5E4708';
+const C_WHOAMI = '#1D3B8F', C_WHOAMI_D = '#122560';
+const C_ACCENT = '#0A6B3A', C_ACCENT_D = '#054524';
+const C_WARN   = '#9A7610', C_WARN_D   = '#5E4708';
+const C_INK    = '#222222', C_INK_D    = '#0A0A0A';
+const C_GOLD   = '#9C7C2E', C_GOLD_D   = '#5E4708';
 
 // Helpers
 let num = 0;
